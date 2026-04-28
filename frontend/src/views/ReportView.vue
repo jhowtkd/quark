@@ -25,6 +25,9 @@
       </div>
 
       <div class="header-right">
+        <button v-if="reportTitle" class="header-action-btn" @click="copyReportLink" :title="$t('report.copyLink')">
+          <Icon name="link" :size="18" />
+        </button>
         <button v-if="reportTitle" class="header-action-btn" @click="printReport" :title="$t('report.print')">
           <Icon name="file-text" :size="18" />
         </button>
@@ -62,6 +65,16 @@
         :headings="reportHeadings"
         class="report-outline-panel"
       />
+
+      <!-- Print Header (visible only in print) -->
+      <div class="print-header">
+        <div class="print-brand">FUTUR.IA</div>
+        <div v-if="reportTitle" class="print-meta">
+          <div class="print-title">{{ reportTitle }}</div>
+          <div class="print-subtitle">{{ reportTopic }}</div>
+          <div class="print-id">ID: {{ currentReportId }}</div>
+        </div>
+      </div>
 
       <!-- Right Panel: Step4 Sínteses sendo emitidas... -->
       <div class="panel-wrapper right" :style="rightPanelStyle" ref="reportPanelRef">
@@ -267,6 +280,16 @@ const printReport = () => {
   window.print()
 }
 
+const copyReportLink = async () => {
+  const url = window.location.href
+  try {
+    await navigator.clipboard.writeText(url)
+    addLog(t('log.linkCopied'))
+  } catch (err) {
+    addLog(t('log.linkCopyFailed'))
+  }
+}
+
 // Watch route params
 watch(() => route.params.reportId, (newId) => {
   if (newId && newId !== currentReportId.value) {
@@ -275,15 +298,36 @@ watch(() => route.params.reportId, (newId) => {
   }
 }, { immediate: true })
 
+// --- Hash-based deep linking ---
+const scrollToHash = () => {
+  const hash = window.location.hash.slice(1)
+  if (hash) {
+    setTimeout(() => {
+      const el = document.getElementById(hash)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }, 500) // Wait for Step4Report to render
+  }
+}
+
+const onHashChange = () => {
+  scrollToHash()
+}
+
 onMounted(() => {
   addLog(t('log.reportViewInit'))
   loadReportData()
   // Delay observer init until Step4Report renders content
   setTimeout(initHeadingObserver, 2000)
+  // Handle initial hash
+  scrollToHash()
+  window.addEventListener('hashchange', onHashChange)
 })
 
 onUnmounted(() => {
   if (headingObserver) headingObserver.disconnect()
+  window.removeEventListener('hashchange', onHashChange)
 })
 </script>
 
@@ -472,5 +516,74 @@ onUnmounted(() => {
 .report-outline-panel {
   flex-shrink: 0;
   z-index: 10;
+}
+
+/* Print header (hidden on screen) */
+.print-header {
+  display: none;
+}
+
+/* Print styles */
+@media print {
+  .app-header,
+  .report-outline-panel,
+  .panel-wrapper.left,
+  .header-action-btn,
+  .view-switcher,
+  .language-switcher,
+  .step-divider,
+  .workflow-step,
+  .status-indicator {
+    display: none !important;
+  }
+
+  .content-area {
+    overflow: visible !important;
+  }
+
+  .panel-wrapper.right {
+    width: 100% !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .main-view {
+    height: auto !important;
+  }
+
+  .print-header {
+    display: block !important;
+    padding: 20px 0;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #000;
+    page-break-after: avoid;
+  }
+
+  .print-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .print-title {
+    font-family: var(--font-human);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .print-subtitle {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .print-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #999;
+  }
 }
 </style>

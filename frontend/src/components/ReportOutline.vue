@@ -66,6 +66,8 @@ const scrollTo = (id) => {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
     activeId.value = id
+    // Update URL hash without adding to history
+    history.replaceState(null, '', `#${id}`)
   }
 }
 </script>
