@@ -49,8 +49,15 @@
         />
       </div>
 
+      <!-- Center: Report Outline (sticky) -->
+      <ReportOutline
+        v-if="reportHeadings.length > 0"
+        :headings="reportHeadings"
+        class="report-outline-panel"
+      />
+
       <!-- Right Panel: Step4 Sínteses sendo emitidas... -->
-      <div class="panel-wrapper right" :style="rightPanelStyle">
+      <div class="panel-wrapper right" :style="rightPanelStyle" ref="reportPanelRef">
         <Step4Report
           :reportId="currentReportId"
           :simulationId="simulationId"
@@ -64,11 +71,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step4Report from '../components/Step4Report.vue'
+import ReportOutline from '../components/ReportOutline.vue'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation } from '../api/simulation'
 import { getReport } from '../api/report'
@@ -94,6 +102,34 @@ const graphData = ref(null)
 const graphLoading = ref(false)
 const systemLogs = ref([])
 const currentStatus = ref('processing') // processing | completed | error
+const reportHeadings = ref([])
+const reportPanelRef = ref(null)
+
+// --- Heading Extraction ---
+let headingObserver = null
+
+function extractHeadings() {
+  if (!reportPanelRef.value) return
+  const headings = reportPanelRef.value.querySelectorAll('h1, h2, h3, h4')
+  reportHeadings.value = Array.from(headings).map((el, i) => ({
+    id: el.id || `heading-${i}`,
+    text: el.textContent.trim(),
+    level: parseInt(el.tagName[1])
+  }))
+}
+
+function initHeadingObserver() {
+  if (!reportPanelRef.value) return
+  extractHeadings()
+  headingObserver = new MutationObserver(() => {
+    extractHeadings()
+  })
+  headingObserver.observe(reportPanelRef.value, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  })
+}
 
 // --- Computed Layout Styles ---
 const leftPanelStyle = computed(() => {
@@ -214,6 +250,12 @@ watch(() => route.params.reportId, (newId) => {
 onMounted(() => {
   addLog(t('log.reportViewInit'))
   loadReportData()
+  // Delay observer init until Step4Report renders content
+  setTimeout(initHeadingObserver, 2000)
+})
+
+onUnmounted(() => {
+  if (headingObserver) headingObserver.disconnect()
 })
 </script>
 
@@ -349,5 +391,10 @@ onMounted(() => {
 
 .panel-wrapper.left {
   border-right: 1px solid var(--color-outline);
+}
+
+.report-outline-panel {
+  flex-shrink: 0;
+  z-index: 10;
 }
 </style>

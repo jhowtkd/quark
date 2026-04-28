@@ -1885,11 +1885,65 @@ const truncateText = (text, maxLen) => {
   return text.substring(0, maxLen) + '...'
 }
 
+// Parse markdown tables into HTML
+const parseMarkdownTables = (content) => {
+  // Match table blocks: header row + separator + data rows
+  const tableRegex = /^(\|[^\n]+\|\n\|[\s\-:|]+\|\n(?:\|[^\n]+\|\n?)+)/gm
+  
+  return content.replace(tableRegex, (match) => {
+    const lines = match.trim().split('\n').filter(l => l.trim())
+    if (lines.length < 2) return match
+    
+    // Check if second line is a separator
+    const separatorLine = lines[1].trim()
+    if (!/^\|[\s\-:|]+\|$/.test(separatorLine)) return match
+    
+    // Parse header
+    const headerCells = lines[0].split('|').slice(1, -1).map(c => c.trim())
+    // Parse rows (skip header and separator)
+    const rows = lines.slice(2).map(line => {
+      return line.split('|').slice(1, -1).map(c => c.trim())
+    })
+    
+    let html = '<table class="report-table"><thead><tr>'
+    headerCells.forEach(cell => {
+      html += `<th>${cell}</th>`
+    })
+    html += '</tr></thead><tbody>'
+    
+    rows.forEach(row => {
+      html += '<tr>'
+      row.forEach(cell => {
+        html += `<td>${cell}</td>`
+      })
+      html += '</tr>'
+    })
+    html += '</tbody></table>'
+    
+    return html
+  })
+}
+
+// Parse data source tags like [📊 realizado] into styled spans
+const parseDataSourceTags = (content) => {
+  return content
+    .replace(/\[📊\s*realizado\]/g, '<span class="source-tag source-realizado">📊 realizado</span>')
+    .replace(/\[🔮\s*hip[oó]tese\]/g, '<span class="source-tag source-projecao">🔮 hipótese</span>')
+    .replace(/\[📈\s*consenso\]/g, '<span class="source-tag source-consenso">📈 consenso</span>')
+    .replace(/\[⚠️\s*simula[cç][aã]o\]/g, '<span class="source-tag source-simulacao">⚠️ simulação</span>')
+}
+
 const renderMarkdown = (content) => {
   if (!content) return ''
   
-  // Clean String Check Scope Outputs Control Return Displays Handling Event Execution Method Handling Loop Methods Rendering Displays Methods Action Properties Layout Run Format Exec Format Output Result Output Property Loop Execution Objects Property Prop Pattern Displays Display Object Objects Response Variables Values Formats Setup Output Mapping Handling Displays Display Array Call Values Scope Map Execute State Process Methods Values Returns Method Execution Variables Returns Execute Exec Logic Loop Display Check Run Control Prop Functions Format View Result Displays Output Mapping Component Setup Output Returns Return String Properties Output Map Props Rendering Returns Control Action String Array Run Variables Response Display Output Run Methods String Control Properties Response Displays View Components Process Pattern Formats Components Results Return Variables Values Handle Output Event Display Flow（## xxx），Header Info Hidden Logic Parent Wrapper Template Props Show Child Logic Components Display Variables Component Architecture View Hiding Visual Setup Parent Scopes Data Pass Output Structure Render Elements Flow Control Toggle Variables Control Display Elements DOM Views Props Boolean Logic Template Render DOM Element Show Output Logic Control Display Output Setup Scope Output Variable Rendering Target Visual Components Prop Boolean Output Object Output Vue Value Update Component DOM App Vue Method Component Target UI Views Toggle Variable Value App Run Boolean Value Vue Template Result View Render Logic Elements Model Prop Setup Vue Call Output Handle View Components App Run DOM State Data Binding Display DOM Component DOM Tree Control Flow Component Call Return Target Event DOM Execute Value Output View DOM Change Code DOM Elements Object Update Logic Component View Vue Watch Vue State Components Props Reactivity Change View Run Flow Methods Code Action Scope Component Binds Output Prop Elements Scope Object Render Display Component
-  let processedContent = content.replace(/^##\s+.+\n+/, '')
+  // Parse tables first (before other transformations)
+  let processedContent = parseMarkdownTables(content)
+  
+  // Parse data source tags
+  processedContent = parseDataSourceTags(processedContent)
+  
+  // Remove first H2 (used as section title)
+  processedContent = processedContent.replace(/^##\s+.+\n+/, '')
   
   // Format Syntax Highlight Block Parser Code Execute Render Pre Tags Content View DOM Flow String Replace Value CSS Styles Control Handle Run Formats Target Setup Layout Regex Component Return Render String Check Replace Methods Output Parse Markdown Transform Data Control Value DOM Check Action Vue App Logic Vue View Components View Component Output Handle Run Check Formats Control Target Result Flow DOM Method Return Format Execution Component Vue Call Execute Return Setup Code Execution Vue String Values Replace Target Array Flow Render Setup Execution Flow String Replace Code Results Components Call Method App Layout Format Component Output Format Render Output App Logic Methods Flow Render Syntax Handle Transform Parse View Call Target String Methods Code Setup Replace Array
   let html = processedContent.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="code-block"><code>$2</code></pre>')
@@ -1897,11 +1951,12 @@ const renderMarkdown = (content) => {
   // Outputs Variables Output Display Returns Props Code Execute Object Results Variable Render Match Result Displays Results Pattern Result Return Action App Returns Run Scope Check Results Mapping Layout Array Output Return Execution Methods View Displays Maps Results Component Action Flow Method Action Logic Method Run State Loop Exec Fetch Target Arrays Mapping Values Functions Method String Method Call Format Mapping Object Outputs Action Variable Data Outputs Value Control Handling Data Action Event String Map Execute View Call Formats Flow Layout Flow Event Formats Output Result Logic Outputs Mapping Render Array Exec Results Array Target Execute Check Displays Outputs Handle Methods Flow Fetch Props Output Value Setup Handling Methods Call Arrays View Props Execution Data Check Fetch Results Output Result Output Results Component Formats
   html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
   
-  // Formata topicos
-  html = html.replace(/^#### (.+)$/gm, '<h5 class="md-h5">$1</h5>')
-  html = html.replace(/^### (.+)$/gm, '<h4 class="md-h4">$1</h4>')
-  html = html.replace(/^## (.+)$/gm, '<h3 class="md-h3">$1</h3>')
-  html = html.replace(/^# (.+)$/gm, '<h2 class="md-h2">$1</h2>')
+  // Formata topicos with IDs for outline navigation
+  const slugify = (text) => text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').substring(0, 50)
+  html = html.replace(/^#### (.+)$/gm, (_, t) => `<h5 class="md-h5" id="h5-${slugify(t)}">${t}</h5>`)
+  html = html.replace(/^### (.+)$/gm, (_, t) => `<h4 class="md-h4" id="h4-${slugify(t)}">${t}</h4>`)
+  html = html.replace(/^## (.+)$/gm, (_, t) => `<h3 class="md-h3" id="h3-${slugify(t)}">${t}</h3>`)
+  html = html.replace(/^# (.+)$/gm, (_, t) => `<h2 class="md-h2" id="h2-${slugify(t)}">${t}</h2>`)
   
   // 处理Referência PointerChunks Format Results Array Handling Data Target Fetch Response Output View Run Exec Flow Component Return Render Variable Object Scope Values Execution Exec Result Function Flow View Render Execute Method Formatting Call Output Exec Prop Variable Results Formatting Handling Value Model Target Data Display Event Fetch Flow Call Mapping Response Mapping Fetch Array DOM Model Execution Fetch Variable Mapping Component Run Flow Output Arrays Map Loop Layout Handle Response Execute Component Handling Output DOM Value Data Object Result Result Variable Event Call Mapping Format Array Arrays Method Setup Variables Exec Output Rendering Execute Output Variables Exec Components Layout Handling Array Match Display Flow Control Function Loop Mapping Action Match Exec Event Output Response View Mapping Formatting Array Render Scope Array Call Data Event Mapping Flow Result Pattern Output Execution Function Pattern Array Function Result Method String Result Format Returns Map Layout
   html = html.replace(/^> (.+)$/gm, '<blockquote class="md-quote">$1</blockquote>')
@@ -5238,6 +5293,73 @@ watch(() => props.reportId, (newId) => {
   font-size: 13px;
   color: #92400E;
   font-weight: 500;
+}
+
+/* Report tables */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-4) 0;
+  font-size: var(--text-sm);
+  overflow-x: auto;
+  display: block;
+}
+
+.report-table thead {
+  background: var(--color-surface-container-low);
+  border-bottom: 2px solid var(--color-outline);
+}
+
+.report-table th,
+.report-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.report-table th {
+  font-family: var(--font-machine);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-on-background);
+}
+
+.report-table tbody tr:hover {
+  background: var(--color-surface-container-low);
+}
+
+/* Data source tags */
+.source-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  font-family: var(--font-machine);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  line-height: 1.4;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.source-realizado {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.source-consenso {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.source-projecao {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.source-simulacao {
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 </style>
 
