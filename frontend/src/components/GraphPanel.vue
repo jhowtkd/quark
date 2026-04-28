@@ -1058,6 +1058,14 @@ input:checked + .slider:before {
   flex-direction: column;
 }
 
+@media (max-width: 768px) {
+  .detail-panel {
+    width: calc(100% - 40px);
+    left: 20px;
+    right: 20px;
+  }
+}
+
 .detail-panel-header {
   display: flex;
   justify-content: space-between;

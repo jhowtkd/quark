@@ -2489,6 +2489,14 @@ watch(() => props.reportId, (newId) => {
   padding: 30px 50px 60px 50px;
 }
 
+@media (max-width: 768px) {
+  .left-panel.report-style {
+    width: 100%;
+    min-width: 0;
+    padding: 20px;
+  }
+}
+
 .left-panel::-webkit-scrollbar {
   width: 6px;
 }

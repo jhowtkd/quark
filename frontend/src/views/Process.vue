@@ -1450,6 +1450,14 @@ onUnmounted(() => {
   z-index: 100;
 }
 
+@media (max-width: 768px) {
+  .detail-panel {
+    width: calc(100% - 32px);
+    left: 16px;
+    right: 16px;
+  }
+}
+
 .detail-panel-header {
   display: flex;
   align-items: center;
