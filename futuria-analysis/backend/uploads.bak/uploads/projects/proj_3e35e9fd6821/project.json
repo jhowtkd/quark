@@ -1,0 +1,459 @@
+{
+  "project_id": "proj_3e35e9fd6821",
+  "name": "Unnamed Project",
+  "status": "graph_completed",
+  "created_at": "2026-04-13T12:27:11.930967",
+  "updated_at": "2026-04-13T12:35:31.435797",
+  "files": [
+    {
+      "filename": "masterbriefing_lancamento_imersao_nr_1.md",
+      "size": 10468
+    }
+  ],
+  "total_text_length": 10152,
+  "ontology": {
+    "entity_types": [
+      {
+        "name": "Professor",
+        "description": "Docentes especialistas que conduzem a imersão NR-1 e possuem autoridade técnica no tema",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do professor"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "description": "Título acadêmico ou profissional"
+          },
+          {
+            "name": "expertise_area",
+            "type": "text",
+            "description": "Área de especialização técnica"
+          }
+        ],
+        "examples": [
+          "Prof. Carlos Silva",
+          "Dra. Ana Oliveira",
+          "Especialista em NR-1"
+        ]
+      },
+      {
+        "name": "Rhprofessional",
+        "description": "Profissionais de Recursos Humanos que atuam na implementação de políticas organizacionais",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do profissional"
+          },
+          {
+            "name": "position",
+            "type": "text",
+            "description": "Cargo atual na organização"
+          },
+          {
+            "name": "company_name",
+            "type": "text",
+            "description": "Nome da empresa onde atua"
+          }
+        ],
+        "examples": [
+          "Gerente de RH",
+          "Analista de Desenvolvimento Organizacional",
+          "Coordenador de Pessoas"
+        ]
+      },
+      {
+        "name": "Sstprofessional",
+        "description": "Profissionais de Segurança e Saúde no Trabalho responsáveis pela conformidade normativa",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do profissional"
+          },
+          {
+            "name": "certification",
+            "type": "text",
+            "description": "Certificação ou registro profissional"
+          },
+          {
+            "name": "company_name",
+            "type": "text",
+            "description": "Nome da empresa ou consultoria"
+          }
+        ],
+        "examples": [
+          "Técnico em Segurança",
+          "Engenheiro de Segurança",
+          "Especialista em SST"
+        ]
+      },
+      {
+        "name": "OrganizationalPsychologist",
+        "description": "Psicólogos especializados em ambiente organizacional e saúde mental no trabalho",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do psicólogo"
+          },
+          {
+            "name": "crp_number",
+            "type": "text",
+            "description": "Número de registro no CRP"
+          },
+          {
+            "name": "focus_area",
+            "type": "text",
+            "description": "Área de atuação principal"
+          }
+        ],
+        "examples": [
+          "Psicólogo Organizacional",
+          "Consultor de Clima Organizacional"
+        ]
+      },
+      {
+        "name": "BusinessConsultant",
+        "description": "Consultores independentes ou de firmas que advising empresas sobre conformidade NR-1",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do consultor ou razão social"
+          },
+          {
+            "name": "firm_name",
+            "type": "text",
+            "description": "Nome da consultoria ou empresa"
+          },
+          {
+            "name": "specialization",
+            "type": "text",
+            "description": "Área de especialização"
+          }
+        ],
+        "examples": [
+          "Consultor de Compliance Trabalhista",
+          "Assessoria em SST"
+        ]
+      },
+      {
+        "name": "BusinessLeader",
+        "description": "Líderes executivos e gestores que tomam decisões sobre implementação de políticas nas empresas",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do líder"
+          },
+          {
+            "name": "role",
+            "type": "text",
+            "description": "Posição ou cargo de liderança"
+          },
+          {
+            "name": "company_name",
+            "type": "text",
+            "description": "Nome da empresa"
+          }
+        ],
+        "examples": [
+          "CEO",
+          "Diretor de Operações",
+          "Gerente Geral"
+        ]
+      },
+      {
+        "name": "MediaOutlet",
+        "description": "Veículos de mídia, portais e canais que publicam conteúdo sobre NR-1 e riscos psicossociais",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome do veículo de comunicação"
+          },
+          {
+            "name": "media_type",
+            "type": "text",
+            "description": "Tipo de mídia: digital, impressa, TV, podcast"
+          },
+          {
+            "name": "reach_scope",
+            "type": "text",
+            "description": "Alcance: nacional, regional, especializado"
+          }
+        ],
+        "examples": [
+          "Revista Proteção",
+          "Portal SST Brasil",
+          "Canal de YouTube sobre RH"
+        ]
+      },
+      {
+        "name": "RegulatoryAgency",
+        "description": "Órgãos governamentais e agências reguladoras responsáveis pela NR-1 e fiscalização trabalhista",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome oficial do órgão"
+          },
+          {
+            "name": "jurisdiction",
+            "type": "text",
+            "description": "Escopo de atuação"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "description": "Função regulatória principal"
+          }
+        ],
+        "examples": [
+          "Ministério do Trabalho",
+          "Fundacentro",
+          "Auditoria Fiscal do Trabalho"
+        ]
+      },
+      {
+        "name": "Person",
+        "description": "Qualquer indivíduo natural que pode interagir em redes sociais sobre o tema NR-1",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do indivíduo"
+          },
+          {
+            "name": "occupation",
+            "type": "text",
+            "description": "Profissão ou ocupação"
+          }
+        ],
+        "examples": [
+          "Funcionário preocupada com saúde mental",
+          "Estudante de Administração",
+          "Usuário comum"
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Qualquer organização que não se encaixe em tipos específicos de organização",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome da organização"
+          },
+          {
+            "name": "org_type",
+            "type": "text",
+            "description": "Tipo de organização"
+          }
+        ],
+        "examples": [
+          "Associação de Classe",
+          "Sindicato Profissional",
+          "ONG de Saúde do Trabalhador"
+        ]
+      }
+    ],
+    "edge_types": [
+      {
+        "name": "WORKS_FOR",
+        "description": "Indica vínculo empregatício ou colaboração profissional entre pessoa e organização",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Organization"
+          },
+          {
+            "source": "Rhprofessional",
+            "target": "Organization"
+          },
+          {
+            "source": "Sstprofessional",
+            "target": "Organization"
+          },
+          {
+            "source": "OrganizationalPsychologist",
+            "target": "Organization"
+          },
+          {
+            "source": "BusinessConsultant",
+            "target": "Organization"
+          },
+          {
+            "source": "BusinessLeader",
+            "target": "Organization"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "SUPPORTS",
+        "description": "Indica alinhamento ou apoio a uma posição sobre NR-1 e riscos psicossociais",
+        "source_targets": [
+          {
+            "source": "Person",
+            "target": "Person"
+          },
+          {
+            "source": "Organization",
+            "target": "Person"
+          },
+          {
+            "source": "Rhprofessional",
+            "target": "Professor"
+          },
+          {
+            "source": "Sstprofessional",
+            "target": "Professor"
+          },
+          {
+            "source": "MediaOutlet",
+            "target": "Person"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "OPPOSES",
+        "description": "Indica disagreement ou crítica a uma posição, interpretação ou implementação",
+        "source_targets": [
+          {
+            "source": "Person",
+            "target": "Person"
+          },
+          {
+            "source": "BusinessLeader",
+            "target": "RegulatoryAgency"
+          },
+          {
+            "source": "Sstprofessional",
+            "target": "MediaOutlet"
+          },
+          {
+            "source": "Organization",
+            "target": "Organization"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "REPORTS_ON",
+        "description": "Indica publicação ou cobertura midiática sobre tema relacionado a NR-1",
+        "source_targets": [
+          {
+            "source": "MediaOutlet",
+            "target": "RegulatoryAgency"
+          },
+          {
+            "source": "MediaOutlet",
+            "target": "Organization"
+          },
+          {
+            "source": "MediaOutlet",
+            "target": "Professor"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "REGULATES",
+        "description": "Indica poder regulatório ou fiscalizatório sobre organizações e profissionais",
+        "source_targets": [
+          {
+            "source": "RegulatoryAgency",
+            "target": "Organization"
+          },
+          {
+            "source": "RegulatoryAgency",
+            "target": "Person"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "SEEKS_INFO",
+        "description": "Indica busca por informações ou esclarecimentos sobre NR-1 e riscos psicossociais",
+        "source_targets": [
+          {
+            "source": "Person",
+            "target": "Professor"
+          },
+          {
+            "source": "Rhprofessional",
+            "target": "BusinessConsultant"
+          },
+          {
+            "source": "Person",
+            "target": "MediaOutlet"
+          },
+          {
+            "source": "BusinessLeader",
+            "target": "Sstprofessional"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "COLLABORATES_WITH",
+        "description": "Indica parceria ou colaboração entre profissionais ou organizações",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Professor"
+          },
+          {
+            "source": "Sstprofessional",
+            "target": "OrganizationalPsychologist"
+          },
+          {
+            "source": "BusinessConsultant",
+            "target": "Rhprofessional"
+          },
+          {
+            "source": "MediaOutlet",
+            "target": "Organization"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "INFLUENCES",
+        "description": "Indica capacidade de influenciar opinião pública ou decisões organizacionais",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Person"
+          },
+          {
+            "source": "MediaOutlet",
+            "target": "Organization"
+          },
+          {
+            "source": "BusinessLeader",
+            "target": "Organization"
+          },
+          {
+            "source": "OrganizationalPsychologist",
+            "target": "Rhprofessional"
+          }
+        ],
+        "attributes": []
+      }
+    ]
+  },
+  "analysis_summary": "Este documento descreve um projeto de imersão online sobre NR-1 e Riscos Psicossociais, destinado a profissionais de RH, SST, psicólogos organizacionais, consultores e lideranças empresariais. O esquema de ontologia captura os principais atores do ecossistema: professores especialistas (fonte de autoridade), profissionais técnicos que precisam entender a norma, empresas que precisam se adequar, mídia que gera ruído informativo, e órgãos reguladores. As relações modelam interações típicas de redes sociais como apoio/crítica a posições, busca por informações, cobertura midiática, poder regulatório e influência sobre opiniões. O modelo permite simular como diferentes stakeholders reagem às orientações da NR-1, compartilham informações e influenciam o discourse público sobre o tema.",
+  "graph_id": "mirofish_040eeb88fdea4442",
+  "graph_build_task_id": "bbe9e7ce-fa5c-40bf-9951-c36184ee6657",
+  "simulation_requirement": "Gere críticas sobre a estratégia.\r\n",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "error": null
+}

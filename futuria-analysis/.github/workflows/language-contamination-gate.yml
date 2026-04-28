@@ -1,0 +1,78 @@
+name: Language Contamination Gate
+
+on:
+  pull_request:
+    paths:
+      # Watch the surfaces we enforce
+      - "backend/app/services/report_agent.py"
+      - "backend/app/services/zep_tools.py"
+      - "backend/app/api/report.py"
+      - "backend/app/utils/locale.py"
+      - "backend/app/utils/language_integrity.py"
+      # Watch the scanner and policy
+      - "scripts/check_language_contamination.py"
+      - "config/language_policy.json"
+      # Watch persisted artifacts (representative samples)
+      - "backend/uploads/reports/**/*.md"
+      - "backend/uploads/reports/**/*.json"
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  contamination-gate:
+    name: Language Integrity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Python
+        run: python3 --version
+
+      - name: Run Language Contamination Gate (reporting-backend)
+        run: |
+          echo "=== Language Contamination Gate: reporting-backend scope ==="
+          echo "This gate detects forbidden-script (CJK, Cyrillic, fullwidth, etc.)"
+          echo "regressions in reporting-critical backend surfaces."
+          echo ""
+          python3 scripts/check_language_contamination.py \
+            --scope reporting-backend \
+            --repo-root . \
+            --fail-on-policy-breach
+        id: backend-gate
+
+      - name: Run Language Contamination Gate (reporting artifacts)
+        run: |
+          echo "=== Language Contamination Gate: persisted artifacts ==="
+          echo "Scanning representative persisted report artifacts."
+          echo ""
+          python3 scripts/normalize_report_artifacts.py \
+            --scope reporting \
+            --dry-run \
+            --fail-on-contamination
+        id: artifacts-gate
+        continue-on-error: true
+
+      - name: Report Summary
+        run: |
+          echo ""
+          echo "=== Gate Summary ==="
+          echo "If either gate shows BREACH or non-zero exit:"
+          echo "  1. Check the scan output above for the specific files"
+          echo "  2. Known-dirty files should have expected_contamination:true in config/language_policy.json"
+          echo "  3. Files that should be clean should be remediated"
+          echo ""
+          echo "Commands for local verification:"
+          echo "  # Check backend surfaces"
+          echo "  python3 scripts/check_language_contamination.py --scope reporting-backend --fail-on-policy-breach"
+          echo ""
+          echo "  # Check persisted artifacts"
+          echo "  python3 scripts/normalize_report_artifacts.py --scope reporting --fail-on-contamination"
+          echo ""
+          echo "  # Via npm"
+          echo "  npm run check:language-reporting"

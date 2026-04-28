@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "progress": -1,
+  "message": "Uma força destrutiva engoliu e corrompeu parte expressiva das cadeias base da geração: Error code: 429 - {'type': 'error', 'error': {'type': 'rate_limit_error', 'message': 'The Token Plan is designed for individual, interactive developer workflows. Traffic is currently high—please retry shortly. For higher concurrency or automated workloads, consider upgrading to a higher-tier plan or using the pay-as-you-go API. (2062)', 'http_code': '429'}, 'request_id': '06309d32c1e270e6e948aeb6a406124d'}",
+  "current_section": null,
+  "completed_sections": [],
+  "updated_at": "2026-04-16T20:01:06.321358"
+}

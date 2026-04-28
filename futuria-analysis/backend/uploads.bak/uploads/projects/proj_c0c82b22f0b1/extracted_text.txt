@@ -1,0 +1,330 @@
+
+
+=== masterbriefing_lancamento_imersao_nr_1.md ===
+# Masterbriefing — Imersão NR-1: Riscos Psicossociais na Prática
+
+## 1. Visão geral do projeto
+Este projeto tem como objetivo lançar um evento fechado, pago e de curta duração para capturar demanda, construir autoridade, qualificar audiência e preparar terreno para a futura oferta do curso principal, que ainda está em definição.
+
+O evento será uma imersão online de 2 encontros, conduzida pelos 3 professores envolvidos no projeto, com foco em interpretação prática, leitura do cenário regulatório e aplicação inicial dos riscos psicossociais dentro das empresas.
+
+O papel da imersão não é esgotar o tema. O papel da imersão é organizar o caos do mercado, gerar clareza, mostrar critério técnico e posicionar os professores como referências confiáveis para aprofundamento posterior.
+
+---
+
+## 2. Nome oficial do evento
+**Imersão NR-1: Riscos Psicossociais na Prática**
+
+### Slug oficial
+**O que sua empresa precisa entender para sair da confusão e começar certo**
+
+---
+
+## 3. Objetivo principal
+Realizar uma imersão enxuta e vendável, com linguagem clara e posicionamento técnico, para:
+
+- atrair público qualificado
+- validar apelo comercial do tema
+- posicionar os professores com autoridade
+- transformar confusão regulatória em oportunidade de educação
+- abrir caminho para o produto principal, ainda não definido
+
+---
+
+## 4. Objetivos secundários
+- testar narrativa e promessa de mercado
+- mapear dúvidas e objeções da audiência
+- identificar os recortes de maior interesse
+- mensurar interesse real para uma formação maior
+- fortalecer a percepção de valor dos professores e do projeto
+
+---
+
+## 5. Formato do produto de entrada
+**Formato:** live fechada / transmissão online fechada
+**Duração:** 2 encontros
+**Modelo:** imersão prática
+**Preço definido:** R$ 47
+**Janela prevista:** última semana de abril
+**Participantes centrais:** os 3 professores
+
+### Leitura estratégica do formato
+O evento não deve ser tratado como webinar gratuito premiumizado nem como mini curso inflado. Ele deve ser percebido como uma imersão curta, séria, aplicada e útil, voltada para quem precisa clareza e direção prática diante da NR-1.
+
+---
+
+## 6. Produto principal
+O produto principal, chamado internamente de “cursão”, permanece **em definição**.
+
+### Ainda em aberto
+- nome final
+- carga horária final
+- grade modular definitiva
+- entregáveis
+- bônus
+- preço
+- formato de suporte
+
+### Diretriz oficial
+O evento de entrada não deve prometer estrutura fechada do produto principal enquanto essas definições não estiverem consolidadas.
+
+O máximo recomendado é abrir espaço para:
+- lista de interesse
+- próxima etapa
+- aprofundamento
+- turma futura
+
+---
+
+## 7. Público-alvo principal
+### Núcleo principal
+- profissionais de RH
+- profissionais de SST
+- lideranças e técnicos envolvidos com adequação organizacional
+- profissionais que precisam interpretar e operacionalizar riscos psicossociais nas empresas
+
+### Núcleo secundário
+- psicólogos organizacionais
+- consultores
+- profissionais de saúde ocupacional
+
+### Perfil geral da audiência
+Pessoas que estão vendo o mercado falar sobre NR-1 e riscos psicossociais, mas ainda estão com dificuldade de entender:
+- o que realmente mudou
+- o que é exigência real
+- o que é ruído de mercado
+- por onde começar com segurança técnica
+
+---
+
+## 8. Dor central do público
+A audiência está enfrentando uma mistura de:
+- confusão regulatória
+- excesso de conteúdo raso
+- medo de errar interpretação
+- insegurança sobre implementação
+- dificuldade de traduzir teoria em aplicação prática
+
+### Formulação da dor em linguagem de mercado
+“As empresas estão ouvindo muito sobre NR-1 e riscos psicossociais, mas ainda não sabem o que de fato precisam entender, o que realmente precisa ser feito e por onde começar sem improviso.”
+
+---
+
+## 9. Transformação prometida pela imersão
+Ao final da imersão, o participante deve sair com:
+- mais clareza sobre o que está em jogo
+- entendimento mais objetivo sobre riscos psicossociais e NR-1
+- visão prática de como começar
+- leitura mais madura sobre o que é prioridade
+- segurança maior para evitar decisões apressadas ou superficiais
+
+### O que a imersão não promete
+- adequação completa da empresa
+- certificação profissional plena
+- resolução integral de todos os cenários possíveis
+- substituição de consultoria ou implantação formal
+
+---
+
+## 10. Posicionamento do evento
+O evento deve ser posicionado como uma **imersão prática e técnica para organizar entendimento e apontar direção**.
+
+### O que ele é
+- encontro aplicado
+- leitura séria do tema
+- ponte entre norma e realidade
+- orientação prática inicial
+
+### O que ele não é
+- aula genérica sobre saúde mental corporativa
+- conteúdo motivacional
+- webinar promocional vazio
+- curso completo de implementação
+
+---
+
+## 11. Tom de comunicação
+### Direção de tom
+- técnico, mas acessível
+- sério, mas não travado
+- confiante, mas sem arrogância
+- prático, sem simplificação burra
+- comercial, sem parecer infoproduto apelativo
+
+### O que evitar
+- promessas exageradas
+- dramatização excessiva
+- linguagem alarmista
+- excesso de juridiquês
+- comunicação com cara de palestra gratuita genérica
+
+---
+
+## 12. Percepção de valor
+O preço de R$ 47 foi definido como ponto de equilíbrio entre acessibilidade e valor percebido.
+
+### O que esse preço precisa comunicar
+- não é gratuito disfarçado
+- não é conteúdo superficial
+- é acessível, mas sério
+- filtra melhor do que R$ 27
+- prepara melhor terreno para eventual produto principal
+
+### Implicação prática
+Esse ticket exige:
+- headline forte
+- apresentação sólida dos professores
+- promessa clara
+- estrutura enxuta e bem embalada
+
+---
+
+## 13. Papel dos professores
+Os professores são o principal ativo de autoridade do projeto.
+
+### Função estratégica deles
+- dar credibilidade
+- sustentar o valor do ticket
+- mostrar leitura prática do tema
+- diferenciar o projeto de conteúdos rasos do mercado
+
+### Implicação
+A comunicação deve explorar com inteligência:
+- trajetória
+- repertório técnico
+- experiência em contexto real
+- capacidade de traduzir teoria em prática
+
+Sem transformar a página em currículo puro.
+
+---
+
+## 14. Mensagem central do projeto
+### Tese principal
+Existe muito ruído no mercado sobre NR-1 e riscos psicossociais. A imersão surge para ajudar empresas e profissionais a entenderem o que realmente importa e como começar com mais critério.
+
+### Formulação recomendada
+“Em 2 encontros fechados, vamos mostrar o que muda com a NR-1, como interpretar os riscos psicossociais com seriedade e por onde começar a aplicação prática dentro das empresas.”
+
+---
+
+## 15. Ideias de promessa
+### Promessa-base
+Entender o que muda, o que é exigido e como começar sem improviso.
+
+### Promessa expandida
+Sair da confusão do mercado e ganhar clareza prática sobre como ler, interpretar e iniciar a aplicação dos riscos psicossociais nas empresas.
+
+---
+
+## 16. Estrutura temática sugerida para os 2 encontros
+### Encontro 1
+**Tema central:** entendimento e interpretação do cenário
+
+Possíveis eixos:
+- o que a NR-1 realmente muda
+- o que está sendo mal interpretado no mercado
+- o que são riscos psicossociais na prática
+- erros mais comuns de leitura
+- por que tantas empresas ainda estão perdidas
+
+### Encontro 2
+**Tema central:** aplicação e primeiros passos
+
+Possíveis eixos:
+- como sair da teoria
+- por onde começar internamente
+- o que observar
+- como pensar prioridades
+- quais erros evitar na tentativa de adequação
+- próximos passos para aprofundamento
+
+### Observação
+A grade final deve ser fechada depois com base no conteúdo e conforto dos professores.
+
+---
+
+## 17. Estrutura comercial recomendada
+### O evento deve vender
+- clareza
+- aplicação
+- leitura crítica do cenário
+- direcionamento inicial
+
+### O evento não deve vender
+- formação completa já no front
+- promessa de domínio total do tema
+- solução universal para qualquer empresa
+
+### CTA principal do evento
+Inscrição na imersão fechada por R$ 47.
+
+### CTA pós-evento
+Interesse ou próxima etapa relacionada ao produto principal, sem prometer mais do que já estiver definido.
+
+---
+
+## 18. Principais diferenciais a explorar
+- foco prático
+- leitura técnica sem ruído
+- professores com autoridade real
+- tradução da norma para a realidade das empresas
+- discussão aplicável, e não apenas teórica
+
+---
+
+## 19. Riscos do projeto
+### Riscos estratégicos
+- parecer genérico demais
+- parecer alarmista demais
+- parecer superficial demais
+
+### Riscos comerciais
+- promessa fraca para sustentar o ticket
+- página excessivamente técnica e pouco vendável
+- falta de clareza sobre o que a pessoa recebe ao entrar
+
+### Riscos de execução
+- grade mal fechada
+- professores sem alinhamento narrativo
+- excesso de conteúdo e pouca direção
+- dificuldade de costurar a ponte para o produto principal
+
+---
+
+## 20. O que precisa ser decidido na próxima etapa
+- headline principal
+- subtítulo final da página
+- promessa oficial
+- grade fechada dos 2 encontros
+- bios resumidas dos professores
+- bullets de valor do evento
+- CTA final
+- estrutura de pós-evento
+
+---
+
+## 21. Entregáveis de comunicação recomendados a partir deste briefing
+A próxima fase pode desdobrar este masterbriefing em:
+
+1. copy da landing page
+2. headline e subtítulo
+3. bullets de venda
+4. texto de anúncios
+5. roteiro de WhatsApp
+6. roteiro de e-mails
+7. roteiro de apresentação do evento
+8. texto de checkout
+
+---
+
+## 22. Síntese executiva
+**Imersão NR-1: Riscos Psicossociais na Prática** é um evento fechado e pago, com 2 encontros, criado para transformar o ruído do mercado em clareza aplicável.
+
+O foco da comunicação deve ser mostrar que esta não é mais uma aula genérica sobre o tema, mas uma imersão curta, séria e prática para quem precisa entender o que realmente importa, o que muda com a NR-1 e como começar certo.
+
+O preço de R$ 47 deve ser sustentado por autoridade bem apresentada, promessa clara, estrutura enxuta e linguagem madura.
+
+O produto principal continua em aberto e não deve ser vendido como algo totalmente definido até que sua arquitetura seja consolidada.
+
+Este documento passa a ser a referência-mestre do projeto para todas as próximas peças de estratégia, copy e execução.

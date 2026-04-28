@@ -1,0 +1,452 @@
+{
+  "project_id": "proj_9dece326bfbf",
+  "name": "Unnamed Project",
+  "status": "failed",
+  "created_at": "2026-04-13T17:09:30.319033",
+  "updated_at": "2026-04-13T17:10:18.642384",
+  "files": [
+    {
+      "filename": "deep-research-report (2).md",
+      "size": 27165
+    }
+  ],
+  "total_text_length": 25420,
+  "ontology": {
+    "entity_types": [
+      {
+        "name": "Individual",
+        "description": "Pessoa física que acompanha dieta, treino e saúde com métricas pessoais de fitness e saúde",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do indivíduo"
+          },
+          {
+            "name": "age",
+            "type": "integer",
+            "description": "Idade em anos"
+          },
+          {
+            "name": "height_cm",
+            "type": "float",
+            "description": "Altura em centímetros"
+          },
+          {
+            "name": "baseline_weight",
+            "type": "float",
+            "description": "Peso baseline em kg"
+          },
+          {
+            "name": "baseline_bf_percent",
+            "type": "float",
+            "description": "Percentual de gordura corporal baseline"
+          }
+        ],
+        "examples": [
+          "Filipe"
+        ]
+      },
+      {
+        "name": "Nutritionist",
+        "description": "Profissional de nutrição que prescreve planos alimentares e monitora ingestão calórica e macronut...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do nutricionista"
+          },
+          {
+            "name": "specialization",
+            "type": "text",
+            "description": "Área de especialização"
+          },
+          {
+            "name": "license_number",
+            "type": "text",
+            "description": "Número de registro profissional"
+          }
+        ],
+        "examples": [
+          "Nutricionista responsável pelo plano Reset Metabólico"
+        ]
+      },
+      {
+        "name": "FitnessCoach",
+        "description": "Profissional de educação física que desenha rotinas de treino e monitora volume e intensidade de ...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do coach"
+          },
+          {
+            "name": "certification",
+            "type": "text",
+            "description": "Certificação profissional"
+          },
+          {
+            "name": "training_philosophy",
+            "type": "text",
+            "description": "Filosofia de treino adotada"
+          }
+        ],
+        "examples": [
+          "Coach responsável pelo programa Push/Pull/Legs"
+        ]
+      },
+      {
+        "name": "PrescribingPhysician",
+        "description": "Médico que prescreve e supervisiona o uso de medicações como retatrutida",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do médico"
+          },
+          {
+            "name": "specialty",
+            "type": "text",
+            "description": "Especialidade médica"
+          },
+          {
+            "name": "clinic_name",
+            "type": "text",
+            "description": "Nome da clínica ou hospital"
+          }
+        ],
+        "examples": [
+          "Médico prescritor da retatrutida"
+        ]
+      },
+      {
+        "name": "Laboratory",
+        "description": "Laboratório clínico que realiza exames laboratoriais de sangue e outros biomarcadores",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome do laboratório"
+          },
+          {
+            "name": "accreditation",
+            "type": "text",
+            "description": "Certificação de acreditação"
+          },
+          {
+            "name": "location",
+            "type": "text",
+            "description": "Localização do laboratório"
+          }
+        ],
+        "examples": [
+          "Laboratório responsável pelos exames de 20/03/2026"
+        ]
+      },
+      {
+        "name": "MedicalReport",
+        "description": "Documento ou relatório contendo resultados de exames laboratoriais e interpretações clínicas",
+        "attributes": [
+          {
+            "name": "report_date",
+            "type": "date",
+            "description": "Data do relatório"
+          },
+          {
+            "name": "report_type",
+            "type": "text",
+            "description": "Tipo de relatório"
+          },
+          {
+            "name": "key_findings",
+            "type": "text",
+            "description": "Principais achados"
+          }
+        ],
+        "examples": [
+          "Exames cardiometabólicos 20/03/2026",
+          "Laudo laboratorial"
+        ]
+      },
+      {
+        "name": "TrainingProgram",
+        "description": "Programa estruturado de exercícios físicos com rotinas, volumes e progressões definidas",
+        "attributes": [
+          {
+            "name": "program_name",
+            "type": "text",
+            "description": "Nome do programa"
+          },
+          {
+            "name": "split_type",
+            "type": "text",
+            "description": "Tipo de divisão de treino"
+          },
+          {
+            "name": "target_volume",
+            "type": "integer",
+            "description": "Volume alvo de séries por semana"
+          }
+        ],
+        "examples": [
+          "Reset Metabólico & Definição",
+          "Push/Pull/Legs"
+        ]
+      },
+      {
+        "name": "TrackingApplication",
+        "description": "Aplicativo usado para registrar treinos, nutrição e métricas de saúde",
+        "attributes": [
+          {
+            "name": "app_name",
+            "type": "text",
+            "description": "Nome do aplicativo"
+          },
+          {
+            "name": "platform",
+            "type": "text",
+            "description": "Plataforma do aplicativo"
+          },
+          {
+            "name": "data_types_tracked",
+            "type": "text",
+            "description": "Tipos de dados rastreados"
+          }
+        ],
+        "examples": [
+          "Hevy",
+          "Samsung Health"
+        ]
+      },
+      {
+        "name": "Person",
+        "description": "Qualquer indivíduo que não se encaixe nas categorias específicas acima, como amigos, familiares o...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo"
+          },
+          {
+            "name": "role",
+            "type": "text",
+            "description": "Papel ou relação com o caso"
+          }
+        ],
+        "examples": [
+          "Leitor do relatório",
+          "Familiar"
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Qualquer organização que não se encaixe nas categorias específicas, como associações profissionai...",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome da organização"
+          },
+          {
+            "name": "org_type",
+            "type": "text",
+            "description": "Tipo de organização"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "description": "Descrição da organização"
+          }
+        ],
+        "examples": [
+          "Fabricante de retatrutida",
+          "Associação de Nutrição"
+        ]
+      }
+    ],
+    "edge_types": [
+      {
+        "name": "TRACKS_METRICS",
+        "description": "Indivíduo registra e acompanha métricas corporais e de saúde via aplicativo",
+        "source_targets": [
+          {
+            "source": "Individual",
+            "target": "TrackingApplication"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "data_types",
+            "type": "text",
+            "description": "Tipos de dados rastreados"
+          },
+          {
+            "name": "frequency",
+            "type": "text",
+            "description": "Frequência de registro"
+          }
+        ]
+      },
+      {
+        "name": "FOLLOWS_PROGRAM",
+        "description": "Indivíduo segue programa de treino estruturado",
+        "source_targets": [
+          {
+            "source": "Individual",
+            "target": "TrainingProgram"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "adherence_rate",
+            "type": "float",
+            "description": "Taxa de aderência ao programa"
+          },
+          {
+            "name": "start_date",
+            "type": "date",
+            "description": "Data de início"
+          }
+        ]
+      },
+      {
+        "name": "PRESCRIBES_MEDICATION",
+        "description": "Médico prescreve medicação para o indivíduo",
+        "source_targets": [
+          {
+            "source": "PrescribingPhysician",
+            "target": "Individual"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "medication_name",
+            "type": "text",
+            "description": "Nome do medicamento"
+          },
+          {
+            "name": "dosage",
+            "type": "text",
+            "description": "Dosagem prescrita"
+          },
+          {
+            "name": "prescription_date",
+            "type": "date",
+            "description": "Data da prescrição"
+          }
+        ]
+      },
+      {
+        "name": "CONDUCTS_EXAM",
+        "description": "Laboratório realiza exame para o indivíduo",
+        "source_targets": [
+          {
+            "source": "Laboratory",
+            "target": "Individual"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "exam_date",
+            "type": "date",
+            "description": "Data do exame"
+          },
+          {
+            "name": "exam_type",
+            "type": "text",
+            "description": "Tipo de exame"
+          }
+        ]
+      },
+      {
+        "name": "PRODUCES_REPORT",
+        "description": "Laboratório ou profissional produz relatório com resultados de exames",
+        "source_targets": [
+          {
+            "source": "Laboratory",
+            "target": "MedicalReport"
+          },
+          {
+            "source": "Nutritionist",
+            "target": "MedicalReport"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "report_date",
+            "type": "date",
+            "description": "Data do relatório"
+          },
+          {
+            "name": "interpretation",
+            "type": "text",
+            "description": "Interpretação clínica"
+          }
+        ]
+      },
+      {
+        "name": "DESIGNS_PROGRAM",
+        "description": "Coach ou nutricionista desenha programa de treino ou nutrição",
+        "source_targets": [
+          {
+            "source": "FitnessCoach",
+            "target": "TrainingProgram"
+          },
+          {
+            "source": "Nutritionist",
+            "target": "TrainingProgram"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "design_date",
+            "type": "date",
+            "description": "Data do desenho"
+          },
+          {
+            "name": "objectives",
+            "type": "text",
+            "description": "Objetivos do programa"
+          }
+        ]
+      },
+      {
+        "name": "MONITORS_PROGRESS",
+        "description": "Profissional de saúde monitora progresso do indivíduo",
+        "source_targets": [
+          {
+            "source": "Nutritionist",
+            "target": "Individual"
+          },
+          {
+            "source": "FitnessCoach",
+            "target": "Individual"
+          },
+          {
+            "source": "PrescribingPhysician",
+            "target": "Individual"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "monitoring_frequency",
+            "type": "text",
+            "description": "Frequência de monitoramento"
+          },
+          {
+            "name": "last_review",
+            "type": "date",
+            "description": "Data da última revisão"
+          }
+        ]
+      }
+    ]
+  },
+  "analysis_summary": "Este documento descreve um caso de acompanhamento de saúde e fitness de um indivíduo de 36 anos (Filipe), incluindo dieta, treino, sono, composição corporal, uso de medicação (retatrutida) e exames laboratoriais. Os principais atores identificados são: o próprio indivíduo rastreando suas métricas, profissionais de saúde (nutricionista, coach de fitness, médico prescritor), infraestrutura de saúde (laboratório realizando exames) e sistemas de rastreamento (aplicativos como Hevy e Samsung Health). A ontologia projetada captura as relações de acompanhamento profissional, prescrição médica, execução de exames e rastreamento de métricas de saúde, permitindo simular interações entre paciente e equipe multidisciplinar de saúde.",
+  "graph_id": "quark_e2e468d86b514883",
+  "graph_build_task_id": "bec1cf13-117b-449b-a944-a87cf38a3a5b",
+  "simulation_requirement": "Analise a taxa de exodo do projeto",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "error": "headers: {'date': 'Mon, 13 Apr 2026 20:10:18 GMT', 'content-type': 'application/json; charset=utf-8', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Origin', 'x-content-type-options': 'nosniff', 'x-ratelimit-increment': '1', 'x-ratelimit-limit': '5', 'x-ratelimit-remaining': '2', 'x-ratelimit-reset': '1776111060', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'cf-cache-status': 'DYNAMIC', 'content-encoding': 'gzip', 'server': 'cloudflare', 'cf-ray': '9ebd1d096e084835-GRU'}, status_code: 403, body: {'message': 'forbidden: Account is over the episode usage limit'}"
+}

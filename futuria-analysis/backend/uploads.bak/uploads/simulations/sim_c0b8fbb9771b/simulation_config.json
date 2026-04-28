@@ -1,0 +1,212 @@
+{
+  "simulation_id": "sim_c0b8fbb9771b",
+  "project_id": "proj_c0c82b22f0b1",
+  "graph_id": "quark_e84535ec61c842dd",
+  "simulation_requirement": "Avalie minha estratégia de lançamento. ",
+  "time_config": {
+    "total_simulation_hours": 72,
+    "minutes_per_round": 60,
+    "agents_per_hour_min": 1,
+    "agents_per_hour_max": 2,
+    "peak_hours": [
+      19,
+      20,
+      21,
+      22
+    ],
+    "peak_activity_multiplier": 1.5,
+    "off_peak_hours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "off_peak_activity_multiplier": 0.05,
+    "morning_hours": [
+      6,
+      7,
+      8
+    ],
+    "morning_activity_multiplier": 0.4,
+    "work_hours": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "work_activity_multiplier": 0.7
+  },
+  "agent_configs": [
+    {
+      "agent_id": 0,
+      "entity_uuid": "525f78d1-c6d7-4bfe-85db-279641ffe08e",
+      "entity_name": "profissionais de RH",
+      "entity_type": "Hrprofessional",
+      "activity_level": 0.5,
+      "posts_per_hour": 0.8,
+      "comments_per_hour": 1.2,
+      "active_hours": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "response_delay_min": 15,
+      "response_delay_max": 45,
+      "sentiment_bias": 0.2,
+      "stance": "neutral",
+      "influence_weight": 1.8
+    },
+    {
+      "agent_id": 1,
+      "entity_uuid": "36056f97-33c4-45d0-aa20-8eca9bfb2931",
+      "entity_name": "consultores",
+      "entity_type": "Consultant",
+      "activity_level": 0.45,
+      "posts_per_hour": 0.6,
+      "comments_per_hour": 1.0,
+      "active_hours": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "response_delay_min": 20,
+      "response_delay_max": 60,
+      "sentiment_bias": 0.1,
+      "stance": "observer",
+      "influence_weight": 1.6
+    },
+    {
+      "agent_id": 2,
+      "entity_uuid": "10069a7c-da35-44be-85e3-9643c3d9f35e",
+      "entity_name": "profissionais de SST",
+      "entity_type": "Sstprofessional",
+      "activity_level": 0.55,
+      "posts_per_hour": 0.9,
+      "comments_per_hour": 1.4,
+      "active_hours": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "response_delay_min": 10,
+      "response_delay_max": 40,
+      "sentiment_bias": 0.15,
+      "stance": "supportive",
+      "influence_weight": 1.9
+    }
+  ],
+  "event_config": {
+    "initial_posts": [
+      {
+        "content": "Estão todos falando sobre NR-1 e riscos psicossociais, mas o que realmente mudou? Estamos no mesmo turbilhão de informação confusa e quero entender de uma vez: o que minha empresa efetivamente precisa fazer? Alguém com credibilidade técnica para explicar isso de forma prática? 🤔 #NR1 #RiscosPsicossociais #RH",
+        "poster_type": "Hrprofessional",
+        "poster_agent_id": 0
+      },
+      {
+        "content": "Como consultor, percebo que meus clientes estão perdidos com a NR-1. Muitos estão implementando coisas desencontradas por puro desespero. Precisamos de ferramentas para guiar essas empresas com segurança técnica. Quem está construindo conteúdo sério sobre isso? #Consultoria #NR1 #RiscosPsicossociais",
+        "poster_type": "Consultant",
+        "poster_agent_id": 1
+      },
+      {
+        "content": "O mercado está saturado de conteúdo rasa sobre saúde mental no trabalho. A NR-1 exige mais do que awareness genérico. Precisamos falar sobre operacionalização real dos riscos psicossociais nas empresas. Isso não é papo motivacional, é implementação prática e técnica. #SST #Segurança do Trabalho #NR1",
+        "poster_type": "Sstprofessional",
+        "poster_agent_id": 2
+      },
+      {
+        "content": "Recebi convite para essa imersão sobre NR-1. Alguém conhece os professores? Vale o investimento de R$ 47 para finalmente entender o que precisa ser feito na prática? Preciso de algo que vá além do básico que já vi em todo lugar. #ImersãoNR1 #RH #Dúvidas",
+        "poster_type": "Hrprofessional",
+        "poster_agent_id": 0
+      },
+      {
+        "content": "Para quem atua com consultoria em SST, essa imersão pode ser uma oportunidade de atualizar nossa abordagem frente às novas exigências. O mercado está mudando rápido e quem souber interpretar corretamente a NR-1 vai se destacar. Vamos ver o que essa turma vai entregar. #Consultoria #SST #NR1",
+        "poster_type": "Consultant",
+        "poster_agent_id": 1
+      },
+      {
+        "content": "A maior dificuldade que vejo é traduzir teoria em prática. Todos os workshops e materiais que consumo são genéricos demais. Precisamos de exemplos concretos de como começar a implementação dos riscos psicossociais nas empresas, especialmente em ambientes de média e grande porte. Alguém com experiência prática? #SST #RiscosPsicossociais #Prática",
+        "poster_type": "Sstprofessional",
+        "poster_agent_id": 2
+      }
+    ],
+    "scheduled_events": [],
+    "hot_topics": [
+      "NR-1",
+      "Riscos Psicossociais",
+      "Conformidade Regulatória",
+      "Saúde Mental no Trabalho",
+      "Implementação Prática",
+      "Adequação Empresarial",
+      "Aplicação da Norma",
+      "Confusão Regulatória",
+      "Lideranças",
+      "Gestão de Riscos",
+      "Ambiente Corporativo",
+      "Interpretação Técnica",
+      "Profissionais de RH",
+      "Profissionais de SST",
+      "Consultores",
+      "Imersão Online",
+      "Capacitação Profissional",
+      "Piso Regulatório",
+      "Boas Práticas",
+      "Transformação Organizacional"
+    ],
+    "narrative_direction": "A narrativa pública gira em torno da necessidade urgente de clareza frente à NR-1 e seus impactos nos ambientes corporativos. Profissionais de RH e SST demonstram preocupação com a falta de direcionamento prático, enquanto consultores buscam posicionamento estratégico para agregar valor aos clientes. A percepção é de que existe muito ruído no mercado, com informações conflitantes sobre o que realmente precisa ser feito. A demanda por orientação técnica confiável e aplicada está em alta, criando oportunidade para eventos que entreguem interpretação objetiva e caminhos práticos de implementação."
+  },
+  "twitter_config": {
+    "platform": "twitter",
+    "recency_weight": 0.4,
+    "popularity_weight": 0.3,
+    "relevance_weight": 0.3,
+    "viral_threshold": 10,
+    "echo_chamber_strength": 0.5
+  },
+  "reddit_config": {
+    "platform": "reddit",
+    "recency_weight": 0.3,
+    "popularity_weight": 0.4,
+    "relevance_weight": 0.3,
+    "viral_threshold": 15,
+    "echo_chamber_strength": 0.6
+  },
+  "llm_model": "MiniMax-M2.7",
+  "llm_base_url": "https://api.minimax.io/v1",
+  "generated_at": "2026-04-13T17:51:55.110243",
+  "generation_reasoning": "O Relógio Lógico / Conf: 基于目标群体的职业特性进行配置：HR专业人士、SST专业人员和顾问通常在正常工作日工作，下班后（19-22点）是查看活动信息、做出购买决策的高峰时段。凌晨时段（0-5点）活跃度最低，符合职场人士作息规律。早晨通勤时段（6-8点）活跃度逐渐上升，工作时间（9-18点）维持中等活跃度，他们可能在工作间隙浏览相关内容。72小时模拟覆盖3个完整工作周期，能够充分观察目标群体在工作日和周末的不同行为模式，符合付费活动推广需要持续多日曝光的特点。 | Conf / Parâmetros do Diretor: A configuração foi construída com base nos seguintes pilares extraídos do masterbriefing: (1)热点话题 (hot_topics) derivam das dores centrais mencionadas: confusão regulatória, NR-1, riscos psicossociais, implementação prática e adequação empresarial. (2) A direção narrativa reflete a percepção de mercado descrita no briefing sobre ruído excessivo e necessidade de clareza técnica. (3) Os posts iniciais foram distribuídos entre os três perfis de público-alvo principais (profissionais de RH, consultores e profissionais de SST), cada um com preocupações distintas porém complementares: RH busca entender o que fazer na prática, consultores buscam posicionamento estratégico, e SST foca na operacionalização técnica. Cada post captura a voz e interesses específicos do tipo de entidade, preparando terreno para discussões sobre valor percebido, credibilidade dos professores e promessa prática da imersão. | Série Perso / Tally: 3 em base estável. | Povoamento Textual: 6 memórias estendidas."
+}

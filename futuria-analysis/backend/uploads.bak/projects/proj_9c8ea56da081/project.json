@@ -1,0 +1,382 @@
+{
+  "project_id": "proj_9c8ea56da081",
+  "name": "Unnamed Project",
+  "status": "failed",
+  "created_at": "2026-04-13T16:28:02.488107",
+  "updated_at": "2026-04-13T16:29:23.818881",
+  "files": [
+    {
+      "filename": "masterbriefing_lancamento_imersao_nr_1.md",
+      "size": 10468
+    }
+  ],
+  "total_text_length": 10152,
+  "ontology": {
+    "entity_types": [
+      {
+        "name": "Professor",
+        "description": "Educadores e especialistas que conduzem a imersão NR-1 sobre riscos psicossociais, detentores de ...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do professor"
+          },
+          {
+            "name": "specialty",
+            "type": "text",
+            "description": "Área de especialização técnica"
+          },
+          {
+            "name": "trajectory",
+            "type": "text",
+            "description": "Breve descrição da trajetória profissional"
+          }
+        ],
+        "examples": [
+          "Professor Carlos Silva",
+          "Dra. Ana Rodrigues",
+          "Prof. Marcos Fernandes"
+        ]
+      },
+      {
+        "name": "Professional",
+        "description": "Profissionais de RH, SST, saúde ocupacional e Psicologia organizacional que buscam capacitação em...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do profissional"
+          },
+          {
+            "name": "role",
+            "type": "text",
+            "description": "Cargo ou função atual"
+          },
+          {
+            "name": "area",
+            "type": "text",
+            "description": "Área de atuação profissional"
+          }
+        ],
+        "examples": [
+          "Profissional de RH",
+          "Técnico em SST",
+          "Psicólogo Organizacional"
+        ]
+      },
+      {
+        "name": "Company",
+        "description": "Empresas que precisam entender e implementar as exigências da NR-1 sobre riscos psicossociais",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome fantasia ou razão social"
+          },
+          {
+            "name": "size",
+            "type": "text",
+            "description": "Porte da empresa"
+          },
+          {
+            "name": "sector",
+            "type": "text",
+            "description": "Setor de atuação"
+          }
+        ],
+        "examples": [
+          "Empresa XYZ Ltda",
+          "Multinacional ABC",
+          "Startup Tech Brasil"
+        ]
+      },
+      {
+        "name": "Event",
+        "description": "Evento fechado e pago de curta duração sobre interpretação e aplicação de NR-1 e riscos psicossoc...",
+        "attributes": [
+          {
+            "name": "title",
+            "type": "text",
+            "description": "Nome oficial do evento"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "description": "Valor do ingresso em reais"
+          },
+          {
+            "name": "duration",
+            "type": "text",
+            "description": "Duração do evento"
+          }
+        ],
+        "examples": [
+          "Imersão NR-1: Riscos Psicossociais na Prática"
+        ]
+      },
+      {
+        "name": "Regulation",
+        "description": "Normas regulamentadoras e documentos oficiais que definem exigências legais sobre riscos psicosso...",
+        "attributes": [
+          {
+            "name": "code",
+            "type": "text",
+            "description": "Código ou número da norma"
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "description": "Título oficial da norma"
+          },
+          {
+            "name": "issuer",
+            "type": "text",
+            "description": "Órgão emissor"
+          }
+        ],
+        "examples": [
+          "NR-1",
+          "CLT",
+          "Portaria MTPS"
+        ]
+      },
+      {
+        "name": "GovernmentAgency",
+        "description": "Órgãos governamentais responsáveis por fiscalizar e regulamentar a aplicação de normas trabalhistas",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome oficial do órgão"
+          },
+          {
+            "name": "jurisdiction",
+            "type": "text",
+            "description": "Área de atuação regulatória"
+          },
+          {
+            "name": "level",
+            "type": "text",
+            "description": "Nível de gobierno (federal, estadual, municipal)"
+          }
+        ],
+        "examples": [
+          "Ministério do Trabalho",
+          "Fiscalização do Trabalho",
+          "Delegacia Regional do Trabalho"
+        ]
+      },
+      {
+        "name": "Consultant",
+        "description": "Consultores independentes ou de escritórios que assessoram empresas na implementação de normas e ...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do consultor ou do escritório"
+          },
+          {
+            "name": "focus_area",
+            "type": "text",
+            "description": "Área principal de consultoria"
+          },
+          {
+            "name": "approach",
+            "type": "text",
+            "description": "Abordagem metodológica"
+          }
+        ],
+        "examples": [
+          "Escritório Consultoria Omega",
+          "Consultor Dr. Ricardo Mendes"
+        ]
+      },
+      {
+        "name": "EducationalMaterial",
+        "description": "Materiais didáticos, apresentações, roteiros e conteúdos produzidos para o evento de imersão",
+        "attributes": [
+          {
+            "name": "title",
+            "type": "text",
+            "description": "Título do material"
+          },
+          {
+            "name": "format",
+            "type": "text",
+            "description": "Formato (slides, apostila, vídeo)"
+          },
+          {
+            "name": "purpose",
+            "type": "text",
+            "description": "Finalidade do material"
+          }
+        ],
+        "examples": [
+          "Slides Encontro 1",
+          "Guia Prático NR-1",
+          "Roteiro de Apresentação"
+        ]
+      },
+      {
+        "name": "Person",
+        "description": "Qualquer indivíduo natural que possa participar de discussões em mídia social sobre o tema, quand...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome da pessoa"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "description": "Breve descrição do indivíduo"
+          }
+        ],
+        "examples": [
+          "Usuário anônimo em fórum",
+          "Participante de webinar",
+          "Funcionário de empresa"
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Qualquer entidade coletiva não especificada nas categorias mais concretas de organização, incluin...",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome da organização"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "description": "Breve descrição da organização"
+          }
+        ],
+        "examples": [
+          "Associação de Profissionais de RH",
+          "Sindicato da categoria",
+          "Grupo de discussão"
+        ]
+      }
+    ],
+    "edge_types": [
+      {
+        "name": "TEACHES_AT",
+        "description": "Professor atua como instrutor conduzindo o evento de imersão",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Event"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "PARTICIPATES_IN",
+        "description": "Profissional ou pessoa participa do evento como inscrito",
+        "source_targets": [
+          {
+            "source": "Person",
+            "target": "Event"
+          },
+          {
+            "source": "Professional",
+            "target": "Event"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "WORKS_FOR",
+        "description": "Profissional trabalha para uma empresa que precisa de adequação NR-1",
+        "source_targets": [
+          {
+            "source": "Professional",
+            "target": "Company"
+          },
+          {
+            "source": "Consultant",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "REGULATES",
+        "description": "Órgão governamental fiscaliza e regulamenta cumprimento de normas",
+        "source_targets": [
+          {
+            "source": "GovernmentAgency",
+            "target": "Company"
+          },
+          {
+            "source": "GovernmentAgency",
+            "target": "Regulation"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "SUBJECT_TO",
+        "description": "Empresa está sujeita às exigências de uma norma regulamentadora",
+        "source_targets": [
+          {
+            "source": "Company",
+            "target": "Regulation"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "PROVIDES_TO",
+        "description": "Professor ou consultor fornece material educacional aos participantes",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "EducationalMaterial"
+          },
+          {
+            "source": "Consultant",
+            "target": "EducationalMaterial"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "CONSULTS_FOR",
+        "description": "Consultor presta serviço de consultoria para empresa em adequação",
+        "source_targets": [
+          {
+            "source": "Consultant",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "SPECIALIZES_IN",
+        "description": "Professor ou consultor é especializado em determinada área técnica",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Regulation"
+          },
+          {
+            "source": "Consultant",
+            "target": "Regulation"
+          }
+        ],
+        "attributes": []
+      }
+    ]
+  },
+  "analysis_summary": "Este documento descreve um projeto de imersão educacional sobre NR-1 e riscos psicossociais destinados a profissionais de RH, SST e áreas relacionadas. O contexto social envolve três professores como autoridade central, empresas que necessitam adequação regulatória, órgãos governamentais fiscalizadores, consultores especializados e profissionais buscando capacitação. A simulação de opinião social deve considerar que os principais actores são: os professores que lideram o evento, os profissionais que buscam clareza sobre a norma, as empresas obrigadas a implementar requisitos, os órgãos reguladores que fiscalizam o cumprimento, e os consultores que prestam assessoria. O evento surge como resposta à confusão do mercado sobre interpretação da NR-1, posicionando-se como diferencial técnico face a conteúdos rasos disponíveis. As relações capturam a dinâmica de ensino-aprendizagem, a cadeia de regulação governamental e os serviços de consultoria que conectam norma, empresas e profissionais.",
+  "graph_id": "quark_330aa72fd79044d8",
+  "graph_build_task_id": "6052fc16-dcb0-403b-bc95-3abbdc10ee6b",
+  "simulation_requirement": "Analise minha proposta de campanha e faça uma predição do sucesso dela. ",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "error": "headers: {'date': 'Mon, 13 Apr 2026 19:29:23 GMT', 'content-type': 'application/json; charset=utf-8', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Origin', 'x-content-type-options': 'nosniff', 'x-ratelimit-increment': '1', 'x-ratelimit-limit': '5', 'x-ratelimit-remaining': '2', 'x-ratelimit-reset': '1776108600', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'cf-cache-status': 'DYNAMIC', 'content-encoding': 'gzip', 'server': 'cloudflare', 'cf-ray': '9ebce119ffd9aecf-GRU'}, status_code: 403, body: {'message': 'forbidden: Account is over the episode usage limit'}"
+}

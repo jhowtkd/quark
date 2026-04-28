@@ -1,0 +1,6 @@
+{
+  "pt": {
+    "label": "Português",
+    "llmInstruction": "CRÍTICO: Você DEVE responder APENAS em português brasileiro. TODAS as palavras, frases, parágrafos, títulos, listas, citações e qualquer texto de saída devem ser exclusivamente em português. NUNCA use inglês, espanhol, chinês ou qualquer outro idioma. Isso é uma regra absoluta e inegociável."
+  }
+}

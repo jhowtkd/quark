@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "defaultControlledLanguage": "en",
+  "notes": "M003/S01 audit baseline. Reporting-critical files are tracked as clean or known-dirty so unexpected contamination becomes a policy breach before full remediation lands.",
+  "scopes": {
+    "reporting": {
+      "description": "Language integrity baseline for report generation, report chat, report persistence, and reporting UI rendering.",
+      "surfacePolicy": [
+        {
+          "surface": "backend_prompts_and_fallbacks",
+          "allowedLanguages": [
+            "en"
+          ],
+          "allowedRuntimeBehavior": "System-controlled prompt text, tool descriptions, fallback outlines, and report-chat instructions must be English-only.",
+          "handling": "Normalize to English before model invocation or persistence."
+        },
+        {
+          "surface": "backend_runtime_payloads",
+          "allowedLanguages": [
+            "en"
+          ],
+          "allowedRuntimeBehavior": "API payloads returned by report generation and report chat must be English-only and must not contain forbidden scripts.",
+          "handling": "Reject, sanitize, or quarantine before returning to the client."
+        },
+        {
+          "surface": "persisted_report_artifacts",
+          "allowedLanguages": [
+            "en"
+          ],
+          "allowedRuntimeBehavior": "Persisted report artifacts used as live context must be English-only. Historical dirty artifacts may exist during remediation but must be tracked explicitly.",
+          "handling": "Known-dirty artifacts stay quarantined or marked until normalized."
+        },
+        {
+          "surface": "frontend_reporting_ui",
+          "allowedLanguages": [
+            "en"
+          ],
+          "allowedRuntimeBehavior": "Critical report labels, report-chat labels, and rendered fallback text must be English-only.",
+          "handling": "Do not silently render contaminated payloads as valid content."
+        },
+        {
+          "surface": "source_evidence_quotes",
+          "allowedLanguages": [
+            "en"
+          ],
+          "allowedRuntimeBehavior": "Quoted evidence should be translated before inclusion in report output unless explicitly stored as quarantined source evidence outside the user-facing report path.",
+          "handling": "Translation or quarantine; never mixed-script inline output in controlled report surfaces."
+        }
+      ],
+      "entries": [
+        {
+          "path": "backend/app/services/report_agent.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "M003/T01-T03 remediation: Cleaned prompts, comments, fallbacks, and logger-facing strings. Maintained English-only policy."
+        },
+        {
+          "path": "backend/app/services/zep_tools.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "M003/T01-T03 remediation: Cleaned tool text and helper output. Maintained English-only policy."
+        },
+        {
+          "path": "backend/app/api/report.py",
+          "surface": "backend_runtime_payloads",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "M003/T01-T03 remediation: Cleaned API route comments and user-facing message assembly. Maintained English-only policy."
+        },
+        {
+          "path": "backend/app/utils/locale.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/platform",
+          "expected_contamination": false,
+          "notes": "M003/T01-T03 remediation: Cleaned locale instruction text and fullwidth punctuation. Maintained English-only policy."
+        },
+        {
+          "path": "frontend/src/api/report.js",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/reporting",
+          "expected_contamination": true,
+          "notes": "Known mixed-language comments and non-Latin punctuation in reporting API client."
+        },
+        {
+          "path": "frontend/src/components/Step4Report.vue",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/reporting",
+          "expected_contamination": true,
+          "notes": "Known mixed-language comments and rendering labels in report generation view."
+        },
+        {
+          "path": "frontend/src/components/Step5Interaction.vue",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/reporting",
+          "expected_contamination": true,
+          "notes": "Known mixed-language comments, labels, and report-chat support text."
+        },
+        {
+          "path": "frontend/src/views/ReportView.vue",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/reporting",
+          "expected_contamination": true,
+          "notes": "Known mixed-language comments and report-view helper text."
+        },
+        {
+          "path": "frontend/src/i18n/index.js",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/platform",
+          "expected_contamination": false,
+          "notes": "Current i18n bootstrap is clean under forbidden-script scanning."
+        },
+        {
+          "path": "locales/languages.json",
+          "surface": "frontend_reporting_ui",
+          "owner": "frontend/platform",
+          "expected_contamination": false,
+          "notes": "Language registry currently contains Latin-script JSON only."
+        },
+        {
+          "path": "backend/uploads/reports/report_2d54d037dbb9/full_report.md",
+          "surface": "persisted_report_artifacts",
+          "owner": "backend/reporting",
+          "expected_contamination": true,
+          "notes": "Representative persisted report artifact with mixed-script contamination in body content."
+        },
+        {
+          "path": "backend/uploads/reports/report_2d54d037dbb9/section_03.md",
+          "surface": "persisted_report_artifacts",
+          "owner": "backend/reporting",
+          "expected_contamination": true,
+          "notes": "Representative contaminated section title artifact."
+        },
+        {
+          "path": "backend/uploads/reports/report_2d54d037dbb9/progress.json",
+          "surface": "persisted_report_artifacts",
+          "owner": "backend/reporting",
+          "expected_contamination": true,
+          "notes": "Representative persisted progress metadata with mixed-script section names."
+        },
+        {
+          "path": "backend/uploads/reports/report_09ca920789bb/console_log.txt",
+          "surface": "persisted_report_artifacts",
+          "owner": "backend/reporting",
+          "expected_contamination": true,
+          "notes": "Representative console output artifact containing forbidden-script leakage."
+        },
+        {
+          "path": "backend/uploads/reports/report_9bd2d1e88ebf/meta.json",
+          "surface": "persisted_report_artifacts",
+          "owner": "backend/reporting",
+          "expected_contamination": true,
+          "notes": "Representative historical report metadata with mixed-script contamination in persisted content."
+        }
+      ]
+    },
+    "reporting-backend": {
+      "description": "English-only backend prompt and payload surfaces for report generation and report chat.",
+      "entries": [
+        {
+          "path": "backend/app/services/report_agent.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "Prompt templates, tool descriptions, fallback outlines, and report-chat instructions must stay clean."
+        },
+        {
+          "path": "backend/app/services/zep_tools.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "Tool result wrappers that feed the model must stay clean."
+        },
+        {
+          "path": "backend/app/api/report.py",
+          "surface": "backend_runtime_payloads",
+          "owner": "backend/reporting",
+          "expected_contamination": false,
+          "notes": "Report API boundary must not reintroduce forbidden scripts into reporting payloads."
+        },
+        {
+          "path": "backend/app/utils/locale.py",
+          "surface": "backend_prompts_and_fallbacks",
+          "owner": "backend/platform",
+          "expected_contamination": false,
+          "notes": "Reporting-specific language instruction must remain clean."
+        },
+        {
+          "path": "backend/app/utils/language_integrity.py",
+          "surface": "backend_runtime_payloads",
+          "owner": "backend/platform",
+          "expected_contamination": false,
+          "notes": "Shared integrity utility must remain clean."
+        }
+      ]
+    }
+  }
+}

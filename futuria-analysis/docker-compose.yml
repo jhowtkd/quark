@@ -1,0 +1,15 @@
+services:
+  futuria:
+    build: .
+    container_name: futuria
+    env_file:
+      - .env
+    ports:
+      - "3000:4000"
+      - "5001:5001"
+    restart: unless-stopped
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+    command: >
+      sh -c "cd frontend && npm run dev &
+               cd backend && uv run python run.py"

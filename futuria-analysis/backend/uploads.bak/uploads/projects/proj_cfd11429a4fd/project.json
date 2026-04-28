@@ -1,0 +1,390 @@
+{
+  "project_id": "proj_cfd11429a4fd",
+  "name": "Unnamed Project",
+  "status": "failed",
+  "created_at": "2026-04-13T17:33:32.720340",
+  "updated_at": "2026-04-13T17:34:22.383871",
+  "files": [
+    {
+      "filename": "masterbriefing_lancamento_imersao_nr_1.md",
+      "size": 10468
+    }
+  ],
+  "total_text_length": 10152,
+  "ontology": {
+    "entity_types": [
+      {
+        "name": "Professor",
+        "description": "Especialista técnico que conduz a imersão e possui autoridade sobre NR-1 e riscos psicossociais",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo do professor"
+          },
+          {
+            "name": "expertise_area",
+            "type": "text",
+            "description": "Área de especialização técnica"
+          },
+          {
+            "name": "role",
+            "type": "text",
+            "description": "Papel no projeto como professor da imersão"
+          }
+        ],
+        "examples": [
+          "Professor Marcos - Especialista em SST",
+          "Professora Ana - Psicóloga do Trabalho"
+        ]
+      },
+      {
+        "name": "ProfessionalSst",
+        "description": "Profissional de Segurança e Saúde no Trabalho que busca entender e aplicar NR-1",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do profissional"
+          },
+          {
+            "name": "position",
+            "type": "text",
+            "description": "Cargo atual na empresa"
+          }
+        ],
+        "examples": [
+          "Técnico de Segurança Carlos Silva",
+          "Engenheiro de Segurança João Santos"
+        ]
+      },
+      {
+        "name": "Hrprofessional",
+        "description": "Profissional de Recursos Humanos envolvido na adequação organizacional à NR-1",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do profissional de RH"
+          },
+          {
+            "name": "position",
+            "type": "text",
+            "description": "Cargo na área de recursos humanos"
+          }
+        ],
+        "examples": [
+          "Gerente de RH Maria Oliveira",
+          "Analista de DP Patricia Costa"
+        ]
+      },
+      {
+        "name": "Consultant",
+        "description": "Consultor independente que assessora empresas sobre riscos psicossociais e NR-1",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome do consultor"
+          },
+          {
+            "name": "specialty",
+            "type": "text",
+            "description": "Área de especialização em consultoria"
+          }
+        ],
+        "examples": [
+          "Consultor Roberto - NR-1",
+          "Advisory Group Psicossocial"
+        ]
+      },
+      {
+        "name": "Company",
+        "description": "Empresa que precisa entender e implementar requisitos da NR-1 sobre riscos psicossociais",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Razão social da empresa"
+          },
+          {
+            "name": "sector",
+            "type": "text",
+            "description": "Setor de atuação da empresa"
+          },
+          {
+            "name": "size",
+            "type": "text",
+            "description": "Porte da empresa"
+          }
+        ],
+        "examples": [
+          "Empresa ABC Ltda",
+          "Indústria XYZ S.A.",
+          "Startup Tech Brasil"
+        ]
+      },
+      {
+        "name": "GovernmentAgency",
+        "description": "Órgão governamental responsável por regulamentar e fiscalizar NR-1 e riscos psicossociais",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome oficial do órgão"
+          },
+          {
+            "name": "jurisdiction",
+            "type": "text",
+            "description": "Escopo de atuação e jurisdição"
+          }
+        ],
+        "examples": [
+          "Ministério do Trabalho",
+          "Secretaria de Inspeção do Trabalho",
+          "Auditoria Fiscal do Trabalho"
+        ]
+      },
+      {
+        "name": "TrainingProduct",
+        "description": "Produto educacional como a imersão NR-1 ou cursos sobre riscos psicossociais",
+        "attributes": [
+          {
+            "name": "product_name",
+            "type": "text",
+            "description": "Nome oficial do produto educacional"
+          },
+          {
+            "name": "product_type",
+            "type": "text",
+            "description": "Tipo do produto como imersão, curso, workshop"
+          },
+          {
+            "name": "price",
+            "type": "text",
+            "description": "Valor do produto"
+          }
+        ],
+        "examples": [
+          "Imersão NR-1: Riscos Psicossociais na Prática",
+          "Cursão Principal NR-1"
+        ]
+      },
+      {
+        "name": "Organizer",
+        "description": "Pessoa ou equipe responsável por organizar e promover o evento educacional",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome da pessoa ou equipe organizadora"
+          },
+          {
+            "name": "contact_email",
+            "type": "text",
+            "description": "Email de contato para o evento"
+          }
+        ],
+        "examples": [
+          "Equipe Masterbriefing",
+          "Organizadores da Imersão NR-1"
+        ]
+      },
+      {
+        "name": "Person",
+        "description": "Qualquer indivíduo natural que não se encaixe nos tipos específicos de profissionais",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Nome completo da pessoa"
+          },
+          {
+            "name": "location",
+            "type": "text",
+            "description": "Localização geográfica"
+          }
+        ],
+        "examples": [
+          "Usuário anônimo em rede social",
+          "Participante indeciso",
+          "Profissional de outra área"
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Qualquer organização que não se encaixe nos tipos específicos definidos",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Nome da organização"
+          },
+          {
+            "name": "description",
+            "type": "text",
+            "description": "Descrição da organização"
+          }
+        ],
+        "examples": [
+          "Associação de Classe",
+          "Sindicato Profissional",
+          "Grupo Informal de Discussão"
+        ]
+      }
+    ],
+    "edge_types": [
+      {
+        "name": "WORKS_FOR",
+        "description": "Indica que um profissional trabalha para uma empresa ou organização",
+        "source_targets": [
+          {
+            "source": "ProfessionalSst",
+            "target": "Company"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Company"
+          },
+          {
+            "source": "Consultant",
+            "target": "Organization"
+          },
+          {
+            "source": "Professor",
+            "target": "Organizer"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "TEACHES",
+        "description": "Professor leciona ou conduz o produto educacional",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "TrainingProduct"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "role",
+            "type": "text",
+            "description": "Papel específico do professor no evento"
+          }
+        ]
+      },
+      {
+        "name": "PARTICIPATES_IN",
+        "description": "Pessoa participa de um produto educacional ou evento",
+        "source_targets": [
+          {
+            "source": "ProfessionalSst",
+            "target": "TrainingProduct"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "TrainingProduct"
+          },
+          {
+            "source": "Consultant",
+            "target": "TrainingProduct"
+          },
+          {
+            "source": "Person",
+            "target": "TrainingProduct"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "status",
+            "type": "text",
+            "description": "Status da participação como inscrito, ativo, concluído"
+          }
+        ]
+      },
+      {
+        "name": "ORGANIZES",
+        "description": "Organizador é responsável pela criação e execução do evento",
+        "source_targets": [
+          {
+            "source": "Organizer",
+            "target": "TrainingProduct"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "REGULATES",
+        "description": "Órgão governamental regulamenta e fiscaliza normas como a NR-1",
+        "source_targets": [
+          {
+            "source": "GovernmentAgency",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "NEEDS_ADVICE",
+        "description": "Empresa ou profissional precisa de orientação sobre NR-1 e riscos psicossociais",
+        "source_targets": [
+          {
+            "source": "Company",
+            "target": "TrainingProduct"
+          },
+          {
+            "source": "ProfessionalSst",
+            "target": "Consultant"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Consultant"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "PROVIDES_ADVICE",
+        "description": "Consultor ou professor fornece orientação técnica especializada",
+        "source_targets": [
+          {
+            "source": "Consultant",
+            "target": "Company"
+          },
+          {
+            "source": "Professor",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "COLLABORATES_WITH",
+        "description": "Professores ou organizadores colaboram entre si no projeto",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Professor"
+          },
+          {
+            "source": "Organizer",
+            "target": "Organizer"
+          },
+          {
+            "source": "Professor",
+            "target": "Organizer"
+          }
+        ],
+        "attributes": []
+      }
+    ]
+  },
+  "analysis_summary": "O documento descreve um projeto de evento educacional chamado Imersão NR-1 sobre Riscos Psicossociais. Os principais atores identificados são: Professores que conduzem o evento com autoridade técnica; Profissionais de RH e SST que são o público-alvo principal; Consultores que assessam empresas; Empresas que precisam de adequação à NR-1; Órgãos Governamentais que regulamentam; Organizadores do evento; e o próprio Produto Educacional. As relações simulam o ecossistema onde professores ensinam, profissionais participam, empresas precisam de orientação, consultores oferecem advice, e órgãos governamentais regulam. Os 3 tipos de pessoa e 2 tipos de organização servem como categorias genéricas para capturar qualquer ator que não se encaixe nas categorias específicas, garantindo completude na simulação de opinião social.",
+  "graph_id": "quark_5b57348fa438447b",
+  "graph_build_task_id": "546dea2e-381c-43f4-8bc2-358e98ec642f",
+  "simulation_requirement": "Teste a efetividade da campanha",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "error": "Conta Zep sem episódios disponíveis. Aguarde reset ou faça upgrade."
+}

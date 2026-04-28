@@ -1,0 +1,25 @@
+{
+  "simulation_id": "sim_8a4b24285e85",
+  "project_id": "proj_3e35e9fd6821",
+  "graph_id": "mirofish_040eeb88fdea4442",
+  "enable_twitter": true,
+  "enable_reddit": true,
+  "status": "running",
+  "entities_count": 5,
+  "profiles_count": 5,
+  "entity_types": [
+    "Rhprofessional",
+    "BusinessConsultant",
+    "Professor",
+    "OrganizationalPsychologist",
+    "Sstprofessional"
+  ],
+  "config_generated": true,
+  "config_reasoning": "O Relógio Lógico / Conf: 目标群体为巴西专业人士（HR、SST、心理学家、顾问），主要时区UTC-3。此场景为付费专业活动（Imersão NR-1）的市场反馈模拟，需覆盖工作日和周末。高峰设置在工作日晚间19-23点，符合职场人士下班后浏览专业内容习惯；早间6-8点为准备阶段活跃时段；工作时段9-18点保持中等活跃，午间12-13点有小高峰；深夜0-5点为低谷。考虑到是付费专业活动，agents密度适中，模拟周期72小时覆盖3天完整讨论周期，足够收集各时段反馈。 | Conf / Parâmetros do Diretor: 设计此舆论配置的核心逻辑是模拟目标受众对NR-1浸入式策略的专业性批评。批评角度覆盖价格合理性（47雷亚尔vs实际价值）、内容深度（2次会议能否支撑实践）、资格认受性（证书价值vs审计要求）、方法论一致性（3位教授是否协调一致）以及投资回报率（企业能否获得可衡量的回报）五个维度。通过Sstprofessional、BusinessConsultant、OrganizationalPsychologist和Rhprofessional四个实体类型发布批评帖，形成多元视角的舆论场，使模拟需求能够充分展现市场对策略的不同质疑声音。 | Série Perso / Tally: 5 em base estável. | Povoamento Textual: 7 memórias estendidas.",
+  "current_round": 0,
+  "twitter_status": "not_started",
+  "reddit_status": "not_started",
+  "created_at": "2026-04-13T13:24:28.847704",
+  "updated_at": "2026-04-13T20:02:24.840054",
+  "error": null
+}

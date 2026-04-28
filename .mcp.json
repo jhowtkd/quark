@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+    "agentation": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "agentation-mcp",
+        "server",
+        "--port",
+        "4747"
+      ],
+      "env": {},
+      "type": "stdio"
+    },
+    "gsd-workflow": {
+      "command": "/Users/jhonatan/.local/share/fnm/node-versions/v24.3.0/installation/bin/node",
+      "args": [
+        "/Users/jhonatan/.local/share/fnm/node-versions/v24.3.0/installation/lib/node_modules/gsd-pi/packages/mcp-server/dist/cli.js"
+      ],
+      "cwd": "/Users/jhonatan/Repos/Quark",
+      "env": {
+        "GSD_CLI_PATH": "/Users/jhonatan/.local/state/fnm_multishells/63369_1776621716574/bin/gsd",
+        "GSD_WORKFLOW_EXECUTORS_MODULE": "/Users/jhonatan/.gsd/agent/extensions/gsd/tools/workflow-tool-executors.js",
+        "GSD_WORKFLOW_WRITE_GATE_MODULE": "/Users/jhonatan/.gsd/agent/extensions/gsd/bootstrap/write-gate.js",
+        "GSD_PERSIST_WRITE_GATE_STATE": "1",
+        "GSD_WORKFLOW_PROJECT_ROOT": "/Users/jhonatan/Repos/Quark"
+      }
+    }
+  }
+}

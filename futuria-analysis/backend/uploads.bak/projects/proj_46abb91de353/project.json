@@ -1,0 +1,504 @@
+{
+  "project_id": "proj_46abb91de353",
+  "name": "Unnamed Project",
+  "status": "failed",
+  "created_at": "2026-04-13T16:48:33.732684",
+  "updated_at": "2026-04-13T16:49:35.032094",
+  "files": [
+    {
+      "filename": "masterbriefing_lancamento_imersao_nr_1.md",
+      "size": 10468
+    }
+  ],
+  "total_text_length": 10152,
+  "ontology": {
+    "entity_types": [
+      {
+        "name": "Professor",
+        "description": "Expert instructor leading the NR-1 psychosocial risks immersion event with technical authority",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the professor"
+          },
+          {
+            "name": "expertise_areas",
+            "type": "text",
+            "description": "Technical areas of specialization in occupational safety or psychosocial risks"
+          },
+          {
+            "name": "trajectory_summary",
+            "type": "text",
+            "description": "Brief professional background and experience description"
+          }
+        ],
+        "examples": [
+          "Professor Carlos Silva",
+          "Especialista em NR-1 Maria Santos",
+          "Dr. João Oliveira"
+        ]
+      },
+      {
+        "name": "Hrprofessional",
+        "description": "Human resources professional who needs to understand and implement NR-1 psychosocial risk require...",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the HR professional"
+          },
+          {
+            "name": "seniority_level",
+            "type": "text",
+            "description": "Career level such as junior, pleno, senior or manager"
+          },
+          {
+            "name": "company_size",
+            "type": "text",
+            "description": "Size category of the company they work for"
+          }
+        ],
+        "examples": [
+          "RH de empresa média",
+          "Gerente de Pessoas",
+          "Analista de HR"
+        ]
+      },
+      {
+        "name": "SafetyProfessional",
+        "description": "Occupational safety and health professional responsible for SST and NR-1 compliance implementation",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the safety professional"
+          },
+          {
+            "name": "certification_type",
+            "type": "text",
+            "description": "Professional certification category like técnico, engenheiro or especialista"
+          },
+          {
+            "name": "focus_area",
+            "type": "text",
+            "description": "Specific focus within occupational safety"
+          }
+        ],
+        "examples": [
+          "Técnico de Segurança",
+          "Engenheiro de SST",
+          "Especialista em Riscos Psicossociais"
+        ]
+      },
+      {
+        "name": "OrganizationalPsychologist",
+        "description": "Psychologist specializing in organizational behavior and workplace mental health",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the psychologist"
+          },
+          {
+            "name": "specialization",
+            "type": "text",
+            "description": "Area of specialization within organizational psychology"
+          },
+          {
+            "name": "work_context",
+            "type": "text",
+            "description": "Whether they work internally or as external consultant"
+          }
+        ],
+        "examples": [
+          "Psicóloga Organizacional",
+          "Consultora de Clima e Cultura",
+          "Especialista em Wellbeing"
+        ]
+      },
+      {
+        "name": "Consultant",
+        "description": "Independent advisor helping companies implement NR-1 and manage psychosocial risks",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the consultant"
+          },
+          {
+            "name": "service_area",
+            "type": "text",
+            "description": "Primary consulting service area"
+          },
+          {
+            "name": "client_types",
+            "type": "text",
+            "description": "Types of companies they typically serve"
+          }
+        ],
+        "examples": [
+          "Consultor de SST",
+          "Assessor em Compliance Trabalhista",
+          "Especialista em Implementação NR-1"
+        ]
+      },
+      {
+        "name": "Company",
+        "description": "Business organization that needs to comply with NR-1 psychosocial risk requirements",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Official name of the company"
+          },
+          {
+            "name": "sector",
+            "type": "text",
+            "description": "Industry sector the company operates in"
+          },
+          {
+            "name": "employee_count",
+            "type": "text",
+            "description": "Number of employees as size indicator"
+          }
+        ],
+        "examples": [
+          "Empresa de Manufatura",
+          "Startup de Tecnologia",
+          "Corporação Financeira"
+        ]
+      },
+      {
+        "name": "Participant",
+        "description": "Individual who has registered and paid for the NR-1 immersion event",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the event participant"
+          },
+          {
+            "name": "profession_type",
+            "type": "text",
+            "description": "Their professional role category"
+          },
+          {
+            "name": "registration_date",
+            "type": "text",
+            "description": "When they registered for the event"
+          }
+        ],
+        "examples": [
+          "Participante da Imersão",
+          "Inscrito no Evento NR-1",
+          "Aluno da Live Fechada"
+        ]
+      },
+      {
+        "name": "PotentialClient",
+        "description": "Person showing interest in the event but not yet converted to paid registration",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the potential client"
+          },
+          {
+            "name": "engagement_level",
+            "type": "text",
+            "description": "Stage of interest such as aware, interested or evaluating"
+          },
+          {
+            "name": "pain_points",
+            "type": "text",
+            "description": "Their expressed concerns or questions about NR-1"
+          }
+        ],
+        "examples": [
+          "Lead de RH",
+          "Profissional Interessado",
+          "Potencial Inscrito"
+        ]
+      },
+      {
+        "name": "Person",
+        "description": "Any natural person not fitting other specific professional categories - use as fallback",
+        "attributes": [
+          {
+            "name": "full_name",
+            "type": "text",
+            "description": "Complete name of the individual"
+          },
+          {
+            "name": "role_description",
+            "type": "text",
+            "description": "Brief description of their involvement or stance"
+          }
+        ],
+        "examples": [
+          "Pessoa interessada no tema",
+          "Observador do mercado",
+          "网友 brasileiro"
+        ]
+      },
+      {
+        "name": "Organization",
+        "description": "Any organizational entity not fitting more specific types - use as fallback",
+        "attributes": [
+          {
+            "name": "org_name",
+            "type": "text",
+            "description": "Official name of the organization"
+          },
+          {
+            "name": "org_type",
+            "type": "text",
+            "description": "Category of organization"
+          }
+        ],
+        "examples": [
+          "Associação de Classe",
+          "Grupo de Discussão",
+          "Coletivo Profissional"
+        ]
+      }
+    ],
+    "edge_types": [
+      {
+        "name": "WORKS_FOR",
+        "description": "Professional relationship where a person is employed by or works for an organization",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Organization"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Company"
+          },
+          {
+            "source": "SafetyProfessional",
+            "target": "Company"
+          },
+          {
+            "source": "OrganizationalPsychologist",
+            "target": "Company"
+          },
+          {
+            "source": "Consultant",
+            "target": "Organization"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "TEACHES",
+        "description": "Instructor delivers knowledge or training to participants or audience",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Participant"
+          },
+          {
+            "source": "Professor",
+            "target": "PotentialClient"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "REGISTERED_FOR",
+        "description": "Person has signed up and paid for the NR-1 immersion event",
+        "source_targets": [
+          {
+            "source": "PotentialClient",
+            "target": "Event"
+          },
+          {
+            "source": "Person",
+            "target": "Event"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "registration_date",
+            "type": "text",
+            "description": "Date of registration"
+          },
+          {
+            "name": "ticket_price",
+            "type": "text",
+            "description": "Amount paid for registration"
+          }
+        ]
+      },
+      {
+        "name": "INTERESTED_IN",
+        "description": "Person or organization shows interest or concern about NR-1 compliance",
+        "source_targets": [
+          {
+            "source": "PotentialClient",
+            "target": "Topic"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Topic"
+          },
+          {
+            "source": "SafetyProfessional",
+            "target": "Topic"
+          },
+          {
+            "source": "Company",
+            "target": "Topic"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "concern_level",
+            "type": "text",
+            "description": "Level of concern expressed"
+          }
+        ]
+      },
+      {
+        "name": "COMMENTS_ON",
+        "description": "Entity expresses opinion or asks questions about a topic or event publicly",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Topic"
+          },
+          {
+            "source": "Participant",
+            "target": "Topic"
+          },
+          {
+            "source": "PotentialClient",
+            "target": "Topic"
+          },
+          {
+            "source": "Consultant",
+            "target": "Topic"
+          },
+          {
+            "source": "Person",
+            "target": "Topic"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "sentiment",
+            "type": "text",
+            "description": "Overall sentiment of the comment"
+          }
+        ]
+      },
+      {
+        "name": "SUPPORTS",
+        "description": "Entity expresses agreement or endorsement for a position or another entity",
+        "source_targets": [
+          {
+            "source": "Professor",
+            "target": "Professor"
+          },
+          {
+            "source": "Participant",
+            "target": "Professor"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "OPPOSES",
+        "description": "Entity expresses disagreement or criticism toward a position or another entity",
+        "source_targets": [
+          {
+            "source": "Consultant",
+            "target": "Professor"
+          },
+          {
+            "source": "Person",
+            "target": "Position"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "SHARES_CONTENT",
+        "description": "Entity distributes or reposts content related to NR-1 or the event",
+        "source_targets": [
+          {
+            "source": "Participant",
+            "target": "Content"
+          },
+          {
+            "source": "Consultant",
+            "target": "Content"
+          },
+          {
+            "source": "Company",
+            "target": "Content"
+          }
+        ],
+        "attributes": [
+          {
+            "name": "sharing_platform",
+            "type": "text",
+            "description": "Social media or channel where content was shared"
+          }
+        ]
+      },
+      {
+        "name": "FOLLOWS",
+        "description": "One entity tracks or monitors another entity's content and updates",
+        "source_targets": [
+          {
+            "source": "Participant",
+            "target": "Professor"
+          },
+          {
+            "source": "PotentialClient",
+            "target": "Professor"
+          },
+          {
+            "source": "Hrprofessional",
+            "target": "Company"
+          }
+        ],
+        "attributes": []
+      },
+      {
+        "name": "AFFILIATED_WITH",
+        "description": "Professional or organizational connection beyond formal employment",
+        "source_targets": [
+          {
+            "source": "Consultant",
+            "target": "Organization"
+          },
+          {
+            "source": "OrganizationalPsychologist",
+            "target": "Organization"
+          },
+          {
+            "source": "Professor",
+            "target": "Organization"
+          }
+        ],
+        "attributes": []
+      }
+    ]
+  },
+  "analysis_summary": "Este documento descreve um projeto de evento fechado sobre Riscos Psicossociais e NR-1 para profissionais brasileiros de RH, SST, psicologia organizacional e consultoria. Os principais stakeholders identificados são: os 3 professores instrutores que possuem autoridade técnica no tema; profissionais de RH e SST que buscam entender a norma e operacionalizar requisitos; psicólogos organizacionais e consultores que auxiliam empresas na adequação; empresas que precisam cumprir a regulamentação; participantes pagantes do evento; e potenciais clientes ainda não convertidos. As relações principais envolvem ensinar/aprender, interesses profissionais, preocupações com conformidade regulatória, e interações de apoio ou oposição em debates sobre interpretação da NR-1.",
+  "graph_id": "quark_2b1f6f21941c4bb7",
+  "graph_build_task_id": "c1ccfaff-6c69-4064-a168-cca97ecc65c4",
+  "simulation_requirement": "Analise minha estratégia",
+  "chunk_size": 500,
+  "chunk_overlap": 50,
+  "error": "headers: {'date': 'Mon, 13 Apr 2026 19:49:35 GMT', 'content-type': 'application/json; charset=utf-8', 'transfer-encoding': 'chunked', 'connection': 'keep-alive', 'vary': 'Origin', 'x-content-type-options': 'nosniff', 'x-ratelimit-increment': '1', 'x-ratelimit-limit': '5', 'x-ratelimit-remaining': '2', 'x-ratelimit-reset': '1776109800', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'cf-cache-status': 'DYNAMIC', 'content-encoding': 'gzip', 'server': 'cloudflare', 'cf-ray': '9ebcfeacc929f25a-GRU'}, status_code: 403, body: {'message': 'forbidden: Account is over the episode usage limit'}"
+}
