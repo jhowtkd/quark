@@ -63,10 +63,10 @@ Add CSS transitions to section collapse/expand:
 
 ### Checklist
 
-- [ ] RVIZ-01: Mini-charts render inline for numeric tables
-- [ ] RVIZ-02: Tables support client-side sorting
-- [ ] RVIZ-03: Data source tags have rich tooltips
-- [ ] RVIZ-04: Section collapse/expand animates smoothly
+- [x] RVIZ-01: Mini-charts render inline for numeric tables (bar chart + sparkline SVG)
+- [x] RVIZ-02: Tables support client-side sorting (click headers, numeric/string)
+- [x] RVIZ-03: Data source tags have rich tooltips (methodology on hover/focus)
+- [x] RVIZ-04: Section collapse/expand animates smoothly (Vue Transition)
 
 ---
 
