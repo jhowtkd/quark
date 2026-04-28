@@ -7,6 +7,10 @@
       </div>
       
       <div class="header-center">
+        <div v-if="reportTitle" class="report-title-header">
+          <span class="report-topic" v-if="reportTopic">{{ reportTopic }}</span>
+          <span class="report-title">{{ reportTitle }}</span>
+        </div>
         <div class="view-switcher">
           <button 
             v-for="mode in ['graph', 'split', 'workbench']" 
@@ -21,6 +25,9 @@
       </div>
 
       <div class="header-right">
+        <button v-if="reportTitle" class="header-action-btn" @click="printReport" :title="$t('report.print')">
+          <Icon name="file-text" :size="18" />
+        </button>
         <LanguageSwitcher />
         <div class="step-divider"></div>
         <div class="workflow-step">
@@ -80,6 +87,7 @@ import ReportOutline from '../components/ReportOutline.vue'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation } from '../api/simulation'
 import { getReport } from '../api/report'
+import Icon from '../components/Icon.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
 const route = useRoute()
@@ -102,6 +110,8 @@ const graphData = ref(null)
 const graphLoading = ref(false)
 const systemLogs = ref([])
 const currentStatus = ref('processing') // processing | completed | error
+const reportTitle = ref('')
+const reportTopic = ref('')
 const reportHeadings = ref([])
 const reportPanelRef = ref(null)
 
@@ -186,6 +196,8 @@ const loadReportData = async () => {
     const reportRes = await getReport(currentReportId.value)
     if (reportRes.success && reportRes.data) {
       const reportData = reportRes.data
+      reportTitle.value = reportData.title || reportData.report_title || ''
+      reportTopic.value = reportData.topic || reportData.project_topic || ''
       simulationId.value = reportData.simulation_id
 
       if (simulationId.value) {
@@ -239,6 +251,10 @@ const refreshGraph = () => {
   }
 }
 
+const printReport = () => {
+  window.print()
+}
+
 // Watch route params
 watch(() => route.params.reportId, (newId) => {
   if (newId && newId !== currentReportId.value) {
@@ -286,6 +302,54 @@ onUnmounted(() => {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.report-title-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.report-topic {
+  font-family: var(--font-machine);
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.report-title {
+  font-family: var(--font-human);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-on-background);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
+}
+
+.header-action-btn {
+  background: transparent;
+  border: 1px solid var(--color-outline);
+  color: var(--color-muted);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.header-action-btn:hover {
+  color: var(--color-on-background);
+  border-color: var(--color-on-background);
 }
 
 .brand {

@@ -25,12 +25,18 @@
               :class="{ 
                 'is-active': currentSectionIndex === idx + 1,
                 'is-completed': isSectionCompleted(idx + 1),
-                'is-pending': !isSectionCompleted(idx + 1) && currentSectionIndex !== idx + 1
+                'is-pending': !isSectionCompleted(idx + 1) && currentSectionIndex !== idx + 1,
+                'dd-tese': isDueDiligenceSection(section.title, 'tese'),
+                'dd-evidencias': isDueDiligenceSection(section.title, 'evidencias'),
+                'dd-fragilidades': isDueDiligenceSection(section.title, 'fragilidades'),
+                'dd-premissas': isDueDiligenceSection(section.title, 'premissas'),
+                'dd-cenarios': isDueDiligenceSection(section.title, 'cenarios')
               }"
             >
               <div class="section-header-row" @click="toggleSectionCollapse(idx)" :class="{ 'clickable': isSectionCompleted(idx + 1) }">
                 <span class="section-number">{{ String(idx + 1).padStart(2, '0') }}</span>
                 <h3 class="section-title">{{ section.title }}</h3>
+                <span v-if="getDDSectionLabel(section.title)" class="dd-badge">{{ getDDSectionLabel(section.title) }}</span>
                 <svg 
                   v-if="isSectionCompleted(idx + 1)" 
                   class="collapse-icon" 
@@ -1850,6 +1856,29 @@ const isSectionCompleted = (sectionIndex) => {
   return !!generatedSections.value[sectionIndex]
 }
 
+const DD_SECTIONS = {
+  tese: ['tese', 'thesis', 'argument'],
+  evidencias: ['evidências', 'evidencias', 'evidence', 'proofs'],
+  fragilidades: ['fragilidades', 'fragilities', 'weaknesses', 'risks'],
+  premissas: ['premissas', 'premises', 'assumptions'],
+  cenarios: ['cenários', 'cenarios', 'scenarios', 'outcomes']
+}
+
+const isDueDiligenceSection = (title, type) => {
+  if (!title || !type) return false
+  const lower = title.toLowerCase()
+  return DD_SECTIONS[type]?.some(k => lower.includes(k)) ?? false
+}
+
+const getDDSectionLabel = (title) => {
+  if (isDueDiligenceSection(title, 'tese')) return 'Tese'
+  if (isDueDiligenceSection(title, 'evidencias')) return 'Evidências'
+  if (isDueDiligenceSection(title, 'fragilidades')) return 'Fragilidades'
+  if (isDueDiligenceSection(title, 'premissas')) return 'Premissas'
+  if (isDueDiligenceSection(title, 'cenarios')) return 'Cenários'
+  return ''
+}
+
 const formatTime = (timestamp) => {
   if (!timestamp) return ''
   try {
@@ -2539,6 +2568,47 @@ watch(() => props.reportId, (newId) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  padding: var(--space-4);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-section-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+/* Due-diligence accent borders */
+.report-section-item.dd-tese {
+  border-left: 3px solid var(--color-primary);
+}
+
+.report-section-item.dd-evidencias {
+  border-left: 3px solid var(--color-success);
+}
+
+.report-section-item.dd-fragilidades {
+  border-left: 3px solid var(--color-error);
+}
+
+.report-section-item.dd-premissas {
+  border-left: 3px solid var(--color-warning);
+}
+
+.report-section-item.dd-cenarios {
+  border-left: 3px solid var(--color-info);
+}
+
+.dd-badge {
+  font-family: var(--font-machine);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  background: var(--color-surface-container-low);
+  color: var(--color-muted);
+  margin-left: auto;
 }
 
 .section-header-row {
