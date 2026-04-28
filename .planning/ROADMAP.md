@@ -9,7 +9,7 @@
 - [x] **Phase 13: Dark Mode System** — Implement system-wide dark mode with CSS variables, toggle, and auto preference detection.
 - [x] **Phase 14: Design System Refinements** — Evolve Blueprint Noir v2 tokens, audit components, standardize icons, and build a living style guide.
 - [x] **Phase 15: Animations and Micro-interactions** — Add page transitions, hover/active feedback, skeleton loading, and progress indicators.
-- [ ] **Phase 16: Report Viewer Redesign** — Rebuild report layout with cards, interactive tables, mini-charts, and section navigation.
+- [x] **Phase 16: Report Viewer Redesign** — Rebuild report layout with cards, interactive tables, mini-charts, and section navigation.
 - [ ] **Phase 17: Global UI Polish and Accessibility** — WCAG 2.1 AA audit, responsive refinements, console cleanup, and final consistency pass.
 
 ## Phase Details
@@ -79,5 +79,5 @@ Phases execute in numeric order: 13, 14, 15, 16, 17
 | 13. Dark Mode System | 1/1 | Complete | 2026-04-28 |
 | 14. Design System Refinements | 1/1 | Complete | 2026-04-28 |
 | 15. Animations and Micro-interactions | 1/1 | Complete | 2026-04-28 |
-| 16. Report Viewer Redesign | 0/0 | Planned | — |
+| 16. Report Viewer Redesign | 1/1 | Complete | 2026-04-28 |
 | 17. Global UI Polish and Accessibility | 0/0 | Planned | — |
