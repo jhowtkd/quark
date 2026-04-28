@@ -588,7 +588,7 @@ const renderGraph = () => {
       event.stopPropagation()
       // 重置之前Select Edge Click Visual Pointer Events的样式
       linkGroup.selectAll('path').attr('stroke', '#C0C0C0').attr('stroke-width', 1.5)
-      linkLabelBg.attr('fill', 'rgba(255,255,255,0.95)')
+      linkLabelBg.attr('fill', 'var(--color-overlay-light)')
       linkLabels.attr('fill', '#666')
       // 高亮当前InFocus ObjEdge Connect
       d3.select(event.target).attr('stroke', '#3498db').attr('stroke-width', 3)
@@ -603,7 +603,7 @@ const renderGraph = () => {
   const linkLabelBg = linkGroup.selectAll('rect')
     .data(edges)
     .enter().append('rect')
-    .attr('fill', 'rgba(255,255,255,0.95)')
+    .attr('fill', 'var(--color-overlay-light)')
     .attr('rx', 3)
     .attr('ry', 3)
     .style('cursor', 'pointer')
@@ -612,7 +612,7 @@ const renderGraph = () => {
     .on('click', (event, d) => {
       event.stopPropagation()
       linkGroup.selectAll('path').attr('stroke', '#C0C0C0').attr('stroke-width', 1.5)
-      linkLabelBg.attr('fill', 'rgba(255,255,255,0.95)')
+      linkLabelBg.attr('fill', 'var(--color-overlay-light)')
       linkLabels.attr('fill', '#666')
       // 高亮对应的Edge Connect
       link.filter(l => l === d).attr('stroke', '#3498db').attr('stroke-width', 3)
@@ -640,7 +640,7 @@ const renderGraph = () => {
     .on('click', (event, d) => {
       event.stopPropagation()
       linkGroup.selectAll('path').attr('stroke', '#C0C0C0').attr('stroke-width', 1.5)
-      linkLabelBg.attr('fill', 'rgba(255,255,255,0.95)')
+      linkLabelBg.attr('fill', 'var(--color-overlay-light)')
       linkLabels.attr('fill', '#666')
       // 高亮对应的Edge Connect
       link.filter(l => l === d).attr('stroke', '#3498db').attr('stroke-width', 3)
@@ -787,7 +787,7 @@ const renderGraph = () => {
     selectedItem.value = null
     node.attr('stroke', '#fff').attr('stroke-width', 2.5)
     linkGroup.selectAll('path').attr('stroke', '#C0C0C0').attr('stroke-width', 1.5)
-    linkLabelBg.attr('fill', 'rgba(255,255,255,0.95)')
+    linkLabelBg.attr('fill', 'var(--color-overlay-light)')
     linkLabels.attr('fill', '#666')
   })
 }
@@ -929,7 +929,7 @@ onUnmounted(() => {
   position: absolute;
   bottom: 24px;
   left: 24px;
-  background: rgba(255,255,255,0.95);
+  background: var(--color-overlay-light);
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid var(--color-outline);
@@ -1229,7 +1229,7 @@ input:checked + .slider:before {
   bottom: 160px; /* Moved up from 80px */
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--color-overlay);
   backdrop-filter: blur(8px);
   color: var(--color-surface);
   padding: 10px 20px;
@@ -1265,7 +1265,7 @@ input:checked + .slider:before {
 
 /* 模拟结束后的提示样式 */
 .graph-building-hint.finished-hint {
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--color-overlay);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 

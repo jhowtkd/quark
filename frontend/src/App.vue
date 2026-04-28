@@ -69,6 +69,11 @@ onMounted(() => {
   --color-code-bg: #f0f0f0;
   --color-code-text: #1b1b1b;
 
+  /* Overlays */
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --color-overlay-light: rgba(255, 255, 255, 0.95);
+  --color-overlay-subtle: rgba(0, 0, 0, 0.15);
+
   /* Links */
   --color-link: #000000;
   --color-link-hover: #444444;
@@ -151,6 +156,9 @@ onMounted(() => {
   --color-info-bg: rgba(2, 136, 209, 0.12);
   --color-code-bg: #f0f0f0;
   --color-code-text: #1b1b1b;
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --color-overlay-light: rgba(255, 255, 255, 0.95);
+  --color-overlay-subtle: rgba(0, 0, 0, 0.15);
   --color-link: #000000;
   --color-link-hover: #444444;
   --shadow-none: none;
@@ -185,6 +193,9 @@ onMounted(() => {
   --color-info-bg: rgba(100, 200, 255, 0.12);
   --color-code-bg: #1a1a1a;
   --color-code-text: #e0e0e0;
+  --color-overlay: rgba(0, 0, 0, 0.75);
+  --color-overlay-light: rgba(30, 30, 30, 0.98);
+  --color-overlay-subtle: rgba(255, 255, 255, 0.1);
   --color-link: #e0e0e0;
   --color-link-hover: #ffffff;
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -219,6 +230,9 @@ onMounted(() => {
     --color-info-bg: rgba(100, 200, 255, 0.12);
     --color-code-bg: #1a1a1a;
     --color-code-text: #e0e0e0;
+    --color-overlay: rgba(0, 0, 0, 0.75);
+    --color-overlay-light: rgba(30, 30, 30, 0.98);
+    --color-overlay-subtle: rgba(255, 255, 255, 0.1);
     --color-link: #e0e0e0;
     --color-link-hover: #ffffff;
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -393,6 +407,17 @@ textarea:focus-visible {
 .page-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Link hover */

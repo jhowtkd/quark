@@ -1074,11 +1074,11 @@ watch(() => props.simulationId, (newId) => {
 }
 
 .left-panel:hover::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--color-overlay-subtle);
 }
 
 .left-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--color-overlay-subtle);
 }
 
 /* Report Header */

@@ -103,7 +103,7 @@ defineProps({
 .status-active .step-indicator {
   background: var(--color-primary);
   color: var(--color-on-primary);
-  box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.15);
+  box-shadow: 0 0 0 4px var(--color-overlay-subtle);
   animation: pulse-ring 2s infinite;
 }
 
@@ -178,7 +178,7 @@ defineProps({
 }
 
 @keyframes pulse-ring {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(128, 128, 128, 0.15); }
-  50% { box-shadow: 0 0 0 8px rgba(128, 128, 128, 0.05); }
+  0%, 100% { box-shadow: 0 0 0 4px var(--color-overlay-subtle); }
+  50% { box-shadow: 0 0 0 8px var(--color-overlay-subtle); }
 }
 </style>
