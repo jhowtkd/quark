@@ -55,21 +55,23 @@
                 </svg>
               </div>
               
-              <div class="section-body" v-show="!collapsedSections.has(idx)">
-                <!-- Completed Content -->
-                <div v-if="generatedSections[idx + 1]" class="generated-content" v-html="renderMarkdown(generatedSections[idx + 1])"></div>
-                
-                <!-- Loading State -->
-                <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
-                  <div class="loading-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke-width="4" stroke="#E5E7EB"></circle>
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="#4B5563" stroke-linecap="round"></path>
-                    </svg>
+              <Transition name="section-expand">
+                <div v-show="!collapsedSections.has(idx)" class="section-body">
+                  <!-- Completed Content -->
+                  <div v-if="generatedSections[idx + 1]" class="generated-content" v-html="renderMarkdown(generatedSections[idx + 1])"></div>
+                  
+                  <!-- Loading State -->
+                  <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
+                    <div class="loading-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="4" stroke="#E5E7EB"></circle>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="#4B5563" stroke-linecap="round"></path>
+                      </svg>
+                    </div>
+                    <span class="loading-text">{{ $t('step4.generatingSection', { title: section.title }) }}</span>
                   </div>
-                  <span class="loading-text">{{ $t('step4.generatingSection', { title: section.title }) }}</span>
                 </div>
-              </div>
+              </Transition>
             </div>
           </div>
         </div>
@@ -1231,6 +1233,20 @@ watch(() => props.simulationId, (newId) => {
 .section-body {
   padding-left: 28px;
   overflow: hidden;
+}
+
+/* Section expand/collapse transition */
+.section-expand-enter-active,
+.section-expand-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease;
+  max-height: 2000px;
+}
+
+.section-expand-enter-from,
+.section-expand-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
 }
 
 /* Generated Content */

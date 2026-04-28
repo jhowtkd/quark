@@ -61,33 +61,35 @@
                 </svg>
               </div>
               
-              <div class="section-body" v-show="!collapsedSections.has(idx)">
-                <!-- Completed Content -->
-                <div v-if="generatedSections[idx + 1]" class="generated-content" v-html="renderSafeSectionContent(idx + 1)"></div>
-                
-                <!-- Contamination Warning Fallback -->
-                <div v-else-if="contaminatedSections.has(idx + 1)" class="contamination-warning">
-                  <div class="warning-icon">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                      <line x1="12" y1="9" x2="12" y2="13"></line>
-                      <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
+              <Transition name="section-expand">
+                <div v-show="!collapsedSections.has(idx)" class="section-body">
+                  <!-- Completed Content -->
+                  <div v-if="generatedSections[idx + 1]" class="generated-content" v-html="renderSafeSectionContent(idx + 1)"></div>
+                  
+                  <!-- Contamination Warning Fallback -->
+                  <div v-else-if="contaminatedSections.has(idx + 1)" class="contamination-warning">
+                    <div class="warning-icon">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                      </svg>
+                    </div>
+                    <span class="warning-text">{{ $t('contamination.contentRemoved') }}</span>
                   </div>
-                  <span class="warning-text">{{ $t('contamination.contentRemoved') }}</span>
-                </div>
-                
-                <!-- Loading State -->
-                <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
-                  <div class="loading-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <circle cx="12" cy="12" r="10" stroke-width="4" stroke="#E5E7EB"></circle>
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="#4B5563" stroke-linecap="round"></path>
-                    </svg>
+                  
+                  <!-- Loading State -->
+                  <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
+                    <div class="loading-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="12" cy="12" r="10" stroke-width="4" stroke="#E5E7EB"></circle>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke-width="4" stroke="#4B5563" stroke-linecap="round"></path>
+                      </svg>
+                    </div>
+                    <span class="loading-text">{{ $t('step4.generatingSection', { title: section.title }) }}</span>
                   </div>
-                  <span class="loading-text">{{ $t('step4.generatingSection', { title: section.title }) }}</span>
                 </div>
-              </div>
+              </Transition>
             </div>
           </div>
         </div>
@@ -1928,6 +1930,32 @@ const truncateText = (text, maxLen) => {
 }
 
 // Parse markdown tables into HTML
+// Inline mini-chart generators
+const generateMiniBarChartSVG = (labels, values, width = 300, height = 60) => {
+  const max = Math.max(...values.map(v => Math.abs(v)))
+  const barWidth = (width - (values.length - 1) * 4) / values.length
+  const bars = values.map((v, i) => {
+    const barHeight = max > 0 ? (Math.abs(v) / max) * (height - 10) : 0
+    const y = height - barHeight - 5
+    const color = v >= 0 ? 'var(--color-success)' : 'var(--color-error)'
+    return `<rect x="${i * (barWidth + 4)}" y="${y}" width="${barWidth}" height="${barHeight}" fill="${color}" rx="1"/>`
+  }).join('')
+  return `<svg class="mini-chart mini-bar-chart" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">${bars}</svg>`
+}
+
+const generateMiniSparklineSVG = (values, width = 300, height = 40) => {
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const range = max - min || 1
+  const stepX = width / (values.length - 1)
+  const points = values.map((v, i) => {
+    const x = i * stepX
+    const y = height - ((v - min) / range) * (height - 6) - 3
+    return `${x},${y}`
+  }).join(' ')
+  return `<svg class="mini-chart mini-sparkline" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><polyline points="${points}" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+}
+
 const parseMarkdownTables = (content) => {
   // Match table blocks: header row + separator + data rows
   const tableRegex = /^(\|[^\n]+\|\n\|[\s\-:|]+\|\n(?:\|[^\n]+\|\n?)+)/gm
@@ -1947,9 +1975,31 @@ const parseMarkdownTables = (content) => {
       return line.split('|').slice(1, -1).map(c => c.trim())
     })
     
-    let html = '<table class="report-table"><thead><tr>'
-    headerCells.forEach(cell => {
-      html += `<th>${cell}</th>`
+    // Detect if table has numeric data suitable for charting
+    const numericCols = headerCells.map((_, colIdx) => {
+      const vals = rows.map(r => parseFloat(r[colIdx]?.replace(/[^0-9.-]/g, '')))
+      return vals.filter(v => !isNaN(v)).length >= 3
+    })
+    const chartableColIdx = numericCols.findIndex(v => v)
+    const chartableColCount = numericCols.filter(v => v).length
+    
+    let chartHTML = ''
+    if (chartableColCount >= 1 && rows.length >= 3) {
+      const chartValues = rows.map(r => {
+        const v = parseFloat(r[chartableColIdx]?.replace(/[^0-9.-]/g, ''))
+        return isNaN(v) ? 0 : v
+      })
+      const chartLabels = rows.map(r => r[0] || '')
+      if (chartableColCount >= 2) {
+        chartHTML = generateMiniBarChartSVG(chartLabels, chartValues)
+      } else {
+        chartHTML = generateMiniSparklineSVG(chartValues)
+      }
+    }
+    
+    let html = '<table class="report-table" data-sortable><thead><tr>'
+    headerCells.forEach((cell, i) => {
+      html += `<th data-col="${i}">${cell} <span class="sort-indicator"></span></th>`
     })
     html += '</tr></thead><tbody>'
     
@@ -1961,18 +2011,28 @@ const parseMarkdownTables = (content) => {
       html += '</tr>'
     })
     html += '</tbody></table>'
+    if (chartHTML) {
+      html = `<div class="table-with-chart">${chartHTML}${html}</div>`
+    }
     
     return html
   })
 }
 
-// Parse data source tags like [📊 realizado] into styled spans
+const TOOLTIP_TEXT = {
+  realizado: 'Dado factual baseado em fontes públicas verificáveis (relatórios oficiais, demonstrações financeiras auditadas).',
+  consenso: 'Estimativa baseada no consenso de analistas de mercado (média de projeções de múltiplas fontes).',
+  projecao: 'Projeção baseada em modelos internos e premissas declaradas. Sujeita a incertezas.',
+  simulacao: 'Resultado de simulação computacional. Não representa previsão, mas cenário hipotético.'
+}
+
+// Parse data source tags like [📊 realizado] into styled spans with tooltips
 const parseDataSourceTags = (content) => {
   return content
-    .replace(/\[📊\s*realizado\]/g, '<span class="source-tag source-realizado">📊 realizado</span>')
-    .replace(/\[🔮\s*hip[oó]tese\]/g, '<span class="source-tag source-projecao">🔮 hipótese</span>')
-    .replace(/\[📈\s*consenso\]/g, '<span class="source-tag source-consenso">📈 consenso</span>')
-    .replace(/\[⚠️\s*simula[cç][aã]o\]/g, '<span class="source-tag source-simulacao">⚠️ simulação</span>')
+    .replace(/\[📊\s*realizado\]/g, `<span class="source-tag source-realizado" tabindex="0" data-tooltip="${TOOLTIP_TEXT.realizado}">📊 realizado</span>`)
+    .replace(/\[🔮\s*hip[oó]tese\]/g, `<span class="source-tag source-projecao" tabindex="0" data-tooltip="${TOOLTIP_TEXT.projecao}">🔮 hipótese</span>`)
+    .replace(/\[📈\s*consenso\]/g, `<span class="source-tag source-consenso" tabindex="0" data-tooltip="${TOOLTIP_TEXT.consenso}">📈 consenso</span>`)
+    .replace(/\[⚠️\s*simula[cç][aã]o\]/g, `<span class="source-tag source-simulacao" tabindex="0" data-tooltip="${TOOLTIP_TEXT.simulacao}">⚠️ simulação</span>`)
 }
 
 const renderMarkdown = (content) => {
@@ -2332,6 +2392,51 @@ const stopPolling = () => {
   }
 }
 
+// Table sorting
+const initTableSorting = () => {
+  nextTick(() => {
+    document.querySelectorAll('table[data-sortable]').forEach(table => {
+      if (table.dataset.sortInit) return
+      table.dataset.sortInit = 'true'
+      const tbody = table.querySelector('tbody')
+      const headers = table.querySelectorAll('thead th')
+      headers.forEach(th => {
+        th.style.cursor = 'pointer'
+        th.addEventListener('click', () => {
+          const col = parseInt(th.dataset.col)
+          const currentSort = th.dataset.sort || 'none'
+          const newSort = currentSort === 'asc' ? 'desc' : 'asc'
+          
+          // Reset all headers
+          headers.forEach(h => {
+            h.dataset.sort = 'none'
+            const indicator = h.querySelector('.sort-indicator')
+            if (indicator) indicator.textContent = ''
+          })
+          
+          th.dataset.sort = newSort
+          const indicator = th.querySelector('.sort-indicator')
+          if (indicator) indicator.textContent = newSort === 'asc' ? ' ▲' : ' ▼'
+          
+          // Sort rows
+          const rows = Array.from(tbody.querySelectorAll('tr'))
+          rows.sort((a, b) => {
+            const aVal = a.children[col]?.textContent.trim() || ''
+            const bVal = b.children[col]?.textContent.trim() || ''
+            const aNum = parseFloat(aVal.replace(/[^0-9.-]/g, ''))
+            const bNum = parseFloat(bVal.replace(/[^0-9.-]/g, ''))
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+              return newSort === 'asc' ? aNum - bNum : bNum - aNum
+            }
+            return newSort === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+          })
+          rows.forEach(row => tbody.appendChild(row))
+        })
+      })
+    })
+  })
+}
+
 // Lifecycle
 onMounted(() => {
   if (props.reportId) {
@@ -2339,6 +2444,10 @@ onMounted(() => {
     startPolling()
   }
 })
+
+watch(() => generatedSections.value, () => {
+  initTableSorting()
+}, { deep: true })
 
 onUnmounted(() => {
   stopPolling()
@@ -2693,6 +2802,20 @@ watch(() => props.reportId, (newId) => {
 .section-body {
   padding-left: 28px;
   overflow: hidden;
+}
+
+/* Section expand/collapse transition */
+.section-expand-enter-active,
+.section-expand-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease;
+  max-height: 2000px;
+}
+
+.section-expand-enter-from,
+.section-expand-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
 }
 
 /* Generated Content */
@@ -5420,6 +5543,39 @@ watch(() => props.reportId, (newId) => {
   background: var(--color-surface-container-low);
 }
 
+.report-table thead th {
+  cursor: pointer;
+  user-select: none;
+}
+
+.report-table thead th:hover {
+  background: var(--color-surface-container-highest);
+}
+
+.sort-indicator {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.table-with-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.mini-chart {
+  align-self: flex-start;
+}
+
+.mini-bar-chart rect {
+  transition: opacity 0.15s ease;
+}
+
+.mini-bar-chart rect:hover {
+  opacity: 0.7;
+}
+
 /* Data source tags */
 .source-tag {
   display: inline-flex;
@@ -5453,6 +5609,50 @@ watch(() => props.reportId, (newId) => {
 .source-simulacao {
   background: var(--color-error-bg);
   color: var(--color-error);
+}
+
+/* Data source tag tooltips */
+.source-tag {
+  position: relative;
+  cursor: help;
+}
+
+.source-tag::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-elevated);
+  color: var(--color-on-surface);
+  font-size: var(--text-xs);
+  font-family: var(--font-human);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  border: 1px solid var(--color-outline);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.source-tag:hover::after,
+.source-tag:focus::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 768px) {
+  .source-tag::after {
+    width: 200px;
+    left: 0;
+    transform: none;
+  }
 }
 </style>
 
