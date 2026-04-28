@@ -64,10 +64,10 @@ This phase adds these capabilities.
 
 ### Checklist
 
-- [ ] REXP-01: PDF export preserves report styling and formatting
-- [ ] REXP-02: URL anchors scroll to correct sections on page load
-- [ ] REXP-03: Shareable links include report ID and section anchor
-- [ ] REXP-04: PDF includes metadata header/footer
+- [x] REXP-01: PDF export preserves report styling and formatting (via window.print + @media print)
+- [x] REXP-02: URL anchors scroll to correct sections on page load
+- [x] REXP-03: Shareable links include report ID and section anchor
+- [x] REXP-04: PDF includes metadata header/footer (brand, title, topic, ID)
 
 ---
 
