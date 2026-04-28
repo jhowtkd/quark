@@ -34,7 +34,7 @@
   2. All target components match v2 specs for radius, shadow, focus, and disabled states.
   3. Single icon library is adopted and legacy icons are replaced.
   4. Developers can preview any token/component in both themes from the style guide.
-**Plans**: 0 plans
+**Plans**: 1 plan (14-01)
 
 ### Phase 15: Animations and Micro-interactions
 **Goal**: The UI feels responsive and alive through purposeful motion and clear loading states.
