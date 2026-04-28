@@ -54,9 +54,10 @@ const iconSize = computed(() => {
   font-weight: var(--font-weight-medium);
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: var(--radius-md);
   line-height: var(--line-height-tight);
+  will-change: transform, box-shadow;
 }
 
 /* Sizes */
@@ -71,9 +72,13 @@ const iconSize = computed(() => {
 }
 .variant-primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
 }
 .variant-primary:active:not(:disabled) {
   background: var(--color-primary-active);
+  transform: scale(0.98);
+  box-shadow: none;
 }
 
 .variant-secondary {
@@ -82,6 +87,10 @@ const iconSize = computed(() => {
 }
 .variant-secondary:hover:not(:disabled) {
   background: var(--color-outline);
+  transform: translateY(-1px);
+}
+.variant-secondary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .variant-outline {

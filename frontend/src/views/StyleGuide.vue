@@ -102,6 +102,24 @@
         </BaseModal>
       </section>
 
+      <!-- Skeletons -->
+      <section id="skeletons" class="sg-section">
+        <h2>Skeleton Loading</h2>
+        <div class="sg-stack" style="max-width: 500px">
+          <SkeletonText :lines="4" />
+          <SkeletonTable :rows="3" :columns="3" />
+          <SkeletonGraph :node-count="6" />
+        </div>
+      </section>
+
+      <!-- Progress Steps -->
+      <section id="progress" class="sg-section">
+        <h2>Progress Steps</h2>
+        <ProgressSteps :steps="sampleSteps" />
+        <h3 style="margin-top: var(--space-6)">Vertical</h3>
+        <ProgressSteps :steps="sampleSteps" orientation="vertical" />
+      </section>
+
       <!-- Icons -->
       <section id="icons" class="sg-section">
         <h2>Icons</h2>
@@ -125,14 +143,28 @@ import BaseInput from '../components/base/BaseInput.vue'
 import BaseCard from '../components/base/BaseCard.vue'
 import BaseBadge from '../components/base/BaseBadge.vue'
 import BaseModal from '../components/base/BaseModal.vue'
+import SkeletonBlock from '../components/skeleton/SkeletonBlock.vue'
+import SkeletonText from '../components/skeleton/SkeletonText.vue'
+import SkeletonTable from '../components/skeleton/SkeletonTable.vue'
+import SkeletonGraph from '../components/skeleton/SkeletonGraph.vue'
+import ProgressSteps from '../components/ProgressSteps.vue'
 
 const modalOpen = ref(false)
+
+const sampleSteps = [
+  { label: 'Upload', status: 'completed' },
+  { label: 'Ontology', status: 'completed' },
+  { label: 'Graph', status: 'active', detail: 'Building nodes...' },
+  { label: 'Ready', status: 'pending' },
+]
 
 const sections = [
   { id: 'colors', label: 'Colors' },
   { id: 'typography', label: 'Typography' },
   { id: 'shadows', label: 'Shadows' },
   { id: 'components', label: 'Components' },
+  { id: 'skeletons', label: 'Skeletons' },
+  { id: 'progress', label: 'Progress' },
   { id: 'icons', label: 'Icons' },
 ]
 

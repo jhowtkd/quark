@@ -123,8 +123,24 @@ const close = () => emit('update:open', false)
 .modal-leave-active {
   transition: opacity 0.2s ease;
 }
+.modal-enter-active .modal-content,
+.modal-leave-active .modal-content {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
 .modal-enter-from,
 .modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .modal-content {
+  transform: scale(0.96);
+  opacity: 0;
+}
+.modal-enter-to .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+.modal-leave-to .modal-content {
+  transform: scale(0.98);
   opacity: 0;
 }
 </style>

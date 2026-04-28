@@ -202,7 +202,7 @@
       
       <!-- Loading Global -->
       <div v-else-if="loading" class="graph-state">
-        <div class="loading-spinner"></div>
+        <SkeletonGraph :node-count="8" />
         <p>{{ $t('graph.graphDataLoading') }}</p>
       </div>
       
@@ -240,6 +240,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue'
 import * as d3 from 'd3'
 import i18n from '../i18n'
 import Icon from './Icon.vue'
+import SkeletonGraph from './skeleton/SkeletonGraph.vue'
 
 const props = defineProps({
   graphData: Object,

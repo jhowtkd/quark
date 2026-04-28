@@ -101,8 +101,8 @@
 
     <!-- Loading Global -->
     <div v-if="loading" class="loading-state">
-      <span class="loading-spinner"></span>
-      <span class="loading-text">{{ $t('history.loadingText') }}</span>
+      <SkeletonText :lines="3" />
+      <SkeletonTable :rows="4" :columns="3" />
     </div>
 
     <!-- Format Action Render Map Format Arrays Object Mapping Check Setup Setup Mapping Returns Logic Setup Run Call Displays Exec Display Returns Call Handling Event Execution Result Response Method Response Display Variables Outputs Fetch Setup Action Handle Logic Variables View Return Map Results Handling Components Arrays Outputs Properties Check Return Handle Component Value Model Displays Results String Exec Formatting View State Handling Method Display Display Formatting Target Variable Displays Event Response Map Object Handle Formats Mapping Returns Handling Function Result Handling Handle Fetch Functions Map Call Layout String Object Variables Formatting Event Object Pattern Rendering Outputs Array Control View Map String Array Handling Flow Props Regex State Data Component Formats Execute Functions Components Loop Prop Displays Regex Action Logic Flow Handle Scope Return Arrays Handling Setup Handle View Response Methods Run Mapping Rendering State Return State Formats View Output Event Value Displays Flow Data Functions Fetch Component Render String Output Handle Object Mapping Handling Component Display Formats Loop Call Displays Component Object Array Handle回放Descritivo Total弹窗 -->
@@ -196,6 +196,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getSimulationHistory } from '../api/simulation'
 import Icon from './Icon.vue'
+import SkeletonText from './skeleton/SkeletonText.vue'
+import SkeletonTable from './skeleton/SkeletonTable.vue'
 
 const router = useRouter()
 const route = useRoute()

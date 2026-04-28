@@ -32,7 +32,8 @@ const cardClasses = computed(() => {
 .base-card {
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
 }
 
 /* Variants */
@@ -43,6 +44,10 @@ const cardClasses = computed(() => {
 .variant-elevated {
   border: none;
   box-shadow: var(--shadow-soft);
+}
+.variant-elevated:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .variant-outlined {

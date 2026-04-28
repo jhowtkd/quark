@@ -1,6 +1,10 @@
 <template>
   <div class="workbench-panel">
     <div class="scroll-container">
+      <ProgressSteps
+        :steps="graphSteps"
+        style="margin-bottom: var(--space-4);"
+      />
       <div class="step-card" :class="{ active: currentPhase === 0 && !ontologyReady, completed: ontologyReady || currentPhase > 0 }">
         <div class="card-header">
           <div class="step-info">
@@ -409,6 +413,7 @@ import { useI18n } from 'vue-i18n'
 import { createSimulation } from '../api/simulation'
 import { promoteResearch, createProjectFromResearch } from '../api/research'
 import Icon from './Icon.vue'
+import ProgressSteps from './ProgressSteps.vue'
 import { getProfile } from '../store/pendingUpload.js'
 
 const router = useRouter()
@@ -501,6 +506,13 @@ const controlsLocked = computed(() => props.currentPhase > 0)
 const previewReady = computed(() => Boolean(props.costPreview))
 const ontologyGuardrails = computed(() => props.costPreview?.ontology_guardrails || null)
 const canConfirmBuild = computed(() => Boolean(previewReady.value && ontologyGuardrails.value?.can_build !== false))
+
+const graphSteps = computed(() => [
+  { label: 'Upload', status: props.currentPhase >= 0 ? 'completed' : 'pending' },
+  { label: 'Ontologia', status: props.currentPhase === 0 ? 'active' : (props.currentPhase > 0 ? 'completed' : 'pending'), detail: props.ontologyProgress?.message },
+  { label: 'Grafo', status: props.currentPhase === 1 ? 'active' : (props.currentPhase > 1 ? 'completed' : 'pending'), detail: props.buildProgress?.message },
+  { label: 'Pronto', status: props.currentPhase >= 2 ? 'completed' : 'pending' },
+])
 
 const updateChunk = (field, event) => {
   const value = event.target.valueAsNumber
