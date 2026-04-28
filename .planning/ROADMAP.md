@@ -56,7 +56,7 @@
   2. Tables and mini-charts render inline for key metrics.
   3. Data source tags are accessible and visually distinct.
   4. Users can navigate long reports via anchor links or a floating outline.
-**Plans**: 0 plans
+**Plans**: 1 plan (16-01)
 
 ### Phase 17: Global UI Polish and Accessibility
 **Goal**: The app meets professional accessibility and responsiveness standards with zero known UI drift.
