@@ -6,7 +6,7 @@
       <div class="nav-links">
         <ThemeToggle />
         <LanguageSwitcher />
-        <button class="logout-btn" @click="handleLogout" :title="$t('auth.logout')">
+        <button class="logout-btn" type="button" @click="handleLogout" :title="$t('auth.logout')" aria-label="Logout">
           <Icon name="log-out" :size="16" class="logout-icon" />
           <span class="logout-text">{{ $t('auth.logout') }}</span>
         </button>
@@ -52,7 +52,7 @@
             <img src="/futuria_logo.svg" alt="FUTUR.IA Logo" class="hero-logo" />
           </div>
           
-          <button class="scroll-down-btn" @click="scrollToBottom">
+          <button class="scroll-down-btn" type="button" @click="scrollToBottom" aria-label="Scroll down">
             <Icon name="chevron-down" :size="20" />
           </button>
         </div>
@@ -166,7 +166,7 @@
                   <div v-for="(file, index) in files" :key="index" class="file-item">
                     <span class="file-icon">📄</span>
                     <span class="file-name">{{ file.name }}</span>
-                    <button @click.stop="removeFile(index)" class="remove-btn"><Icon name="x" :size="14" /></button>
+                    <button type="button" @click.stop="removeFile(index)" class="remove-btn" aria-label="Remove file"><Icon name="x" :size="14" aria-hidden="true" /></button>
                   </div>
                 </div>
               </div>

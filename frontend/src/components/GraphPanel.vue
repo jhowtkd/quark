@@ -4,11 +4,11 @@
       <span class="panel-title">{{ $t('graph.panelTitle') }}</span>
       <!-- 顶部工具栏 (Internal Top Right) -->
       <div class="header-tools">
-        <button class="tool-btn" @click="$emit('refresh')" :disabled="loading" :title="$t('graph.refreshGraph')">
+        <button class="tool-btn" type="button" @click="$emit('refresh')" :disabled="loading" :title="$t('graph.refreshGraph')" aria-label="Refresh graph">
           <Icon name="refresh-cw" :size="16" :class="{ 'spinning': loading }" />
           <span class="btn-text">Refresh</span>
         </button>
-        <button class="tool-btn" @click="$emit('toggle-maximize')" :title="$t('graph.toggleMaximize')">
+        <button class="tool-btn" type="button" @click="$emit('toggle-maximize')" :title="$t('graph.toggleMaximize')" aria-label="Toggle maximize">
           <span class="icon-maximize">⛶</span>
         </button>
       </div>
@@ -40,7 +40,7 @@
             </svg>
           </div>
           <span class="hint-text">{{ $t('graph.pendingContentHint') }}</span>
-          <button class="hint-close-btn" @click="dismissFinishedHint" :title="$t('graph.closeHint')">
+          <button class="hint-close-btn" type="button" @click="dismissFinishedHint" :title="$t('graph.closeHint')" aria-label="Close hint">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -55,7 +55,7 @@
             <span v-if="selectedItem.type === 'node'" class="detail-type-badge" :style="{ background: selectedItem.color, color: '#fff' }">
               {{ selectedItem.entityType }}
             </span>
-            <button class="detail-close" @click="closeDetailPanel"><Icon name="x" :size="16" /></button>
+            <button class="detail-close" type="button" @click="closeDetailPanel" aria-label="Close detail panel"><Icon name="x" :size="16" aria-hidden="true" /></button>
           </div>
           
           <!-- 节点Descritivo Total -->

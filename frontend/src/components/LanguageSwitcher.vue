@@ -1,8 +1,14 @@
 <template>
   <div class="language-switcher" ref="switcherRef">
-    <button class="switcher-trigger" @click="toggleDropdown">
+    <button
+      class="switcher-trigger"
+      type="button"
+      :aria-expanded="open"
+      aria-haspopup="listbox"
+      @click="toggleDropdown"
+    >
       {{ currentLabel }}
-      <span class="caret">{{ open ? '▲' : '▼' }}</span>
+      <span class="caret" aria-hidden="true">{{ open ? '▲' : '▼' }}</span>
     </button>
     <ul v-if="open" class="switcher-dropdown">
       <li
@@ -10,7 +16,11 @@
         :key="loc.key"
         class="switcher-option"
         :class="{ active: loc.key === locale }"
+        role="option"
+        :aria-selected="loc.key === locale"
+        tabindex="0"
         @click="switchLocale(loc.key)"
+        @keydown.enter.prevent="switchLocale(loc.key)"
       >
         {{ loc.label }}
       </li>

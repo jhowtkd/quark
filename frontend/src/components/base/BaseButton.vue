@@ -2,6 +2,7 @@
   <button
     :class="buttonClasses"
     :disabled="disabled || loading"
+    :type="type"
     @click="$emit('click', $event)"
   >
     <Icon v-if="loading" name="loader-2" :size="iconSize" class="spin" />
@@ -27,6 +28,7 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   brutalist: { type: Boolean, default: false },
+  type: { type: String, default: 'button' },
 })
 
 defineEmits(['click'])

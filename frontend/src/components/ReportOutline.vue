@@ -1,7 +1,13 @@
 <template>
   <nav class="report-outline" :class="{ collapsed: isCollapsed }">
-    <button class="outline-toggle" @click="isCollapsed = !isCollapsed">
-      <Icon :name="isCollapsed ? 'chevron-right' : 'chevron-left'" :size="16" />
+    <button
+      class="outline-toggle"
+      type="button"
+      :aria-expanded="!isCollapsed"
+      aria-label="Toggle outline"
+      @click="isCollapsed = !isCollapsed"
+    >
+      <Icon :name="isCollapsed ? 'chevron-right' : 'chevron-left'" :size="16" aria-hidden="true" />
     </button>
     <div v-show="!isCollapsed" class="outline-content">
       <h4 class="outline-title">Conteúdo</h4>

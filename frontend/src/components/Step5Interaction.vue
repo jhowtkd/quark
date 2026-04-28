@@ -28,7 +28,16 @@
                 'is-pending': !isSectionCompleted(idx + 1) && currentSectionIndex !== idx + 1
               }"
             >
-              <div class="section-header-row" @click="toggleSectionCollapse(idx)" :class="{ 'clickable': isSectionCompleted(idx + 1) }">
+              <div
+                class="section-header-row"
+                :class="{ 'clickable': isSectionCompleted(idx + 1) }"
+                role="button"
+                tabindex="0"
+                :aria-expanded="!collapsedSections.has(idx)"
+                @click="toggleSectionCollapse(idx)"
+                @keydown.enter.prevent="toggleSectionCollapse(idx)"
+                @keydown.space.prevent="toggleSectionCollapse(idx)"
+              >
                 <span class="section-number">{{ String(idx + 1).padStart(2, '0') }}</span>
                 <h3 class="section-title">{{ section.title }}</h3>
                 <svg 

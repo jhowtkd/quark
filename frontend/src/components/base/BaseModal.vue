@@ -2,9 +2,14 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="open" class="modal-overlay" @click.self="close">
-        <div :class="modalClasses">
+        <div
+          :class="modalClasses"
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="title ? 'modal-title' : undefined"
+        >
           <div v-if="title" class="modal-header">
-            <h3 class="modal-title">{{ title }}</h3>
+            <h3 id="modal-title" class="modal-title">{{ title }}</h3>
             <button class="modal-close" @click="close" aria-label="Fechar">
               <Icon name="x" :size="20" />
             </button>
