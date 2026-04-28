@@ -540,7 +540,7 @@
             </div>
             <span class="modal-profession">{{ selectedProfile.profession }}</span>
           </div>
-          <button class="close-btn" @click="selectedProfile = null">×</button>
+          <button class="close-btn" @click="selectedProfile = null"><Icon name="x" :size="16" /></button>
         </div>
         
         <div class="modal-body">
@@ -634,6 +634,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
+import Icon from './Icon.vue'
 import {
   prepareSimulation,
   getPrepareStatus,

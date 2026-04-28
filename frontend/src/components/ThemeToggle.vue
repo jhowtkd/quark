@@ -5,15 +5,16 @@
     :title="title"
     :aria-label="title"
   >
-    <span v-if="theme === 'light'">☾</span>
-    <span v-else-if="theme === 'dark'">☀</span>
-    <span v-else>A</span>
+    <Icon v-if="theme === 'light'" name="moon" :size="16" />
+    <Icon v-else-if="theme === 'dark'" name="sun" :size="16" />
+    <Icon v-else name="monitor" :size="16" />
   </button>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { useTheme } from '../composables/useTheme.js'
+import Icon from './Icon.vue'
 
 const { theme, toggleTheme, isDark } = useTheme()
 

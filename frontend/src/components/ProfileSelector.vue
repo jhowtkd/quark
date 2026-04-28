@@ -16,7 +16,7 @@
         <div class="profile-icon">{{ profile.icon }}</div>
         <div class="profile-name">{{ profile.name }}</div>
         <div class="profile-desc">{{ profile.description }}</div>
-        <div v-if="selectedProfile === profile.id" class="profile-check">✓</div>
+        <div v-if="selectedProfile === profile.id" class="profile-check"><Icon name="check" :size="16" /></div>
       </div>
     </div>
   </div>
@@ -24,6 +24,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import Icon from './Icon.vue'
 
 const emit = defineEmits(['profile-selected'])
 

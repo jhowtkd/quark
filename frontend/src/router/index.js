@@ -56,6 +56,11 @@ const handleLoginRedirect = (to, from, next) => {
 
 const routes = [
   {
+    path: '/style-guide',
+    name: 'StyleGuide',
+    component: () => import('../views/StyleGuide.vue'),
+  },
+  {
     path: '/',
     name: 'Home',
     component: Home,

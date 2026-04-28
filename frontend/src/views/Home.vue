@@ -7,11 +7,11 @@
         <ThemeToggle />
         <LanguageSwitcher />
         <button class="logout-btn" @click="handleLogout" :title="$t('auth.logout')">
-          <span class="logout-icon">⏻</span>
+          <Icon name="log-out" :size="16" class="logout-icon" />
           <span class="logout-text">{{ $t('auth.logout') }}</span>
         </button>
         <a href="https://github.com/your-org/futuria" target="_blank" class="github-link">
-          {{ $t('nav.visitGithub') }} <span class="arrow">↗</span>
+          {{ $t('nav.visitGithub') }} <Icon name="external-link" :size="14" class="arrow" />
         </a>
       </div>
     </nav>
@@ -53,7 +53,7 @@
           </div>
           
           <button class="scroll-down-btn" @click="scrollToBottom">
-            ↓
+            <Icon name="chevron-down" :size="20" />
           </button>
         </div>
       </section>
@@ -166,7 +166,7 @@
                   <div v-for="(file, index) in files" :key="index" class="file-item">
                     <span class="file-icon">📄</span>
                     <span class="file-name">{{ file.name }}</span>
-                    <button @click.stop="removeFile(index)" class="remove-btn">×</button>
+                    <button @click.stop="removeFile(index)" class="remove-btn"><Icon name="x" :size="14" /></button>
                   </div>
                 </div>
               </div>
@@ -224,6 +224,7 @@ import HistoryDatabase from '../components/HistoryDatabase.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import ProfileSelector from '../components/ProfileSelector.vue'
+import Icon from '../components/Icon.vue'
 import { logout, clearUser } from '../api/auth.js'
 import { setProfile as setStoreProfile } from '../store/pendingUpload.js'
 

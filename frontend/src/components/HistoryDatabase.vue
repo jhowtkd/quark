@@ -46,7 +46,7 @@
               class="status-icon" 
               :class="{ available: project.report_id, unavailable: !project.report_id }"
               :title="$t('history.analysisReport')"
-            >◆</span>
+            ><Icon name="diamond" :size="14" /></span>
           </div>
         </div>
 
@@ -119,7 +119,7 @@
                 </span>
                 <span class="modal-create-time">{{ formatDate(selectedProject.created_at) }} {{ formatTime(selectedProject.created_at) }}</span>
               </div>
-              <button class="modal-close" @click="closeModal">×</button>
+              <button class="modal-close" @click="closeModal"><Icon name="x" :size="16" /></button>
             </div>
 
             <!-- 弹窗Info -->
@@ -175,7 +175,7 @@
                 :disabled="!selectedProject.report_id"
               >
                 <span class="btn-step">Step4</span>
-                <span class="btn-icon">◆</span>
+                <Icon name="diamond" :size="14" class="btn-icon" />
                 <span class="btn-text">{{ $t('history.step4Button') }}</span>
               </button>
             </div>
@@ -195,6 +195,7 @@ import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } f
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getSimulationHistory } from '../api/simulation'
+import Icon from './Icon.vue'
 
 const router = useRouter()
 const route = useRoute()

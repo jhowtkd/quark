@@ -29,7 +29,7 @@
                 <span class="detail-type-badge">{{ selectedOntologyItem.itemType === 'entity' ? 'ENTITY' : 'RELATION' }}</span>
                 <span class="detail-name">{{ selectedOntologyItem.name }}</span>
               </div>
-              <button class="close-btn" @click="selectedOntologyItem = null">×</button>
+              <button class="close-btn" @click="selectedOntologyItem = null"><Icon name="x" :size="16" /></button>
             </div>
             <div class="detail-body">
               <div class="detail-desc">{{ selectedOntologyItem.description }}</div>
@@ -310,7 +310,7 @@
 
               <div class="research-actions">
                 <button class="action-btn" @click="handleApproveResearch">
-                  ✓ Approve
+                  <Icon name="check" :size="14" /> Aprovar
                 </button>
                 <button class="secondary-btn" @click="handleRejectResearch">
                   ✗ Reject
@@ -337,7 +337,7 @@
 
             <!-- Research approved - badge state -->
             <div v-else-if="isResearchApproved" class="research-approved">
-              <span class="approval-badge">✓ APPROVED</span>
+              <span class="approval-badge"><Icon name="check" :size="14" /> APROVADO</span>
               <p>Research artifact has been approved and is ready for use.</p>
               
               <div class="promotion-section">
@@ -408,6 +408,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createSimulation } from '../api/simulation'
 import { promoteResearch, createProjectFromResearch } from '../api/research'
+import Icon from './Icon.vue'
 import { getProfile } from '../store/pendingUpload.js'
 
 const router = useRouter()

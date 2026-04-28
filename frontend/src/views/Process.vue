@@ -23,7 +23,7 @@
       <div class="left-panel" :class="{ 'full-screen': isFullScreen }">
         <div class="panel-header">
           <div class="header-left">
-            <span class="header-deco">◆</span>
+            <Icon name="diamond" :size="14" class="header-deco" />
             <span class="header-title">Grafo de Conhecimento</span>
           </div>
           <div class="header-right">
@@ -35,10 +35,10 @@
             </template>
             <div class="action-buttons">
                 <button class="action-btn" @click="refreshGraph" :disabled="graphLoading" title="Atualizar grafo">
-                  <span class="icon-refresh" :class="{ 'spinning': graphLoading }">↻</span>
+                  <Icon name="refresh-cw" :size="16" :class="{ 'spinning': graphLoading }" />
                 </button>
                 <button class="action-btn" @click="toggleFullScreen" :title="isFullScreen ? 'Sair da tela cheia' : 'Mostrar em tela cheia'">
-                  <span class="icon-fullscreen">{{ isFullScreen ? '↙' : '↗' }}</span>
+                  <Icon :name="isFullScreen ? 'minimize-2' : 'maximize-2'" :size="16" />
                 </button>
             </div>
           </div>
@@ -61,7 +61,7 @@
                 <span v-if="selectedItem.type === 'node'" class="detail-badge" :style="{ background: selectedItem.color }">
                   {{ selectedItem.entityType }}
                 </span>
-                <button class="detail-close" @click="closeDetailPanel">×</button>
+                <button class="detail-close" @click="closeDetailPanel"><Icon name="x" :size="16" /></button>
               </div>
               
               <!-- Inner Div Props Node -->
@@ -418,6 +418,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { generateOntology, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
 import ThemeToggle from '../components/ThemeToggle.vue'
+import Icon from '../components/Icon.vue'
 import * as d3 from 'd3'
 
 const route = useRoute()
