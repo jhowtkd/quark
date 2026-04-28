@@ -140,10 +140,10 @@ App.vue token definitions are **excluded** — those are the source of truth.
 
 ### Checklist
 
-- [ ] POLY-01: All interactive elements meet WCAG 2.1 AA (contrast, focus, keyboard)
-- [ ] POLY-02: Layout usable from 320px to 1440px+ without horizontal scroll
-- [ ] POLY-03: Zero console warnings/errors in dev build
-- [ ] POLY-04: 100% token adoption, no legacy color values, no visual drift
+- [x] POLY-01: All interactive elements meet WCAG 2.1 AA (contrast, focus, keyboard)
+- [x] POLY-02: Layout usable from 320px to 1440px+ without horizontal scroll
+- [x] POLY-03: Zero console warnings/errors in dev build
+- [x] POLY-04: 100% token adoption, no legacy color values, no visual drift
 
 ---
 
