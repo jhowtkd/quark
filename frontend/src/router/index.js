@@ -1,13 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import LoginPage from '../views/LoginPage.vue'
-import RegisterPage from '../views/RegisterPage.vue'
-import Process from '../views/MainView.vue'
-import SimulationView from '../views/SimulationView.vue'
-import SimulationRunView from '../views/SimulationRunView.vue'
-import ReportView from '../views/ReportView.vue'
-import InteractionView from '../views/InteractionView.vue'
 import { isAuthenticated } from '../api/auth.js'
+
+// Lazy-loaded route components
+const LoginPage = () => import('../views/LoginPage.vue')
+const RegisterPage = () => import('../views/RegisterPage.vue')
+const Process = () => import('../views/MainView.vue')
+const SimulationView = () => import('../views/SimulationView.vue')
+const SimulationRunView = () => import('../views/SimulationRunView.vue')
+const ReportView = () => import('../views/ReportView.vue')
+const InteractionView = () => import('../views/InteractionView.vue')
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ['Home', 'Process', 'Simulation', 'SimulationRun', 'Report', 'Interaction']

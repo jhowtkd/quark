@@ -4,9 +4,6 @@
 
 <script>
 import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
-import { createRoot } from 'react-dom/client'
-import React from 'react'
-import { Agentation } from 'agentation'
 
 export default defineComponent({
   name: 'AgentationWrapper',
@@ -16,8 +13,15 @@ export default defineComponent({
     const enabled = Boolean(endpoint)
     let root = null
 
-    onMounted(() => {
+    onMounted(async () => {
       if (enabled && agentationRef.value) {
+        // Lazy load React and agentation only when needed
+        const [{ createRoot }, React, { Agentation }] = await Promise.all([
+          import('react-dom/client'),
+          import('react'),
+          import('agentation')
+        ])
+
         const container = document.createElement('div')
         agentationRef.value.appendChild(container)
         root = createRoot(container)

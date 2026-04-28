@@ -65,30 +65,42 @@
 
       <!-- Right Panel: Step4 Sínteses sendo emitidas... -->
       <div class="panel-wrapper right" :style="rightPanelStyle" ref="reportPanelRef">
-        <Step4Report
-          :reportId="currentReportId"
-          :simulationId="simulationId"
-          :systemLogs="systemLogs"
-          @add-log="addLog"
-          @update-status="updateStatus"
-        />
+        <Suspense>
+          <template #default>
+            <Step4Report
+              :reportId="currentReportId"
+              :simulationId="simulationId"
+              :systemLogs="systemLogs"
+              @add-log="addLog"
+              @update-status="updateStatus"
+            />
+          </template>
+          <template #fallback>
+            <div class="report-skeleton">
+              <SkeletonText :lines="8" />
+              <SkeletonBlock :height="200" class="mt-4" />
+            </div>
+          </template>
+        </Suspense>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
-import Step4Report from '../components/Step4Report.vue'
+const Step4Report = defineAsyncComponent(() => import('../components/Step4Report.vue'))
 import ReportOutline from '../components/ReportOutline.vue'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation } from '../api/simulation'
 import { getReport } from '../api/report'
 import Icon from '../components/Icon.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
+import SkeletonText from '../components/skeleton/SkeletonText.vue'
+import SkeletonBlock from '../components/skeleton/SkeletonBlock.vue'
 
 const route = useRoute()
 const router = useRouter()
