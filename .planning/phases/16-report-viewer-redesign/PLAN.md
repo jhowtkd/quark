@@ -181,10 +181,10 @@ Improve the view-mode switcher and add:
 
 ### Checklist
 
-- [ ] RPTV-01: Report sections render in card layout with due-diligence styling
-- [ ] RPTV-02: Markdown tables render as styled HTML tables; mini-charts available
-- [ ] RPTV-03: Data source tags (`[📊 realizado]`, etc.) render as colored badges
-- [ ] RPTV-04: Floating outline provides anchor navigation with scroll-spy
+- [x] RPTV-01: Report sections render in card layout with due-diligence styling
+- [x] RPTV-02: Markdown tables render as styled HTML tables; mini-charts available
+- [x] RPTV-03: Data source tags (`[📊 realizado]`, etc.) render as colored badges
+- [x] RPTV-04: Floating outline provides anchor navigation with scroll-spy
 
 ---
 
