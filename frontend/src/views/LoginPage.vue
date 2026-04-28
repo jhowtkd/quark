@@ -181,28 +181,28 @@ const handleLogin = async () => {
 
 <style scoped>
 :root {
-  --black: #000000;
-  --white: #FFFFFF;
-  --gray-light: #F5F5F5;
-  --gray-text: #666666;
-  --border: #E5E5E5;
-  --error: #DC3545;
+  --color-on-background: var(--color-on-background);
+  --color-surface: var(--color-surface);
+  --gray-light: var(--color-surface-container-low);
+  --gray-text: var(--color-muted);
+  --border: var(--color-outline);
+  --error: var(--color-error);
   --font-mono: 'JetBrains Mono', monospace;
   --font-sans: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
 }
 
 .login-page {
   min-height: 100vh;
-  background: var(--white);
+  background: var(--color-surface);
   font-family: var(--font-sans);
-  color: var(--black);
+  color: var(--color-on-background);
 }
 
 /* Navbar */
 .navbar {
   height: 60px;
-  background: var(--black);
-  color: var(--white);
+  background: var(--color-on-background);
+  color: var(--color-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -236,7 +236,7 @@ const handleLogin = async () => {
   max-width: 420px;
   padding: 48px;
   border: 1px solid var(--border);
-  background: var(--white);
+  background: var(--color-surface);
 }
 
 .login-header {
@@ -248,7 +248,7 @@ const handleLogin = async () => {
   font-size: 2rem;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: var(--black);
+  color: var(--color-on-background);
 }
 
 .login-subtitle {
@@ -273,14 +273,14 @@ const handleLogin = async () => {
 .form-label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--black);
+  color: var(--color-on-background);
 }
 
 .form-input {
   width: 100%;
   padding: 14px 0px;
   border: none;
-  border-bottom: 2px solid #777777;
+  border-bottom: 2px solid var(--color-muted);
   background: transparent;
   font-size: 1rem;
   font-family: var(--font-human);
@@ -292,11 +292,11 @@ const handleLogin = async () => {
 
 .form-input:focus {
   outline: none;
-  border-bottom-color: #000000;
+  border-bottom-color: var(--color-on-background);
 }
 
 .form-input.input-error {
-  border-bottom-color: #ba1a1a;
+  border-bottom-color: var(--color-error);
 }
 
 .password-wrapper {
@@ -339,8 +339,8 @@ const handleLogin = async () => {
 }
 
 .alert-error {
-  background: #FFF5F5;
-  border: 1px solid #FED7D7;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-bg);
   color: var(--error);
 }
 
@@ -352,8 +352,8 @@ const handleLogin = async () => {
 .login-button {
   width: 100%;
   padding: 16px;
-  background: #000000;
-  color: #e2e2e2;
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
   border: none;
   font-size: 1rem;
   font-weight: 600;
@@ -368,9 +368,9 @@ const handleLogin = async () => {
 }
 
 .login-button:hover:not(:disabled) {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .login-button:disabled {

@@ -648,7 +648,7 @@ onUnmounted(() => {
 .section-title {
   font-size: 0.8rem;
   font-weight: 500;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   letter-spacing: 3px;
   text-transform: uppercase;
 }
@@ -668,7 +668,7 @@ onUnmounted(() => {
 .project-card {
   position: absolute;
   width: 280px;
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
   border: none;
   border-radius: 0px;
   padding: 16px;
@@ -677,7 +677,7 @@ onUnmounted(() => {
 }
 
 .project-card:hover {
-  box-shadow: 4px 4px 0 #000000;
+  box-shadow: 4px 4px 0 var(--color-on-background);
   transform: translate(-2px, -2px);
   z-index: 1000 !important;
 }
@@ -689,13 +689,13 @@ onUnmounted(() => {
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 2px solid #000000;
+  border-bottom: 2px solid var(--color-on-background);
   font-family: 'JetBrains Mono', 'SF Mono', monospace;
   font-size: 0.7rem;
 }
 
 .card-id {
-  color: #6B7280;
+  color: var(--color-muted);
   letter-spacing: 0.5px;
   font-weight: 500;
 }
@@ -714,11 +714,11 @@ onUnmounted(() => {
 }
 
 .status-icon.available {
-  color: #000000;
+  color: var(--color-on-background);
 }
 
 .status-icon.unavailable {
-  color: #D1D5DB;
+  color: var(--color-outline);
   opacity: 0.5;
 }
 
@@ -737,10 +737,10 @@ onUnmounted(() => {
 }
 
 /* Andamento %状态颜色 */
-.card-progress.completed { color: #000000; }
-.card-progress.in-progress { color: #5e5e5e; }
-.card-progress.not-started { color: #c6c6c6; }
-.card-status.pending { color: #c6c6c6; }
+.card-progress.completed { color: var(--color-on-background); }
+.card-progress.in-progress { color: var(--color-muted); }
+.card-progress.not-started { color: var(--color-disabled); }
+.card-status.pending { color: var(--color-disabled); }
 
 /* 文件Listas Arrays区域 */
 .card-files-wrapper {
@@ -752,7 +752,7 @@ onUnmounted(() => {
   padding: 8px 10px;
   background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
   border-radius: 4px;
-  border: 1px solid #e8eaed;
+  border: 1px solid var(--color-outline);
   overflow: hidden;
 }
 
@@ -770,7 +770,7 @@ onUnmounted(() => {
   padding: 3px 6px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6rem;
-  color: #6B7280;
+  color: var(--color-muted);
   background: rgba(255, 255, 255, 0.5);
   border-radius: 3px;
   letter-spacing: 0.3px;
@@ -789,7 +789,7 @@ onUnmounted(() => {
 .file-item:hover {
   background: rgba(255, 255, 255, 1);
   transform: translateX(2px);
-  border-color: #e5e7eb;
+  border-color: var(--color-outline);
 }
 
 /* 简约文件标签样式 */
@@ -811,15 +811,15 @@ onUnmounted(() => {
 }
 
 /* 低饱和度配色方案 - Morandi色系 */
-.file-tag.pdf { background: #f2e6e6; color: #a65a5a; }
-.file-tag.doc { background: #e6eff5; color: #5a7ea6; }
-.file-tag.xls { background: #e6f2e8; color: #5aa668; }
-.file-tag.ppt { background: #f5efe6; color: #a6815a; }
-.file-tag.txt { background: #f0f0f0; color: #757575; }
-.file-tag.code { background: #eae6f2; color: #815aa6; }
-.file-tag.img { background: #e6f2f2; color: #5aa6a6; }
-.file-tag.zip { background: #f2f0e6; color: #a69b5a; }
-.file-tag.other { background: #f3f4f6; color: #6b7280; }
+.file-tag.pdf { background: var(--color-error-bg); color: var(--color-error); }
+.file-tag.doc { background: var(--color-info-bg); color: var(--color-info); }
+.file-tag.xls { background: var(--color-success-bg); color: var(--color-success); }
+.file-tag.ppt { background: var(--color-warning-bg); color: var(--color-warning); }
+.file-tag.txt { background: var(--color-surface-container-low); color: var(--color-muted); }
+.file-tag.code { background: var(--color-info-bg); color: var(--color-info); }
+.file-tag.img { background: var(--color-info-bg); color: var(--color-info); }
+.file-tag.zip { background: var(--color-warning-bg); color: var(--color-warning); }
+.file-tag.other { background: #f3f4f6; color: var(--color-muted); }
 
 .file-name {
   font-family: 'Inter', sans-serif;
@@ -838,7 +838,7 @@ onUnmounted(() => {
   justify-content: center;
   gap: 8px;
   height: 48px;
-  color: #9CA3AF;
+  color: var(--color-disabled);
 }
 
 .empty-file-icon {
@@ -854,7 +854,7 @@ onUnmounted(() => {
 
 /* 悬停时文件区域效果 */
 .project-card:hover .card-files-wrapper {
-  border-color: #d1d5db;
+  border-color: var(--color-outline);
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
 }
 
@@ -876,7 +876,7 @@ onUnmounted(() => {
   font-family: 'Inter', -apple-system, sans-serif;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-on-background);
   margin: 0 0 6px 0;
   line-height: 1.4;
   white-space: nowrap;
@@ -886,14 +886,14 @@ onUnmounted(() => {
 }
 
 .project-card:hover .card-title {
-  color: #2563EB;
+  color: var(--color-info);
 }
 
 /* 卡片描述 */
 .card-desc {
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
-  color: #6B7280;
+  color: var(--color-muted);
   margin: 0 0 16px 0;
   line-height: 1.5;
   height: 34px;
@@ -910,10 +910,10 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid #F3F4F6;
+  border-top: 1px solid var(--color-surface-container-low);
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   font-weight: 500;
 }
 
@@ -939,9 +939,9 @@ onUnmounted(() => {
 }
 
 /* Andamento %状态颜色 - 底部 */
-.card-footer .card-progress.completed { color: #000000; }
-.card-footer .card-progress.in-progress { color: #5e5e5e; }
-.card-footer .card-progress.not-started { color: #c6c6c6; }
+.card-footer .card-progress.completed { color: var(--color-on-background); }
+.card-footer .card-progress.in-progress { color: var(--color-muted); }
+.card-footer .card-progress.not-started { color: var(--color-disabled); }
 
 /* 底部装饰线 */
 .card-bottom-line {
@@ -950,7 +950,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background: #000000;
+  background: var(--color-on-background);
 }
 
 /* 空状态 */
@@ -960,7 +960,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 14px;
   padding: 48px;
-  color: #9CA3AF;
+  color: var(--color-disabled);
 }
 
 .empty-icon {
@@ -971,7 +971,7 @@ onUnmounted(() => {
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid #E5E7EB;
+  border: 2px solid var(--color-outline);
   border-top-color: #6B7280;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -1013,7 +1013,7 @@ onUnmounted(() => {
 }
 
 .modal-content {
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
   width: 560px;
   max-width: 90vw;
   max-height: 85vh;
@@ -1057,8 +1057,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 20px 32px;
-  border-bottom: 2px solid #000000;
-  background: #e2e2e2;
+  border-bottom: 2px solid var(--color-on-background);
+  background: var(--color-surface-container-highest);
 }
 
 .modal-title-section {
@@ -1071,7 +1071,7 @@ onUnmounted(() => {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-on-background);
   letter-spacing: 0.5px;
 }
 
@@ -1086,14 +1086,14 @@ onUnmounted(() => {
   background: transparent;
 }
 
-.modal-progress.completed { color: #000000; background: transparent; }
-.modal-progress.in-progress { color: #5e5e5e; background: transparent; }
-.modal-progress.not-started { color: #c6c6c6; background: transparent; }
+.modal-progress.completed { color: var(--color-on-background); background: transparent; }
+.modal-progress.in-progress { color: var(--color-muted); background: transparent; }
+.modal-progress.not-started { color: var(--color-disabled); background: transparent; }
 
 .modal-create-time {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   letter-spacing: 0.3px;
 }
 
@@ -1103,7 +1103,7 @@ onUnmounted(() => {
   border: none;
   background: transparent;
   font-size: 1.5rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1113,8 +1113,8 @@ onUnmounted(() => {
 }
 
 .modal-close:hover {
-  background: #F3F4F6;
-  color: #111827;
+  background: var(--color-surface-container-low);
+  color: var(--color-on-background);
 }
 
 /* 弹窗Info */
@@ -1133,7 +1133,7 @@ onUnmounted(() => {
 .modal-label {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #6B7280;
+  color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 10px;
@@ -1142,11 +1142,11 @@ onUnmounted(() => {
 
 .modal-requirement {
   font-size: 0.95rem;
-  color: #374151;
+  color: var(--color-on-surface);
   line-height: 1.6;
   padding: 16px;
-  background: #F9FAFB;
-  border: 1px solid #F3F4F6;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-surface-container-low);
   border-radius: 8px;
 }
 
@@ -1165,17 +1165,17 @@ onUnmounted(() => {
 }
 
 .modal-files::-webkit-scrollbar-track {
-  background: #F3F4F6;
+  background: var(--color-surface-container-low);
   border-radius: 2px;
 }
 
 .modal-files::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
+  background: var(--color-outline);
   border-radius: 2px;
 }
 
 .modal-files::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: var(--color-disabled);
 }
 
 .modal-file-item {
@@ -1183,19 +1183,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
   border-radius: 6px;
   transition: all 0.2s ease;
 }
 
 .modal-file-item:hover {
-  background: #f9f9f9;
+  background: var(--color-background);
 }
 
 .modal-file-name {
   font-size: 0.85rem;
-  color: #4B5563;
+  color: var(--color-muted);
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1204,10 +1204,10 @@ onUnmounted(() => {
 
 .modal-empty {
   font-size: 0.85rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   padding: 16px;
-  background: #F9FAFB;
-  border: 1px dashed #E5E7EB;
+  background: var(--color-surface-container-low);
+  border: 1px dashed var(--color-outline);
   border-radius: 6px;
   text-align: center;
 }
@@ -1218,19 +1218,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   padding: 10px 32px 0;
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
 }
 
 .divider-line {
   flex: 1;
   height: 2px;
-  background: #000000;
+  background: var(--color-on-background);
 }
 
 .divider-text {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   letter-spacing: 2px;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1241,7 +1241,7 @@ onUnmounted(() => {
   display: flex;
   gap: 16px;
   padding: 20px 32px;
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
 }
 
 .modal-btn {
@@ -1251,9 +1251,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  border: 2px solid #000000;
+  border: 2px solid var(--color-on-background);
   border-radius: 0px;
-  background: #f9f9f9;
+  background: var(--color-background);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: var(--font-machine);
@@ -1261,9 +1261,9 @@ onUnmounted(() => {
 }
 
 .modal-btn:hover:not(:disabled) {
-  background: #000000;
-  color: #e2e2e2;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .modal-btn:disabled {
@@ -1276,7 +1276,7 @@ onUnmounted(() => {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6rem;
   font-weight: 500;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -1292,23 +1292,23 @@ onUnmounted(() => {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.5px;
-  color: #4B5563;
+  color: var(--color-muted);
 }
 
-.modal-btn.btn-project .btn-icon { color: #000000; }
-.modal-btn.btn-simulation .btn-icon { color: #000000; }
-.modal-btn.btn-report .btn-icon { color: #000000; }
+.modal-btn.btn-project .btn-icon { color: var(--color-on-background); }
+.modal-btn.btn-simulation .btn-icon { color: var(--color-on-background); }
+.modal-btn.btn-report .btn-icon { color: var(--color-on-background); }
 
 .modal-btn:hover:not(:disabled) .btn-icon {
-  color: #e2e2e2;
+  color: var(--color-surface-container-highest);
 }
 
 .modal-btn:hover:not(:disabled) .btn-text {
-  color: #e2e2e2;
+  color: var(--color-surface-container-highest);
 }
 
 .modal-btn:hover:not(:disabled) .btn-step {
-  color: #e2e2e2;
+  color: var(--color-surface-container-highest);
 }
 
 /* 不可回放提示 */
@@ -1317,13 +1317,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 0 32px 20px;
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
 }
 
 .hint-text {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
-  color: #9CA3AF;
+  color: var(--color-disabled);
   letter-spacing: 0.3px;
   text-align: center;
   line-height: 1.5;

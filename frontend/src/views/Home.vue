@@ -4,9 +4,7 @@
     <nav class="navbar">
       <div class="nav-brand">FUTUR.IA</div>
       <div class="nav-links">
-        <button class="theme-toggle-btn" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo escuro'">
-          <span>{{ isDark ? '☀' : '☾' }}</span>
-        </button>
+        <ThemeToggle />
         <LanguageSwitcher />
         <button class="logout-btn" @click="handleLogout" :title="$t('auth.logout')">
           <span class="logout-icon">⏻</span>
@@ -224,6 +222,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import HistoryDatabase from '../components/HistoryDatabase.vue'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
+import ThemeToggle from '../components/ThemeToggle.vue'
 import ProfileSelector from '../components/ProfileSelector.vue'
 import { logout, clearUser } from '../api/auth.js'
 import { setProfile as setStoreProfile } from '../store/pendingUpload.js'
@@ -367,11 +366,11 @@ onMounted(() => {
 <style scoped>
 /* Globais e Reset */
 :root {
-  --black: #000000;
-  --white: #FFFFFF;
-  --gray-light: #F5F5F5;
-  --gray-text: #666666;
-  --border: #E5E5E5;
+  --color-on-background: var(--color-on-background);
+  --color-surface: var(--color-surface);
+  --gray-light: var(--color-surface-container-low);
+  --gray-text: var(--color-muted);
+  --border: var(--color-outline);
   /* 
     使用 Space Grotesk 作为主要标题字体，JetBrains Mono 作为代码/标签字体
     确保已在 index.html 引入这些 Google Fonts 
@@ -383,16 +382,16 @@ onMounted(() => {
 
 .home-container {
   min-height: 100vh;
-  background: var(--white);
+  background: var(--color-surface);
   font-family: var(--font-sans);
-  color: var(--black);
+  color: var(--color-on-background);
 }
 
 /* Navegador Acima */
 .navbar {
   height: 60px;
-  background: var(--black);
-  color: var(--white);
+  background: var(--color-on-background);
+  color: var(--color-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -413,7 +412,7 @@ onMounted(() => {
 }
 
 .github-link {
-  color: var(--white);
+  color: var(--color-surface);
   text-decoration: none;
   font-family: var(--font-mono);
   font-size: 0.9rem;
@@ -436,7 +435,7 @@ onMounted(() => {
 .logout-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: var(--white);
+  color: var(--color-surface);
   padding: 6px 12px;
   display: flex;
   align-items: center;
@@ -498,7 +497,7 @@ onMounted(() => {
 
 .orange-tag {
   background: var(--gray-text);
-  color: var(--white);
+  color: var(--color-surface);
   padding: 4px 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -506,7 +505,7 @@ onMounted(() => {
 }
 
 .version-text {
-  color: #999;
+  color: var(--color-disabled);
   font-weight: 500;
   letter-spacing: 0.5px;
 }
@@ -517,7 +516,7 @@ onMounted(() => {
   font-weight: 500;
   margin: 0 0 40px 0;
   letter-spacing: -2px;
-  color: var(--black);
+  color: var(--color-on-background);
 }
 
 .gradient-text {
@@ -542,7 +541,7 @@ onMounted(() => {
 }
 
 .highlight-bold {
-  color: var(--black);
+  color: var(--color-on-background);
   font-weight: 700;
 }
 
@@ -558,14 +557,14 @@ onMounted(() => {
   border-radius: 2px;
   font-family: var(--font-mono);
   font-size: 0.9em;
-  color: var(--black);
+  color: var(--color-on-background);
   font-weight: 600;
 }
 
 .slogan-text {
   font-size: 1.2rem;
   font-weight: 520;
-  color: var(--black);
+  color: var(--color-on-background);
   letter-spacing: 1px;
   border-left: 3px solid var(--color-primary);
   padding-left: 15px;
@@ -650,7 +649,7 @@ onMounted(() => {
 .panel-header {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #999;
+  color: var(--color-disabled);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -695,7 +694,7 @@ onMounted(() => {
 
 .metric-label {
   font-size: 0.85rem;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 /* Visão geral passo-a-passo */
@@ -708,7 +707,7 @@ onMounted(() => {
 .steps-header {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: #999;
+  color: var(--color-disabled);
   margin-bottom: 25px;
   display: flex;
   align-items: center;
@@ -735,7 +734,7 @@ onMounted(() => {
 .step-num {
   font-family: var(--font-mono);
   font-weight: 700;
-  color: var(--black);
+  color: var(--color-on-background);
   opacity: 0.3;
 }
 
@@ -760,7 +759,7 @@ onMounted(() => {
 }
 
 .console-box {
-  border: 1px solid #CCC; /* Bordas fixas */
+  border: 1px solid var(--color-outline); /* Bordas fixas */
   padding: 8px; /* 内Edge Connect距形成双重Edge Connect框感 */
 }
 
@@ -778,11 +777,11 @@ onMounted(() => {
   margin-bottom: 15px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .upload-zone {
-  border: 1px dashed #CCC;
+  border: 1px dashed var(--color-outline);
   height: 200px;
   overflow-y: auto;
   display: flex;
@@ -790,7 +789,7 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: #FAFAFA;
+  background: var(--color-surface-container-low);
 }
 
 .upload-zone.has-files {
@@ -798,8 +797,8 @@ onMounted(() => {
 }
 
 .upload-zone:hover {
-  background: #F0F0F0;
-  border-color: #999;
+  background: var(--color-surface-container-low);
+  border-color: var(--color-disabled);
 }
 
 .upload-placeholder {
@@ -809,12 +808,12 @@ onMounted(() => {
 .upload-icon {
   width: 40px;
   height: 40px;
-  border: 1px solid #DDD;
+  border: 1px solid var(--color-outline);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 15px;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 .upload-title {
@@ -826,7 +825,7 @@ onMounted(() => {
 .upload-hint {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 .file-list {
@@ -840,9 +839,9 @@ onMounted(() => {
 .file-item {
   display: flex;
   align-items: center;
-  background: var(--white);
+  background: var(--color-surface);
   padding: 8px 12px;
-  border: 1px solid #EEE;
+  border: 1px solid var(--color-outline);
   font-family: var(--font-mono);
   font-size: 0.85rem;
 }
@@ -857,7 +856,7 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 .console-divider {
@@ -871,21 +870,21 @@ onMounted(() => {
   content: '';
   flex: 1;
   height: 1px;
-  background: #EEE;
+  background: var(--color-outline);
 }
 
 .console-divider span {
   padding: 0 15px;
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: #BBB;
+  color: var(--color-disabled);
   letter-spacing: 1px;
 }
 
 .input-wrapper {
   position: relative;
   border: none;
-  background: #f3f3f3;
+  background: var(--color-surface-container-low);
   border-radius: 0px;
 }
 
@@ -910,13 +909,13 @@ onMounted(() => {
   right: 15px;
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: #AAA;
+  color: var(--color-disabled);
 }
 
 .start-engine-btn {
   width: 100%;
-  background: #000000;
-  color: #e2e2e2;
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
   border: none;
   padding: 20px;
   font-family: var(--font-machine);
@@ -932,13 +931,13 @@ onMounted(() => {
 }
 
 .start-engine-btn:not(:disabled) {
-  background: #000000;
+  background: var(--color-on-background);
 }
 
 .start-engine-btn:hover:not(:disabled) {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
   transform: translate(-2px, -2px);
 }
 
@@ -950,8 +949,8 @@ onMounted(() => {
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
-  background: #e2e2e2;
-  color: #777777;
+  background: var(--color-surface-container-highest);
+  color: var(--color-muted);
 }
 
 /* Responsivo */

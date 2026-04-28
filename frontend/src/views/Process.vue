@@ -11,9 +11,7 @@
       </div>
 
       <div class="nav-status">
-        <button class="theme-toggle-btn" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo escuro'">
-          <span>{{ isDark ? '☀' : '☾' }}</span>
-        </button>
+        <ThemeToggle />
         <span class="status-dot" :class="statusClass"></span>
         <span class="status-text">{{ statusText }}</span>
       </div>
@@ -419,6 +417,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { generateOntology, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
+import ThemeToggle from '../components/ThemeToggle.vue'
 import * as d3 from 'd3'
 
 const route = useRoute()
@@ -438,7 +437,7 @@ const ontologyProgress = ref(null) // Gerar OntologiaAndamento %
 const currentPhase = ref(-1) // -1: Recebendo Volume HTTP..., 0: Gerar Ontologia中, 1: Construir Grafo, 2: 完成
 const selectedItem = ref(null) // InFocus ObjnósLink Edges Target Schema Info Box Model Component Layout Result Logic Execution Code Return Layout Return Method Formats Match Variables Action Return
 const isFullScreen = ref(false)
-const isDark = ref(localStorage.getItem('futuria_theme') === 'dark')
+
 
 // DOMReferência Pointer
 const graphContainer = ref(null)
@@ -495,14 +494,6 @@ const toggleFullScreen = () => {
   setTimeout(() => {
     renderGraph()
   }, 350) 
-}
-
-// Theme toggle
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  const newTheme = isDark.value ? 'dark' : 'light'
-  document.documentElement.setAttribute('data-theme', newTheme)
-  localStorage.setItem('futuria_theme', newTheme)
 }
 
 // Botão de Ocultar Visor de Dados Box
@@ -1105,16 +1096,16 @@ onUnmounted(() => {
 <style scoped>
 /* Vars Data */
 :root {
-  --black: #000000;
-  --white: #FFFFFF;
-  --gray-light: #F5F5F5;
-  --gray-border: #E0E0E0;
-  --gray-text: #666666;
+  --color-on-background: var(--color-on-background);
+  --color-surface: var(--color-surface);
+  --gray-light: var(--color-surface-container-low);
+  --gray-border: var(--color-outline);
+  --gray-text: var(--color-muted);
 }
 
 .process-page {
   min-height: 100vh;
-  background: var(--white);
+  background: var(--color-surface);
   font-family: 'JetBrains Mono', 'Noto Sans SC', monospace;
   overflow: hidden; /* Prevent body scroll in fullscreen */
 }
@@ -1126,8 +1117,8 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 0 24px;
   height: 56px;
-  background: #000;
-  color: #fff;
+  background: var(--color-on-background);
+  color: var(--color-surface);
   z-index: 10;
   position: relative;
 }
@@ -1154,8 +1145,8 @@ onUnmounted(() => {
 }
 
 .step-badge {
-  background: #FF6B35;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
   padding: 2px 8px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -1166,7 +1157,7 @@ onUnmounted(() => {
 .step-name {
   font-size: 0.85rem;
   letter-spacing: 0.05em;
-  color: #fff;
+  color: var(--color-surface);
 }
 
 .nav-status {
@@ -1178,21 +1169,21 @@ onUnmounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #666;
+  background: var(--color-muted);
   margin-right: 8px;
 }
 
 .status-dot.processing {
-  background: #FF6B35;
+  background: var(--color-error);
   animation: pulse 1.5s infinite;
 }
 
 .status-dot.completed {
-  background: #1A936F;
+  background: var(--color-success);
 }
 
 .status-dot.error {
-  background: #C5283D;
+  background: var(--color-error);
 }
 
 @keyframes pulse {
@@ -1202,7 +1193,7 @@ onUnmounted(() => {
 
 .status-text {
   font-size: 0.75rem;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 /* Matriz Central Viewer. */
@@ -1218,9 +1209,9 @@ onUnmounted(() => {
   flex: none; /* Fixed width initially */
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #E0E0E0;
+  border-right: 1px solid var(--color-outline);
   transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #fff;
+  background: var(--color-surface);
   z-index: 5;
 }
 
@@ -1234,8 +1225,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 24px;
-  border-bottom: 1px solid #E0E0E0;
-  background: #fff;
+  border-bottom: 1px solid var(--color-outline);
+  background: var(--color-surface);
   height: 50px;
 }
 
@@ -1246,7 +1237,7 @@ onUnmounted(() => {
 }
 
 .header-deco {
-  color: #FF6B35;
+  color: var(--color-error);
   font-size: 0.8rem;
 }
 
@@ -1261,7 +1252,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 16px;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .stat-item {
@@ -1272,11 +1263,11 @@ onUnmounted(() => {
 
 .stat-val {
   font-weight: 600;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .stat-divider {
-  color: #eee;
+  color: var(--color-outline);
 }
 
 .action-buttons {
@@ -1295,16 +1286,16 @@ onUnmounted(() => {
   border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.2s;
-  color: #666;
+  color: var(--color-muted);
   border-radius: 0px;
   font-family: var(--font-machine);
   font-weight: 600;
 }
 
 .action-btn:hover:not(:disabled) {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .action-btn:disabled {
@@ -1368,7 +1359,7 @@ onUnmounted(() => {
   height: 60px;
   top: 10px;
   left: 10px;
-  border-right-color: #FF6B35;
+  border-right-color: var(--color-error);
   animation-delay: 0.2s;
 }
 
@@ -1377,7 +1368,7 @@ onUnmounted(() => {
   height: 40px;
   top: 20px;
   left: 20px;
-  border-bottom-color: #666;
+  border-bottom-color: var(--color-muted);
   animation-delay: 0.4s;
 }
 
@@ -1388,13 +1379,13 @@ onUnmounted(() => {
 .loading-text,
 .waiting-text {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-on-surface);
   margin: 0 0 8px;
 }
 
 .waiting-hint {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--color-disabled);
   margin: 0;
 }
 
@@ -1429,15 +1420,15 @@ onUnmounted(() => {
   gap: 8px;
   padding: 8px 16px;
   background: rgba(255, 107, 53, 0.1);
-  border: 1px solid #FF6B35;
+  border: 1px solid var(--color-error);
   font-size: 0.8rem;
-  color: #FF6B35;
+  color: var(--color-error);
 }
 
 .building-dot {
   width: 8px;
   height: 8px;
-  background: #FF6B35;
+  background: var(--color-error);
   border-radius: 50%;
   animation: pulse 1s infinite;
 }
@@ -1449,8 +1440,8 @@ onUnmounted(() => {
   right: 16px;
   width: 320px;
   max-height: calc(100% - 32px);
-  background: #fff;
-  border: 1px solid #E0E0E0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   display: flex;
@@ -1463,20 +1454,20 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: #FAFAFA;
-  border-bottom: 1px solid #E0E0E0;
+  background: var(--color-surface-container-low);
+  border-bottom: 1px solid var(--color-outline);
 }
 
 .detail-title {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .detail-badge {
   padding: 2px 10px;
   font-size: 0.75rem;
-  color: #fff;
+  color: var(--color-surface);
   border-radius: 2px;
 }
 
@@ -1490,13 +1481,13 @@ onUnmounted(() => {
   background: none;
   border: none;
   font-size: 1.2rem;
-  color: #999;
+  color: var(--color-disabled);
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .detail-close:hover {
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .detail-content {
@@ -1513,21 +1504,21 @@ onUnmounted(() => {
 
 .detail-label {
   font-size: 0.8rem;
-  color: #999;
+  color: var(--color-disabled);
   min-width: 70px;
   flex-shrink: 0;
 }
 
 .detail-value {
   font-size: 0.85rem;
-  color: #333;
+  color: var(--color-on-surface);
   word-break: break-word;
 }
 
 .detail-value.uuid {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .detail-section {
@@ -1537,11 +1528,11 @@ onUnmounted(() => {
 .detail-summary {
   margin: 8px 0 0 0;
   font-size: 0.85rem;
-  color: #333;
+  color: var(--color-on-surface);
   line-height: 1.6;
   padding: 10px;
-  background: #F9F9F9;
-  border-left: 3px solid #FF6B35;
+  background: var(--color-background);
+  border-left: 3px solid var(--color-error);
 }
 
 .detail-labels {
@@ -1553,9 +1544,9 @@ onUnmounted(() => {
 .label-tag {
   padding: 2px 8px;
   font-size: 0.75rem;
-  background: #F0F0F0;
-  border: 1px solid #E0E0E0;
-  color: #666;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  color: var(--color-muted);
 }
 
 /* Edge Descriptor Output Setup Fetch Check Props Fetch Format Array Regex Displays Logic Process Regex Layout Model Rendering State Setup Event Outputs Code Map Outputs Value Code Outputs Output String Logic Run ExecuterelaçõesRender View Template */
@@ -1566,48 +1557,48 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 16px;
   padding: 12px;
-  background: #F9F9F9;
-  border: 1px solid #E0E0E0;
+  background: var(--color-background);
+  border: 1px solid var(--color-outline);
 }
 
 .edge-source,
 .edge-target {
   font-size: 0.85rem;
   font-weight: 500;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .edge-arrow {
-  color: #999;
+  color: var(--color-disabled);
 }
 
 .edge-type {
   padding: 2px 8px;
   font-size: 0.75rem;
-  background: #FF6B35;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
 }
 
 .detail-value.highlight {
   font-weight: 600;
-  color: #000;
+  color: var(--color-on-background);
 }
 
 .detail-subtitle {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  color: var(--color-on-surface);
   margin: 16px 0 12px 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid var(--color-outline);
 }
 
 /* Properties JSON Params Box View Dict Iterate UI Panel Div Render Data Lists Props */
 .properties-list {
   margin-top: 8px;
   padding: 10px;
-  background: #F9F9F9;
-  border: 1px solid #E0E0E0;
+  background: var(--color-background);
+  border: 1px solid var(--color-outline);
 }
 
 .property-item {
@@ -1621,13 +1612,13 @@ onUnmounted(() => {
 }
 
 .property-key {
-  color: #666;
+  color: var(--color-muted);
   margin-right: 8px;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .property-value {
-  color: #333;
+  color: var(--color-on-surface);
   word-break: break-word;
 }
 
@@ -1644,9 +1635,9 @@ onUnmounted(() => {
   padding: 6px 10px;
   font-size: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
-  background: #F0F0F0;
-  border: 1px solid #E0E0E0;
-  color: #666;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  color: var(--color-muted);
   word-break: break-all;
 }
 
@@ -1662,8 +1653,8 @@ onUnmounted(() => {
   flex-wrap: wrap;
   gap: 16px;
   padding: 12px 24px;
-  border-top: 1px solid #E0E0E0;
-  background: #FAFAFA;
+  border-top: 1px solid var(--color-outline);
+  background: var(--color-surface-container-low);
 }
 
 .legend-item {
@@ -1680,11 +1671,11 @@ onUnmounted(() => {
 }
 
 .legend-label {
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .legend-count {
-  color: #999;
+  color: var(--color-disabled);
 }
 
 /* Aresta Observadora Direita - 50% default */
@@ -1693,7 +1684,7 @@ onUnmounted(() => {
   flex: none;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-surface);
   transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, transform 0.3s ease;
   overflow: hidden;
   opacity: 1;
@@ -1707,13 +1698,13 @@ onUnmounted(() => {
 }
 
 .right-panel .panel-header.dark-header {
-  background: #000;
-  color: #fff;
+  background: var(--color-on-background);
+  color: var(--color-surface);
   border-bottom: none;
 }
 
 .right-panel .header-icon {
-  color: #FF6B35;
+  color: var(--color-error);
   margin-right: 8px;
 }
 
@@ -1727,7 +1718,7 @@ onUnmounted(() => {
 /* Stage Process State Rendering Execution Output Exec Output Formats Methods Action Props Code Maps Run Flow Exec Handle Mapping Returns Prop Format Handling Fetch Flow Setup Flow Returns Mapping Display Arrays Layout Setup Variables Action Mapping Layout Output Functions Display Flow Call Display Match Arrays Response Handling FormatFase */
 .process-phase {
   margin-bottom: 24px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--color-outline);
   opacity: 0.5;
   transition: all 0.3s;
 }
@@ -1742,7 +1733,7 @@ onUnmounted(() => {
 }
 
 .process-phase.completed {
-  border-color: #1A936F;
+  border-color: var(--color-success);
 }
 
 .phase-header {
@@ -1750,31 +1741,31 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 16px;
   padding: 16px;
-  background: #FAFAFA;
-  border-bottom: 1px solid #E0E0E0;
+  background: var(--color-surface-container-low);
+  border-bottom: 1px solid var(--color-outline);
 }
 
 .process-phase.active .phase-header {
-  background: #FFF5F2;
+  background: var(--color-error-bg);
 }
 
 .process-phase.completed .phase-header {
-  background: #F2FAF6;
+  background: var(--color-success-bg);
 }
 
 .phase-num {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ddd;
+  color: var(--color-outline);
   line-height: 1;
 }
 
 .process-phase.active .phase-num {
-  color: #FF6B35;
+  color: var(--color-error);
 }
 
 .process-phase.completed .phase-num {
-  color: #1A936F;
+  color: var(--color-success);
 }
 
 .phase-info {
@@ -1789,25 +1780,25 @@ onUnmounted(() => {
 
 .phase-api {
   font-size: 0.75rem;
-  color: #999;
+  color: var(--color-disabled);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .phase-status {
   font-size: 0.75rem;
   padding: 4px 10px;
-  background: #eee;
-  color: #666;
+  background: var(--color-outline);
+  color: var(--color-muted);
 }
 
 .phase-status.active {
-  background: #FF6B35;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
 }
 
 .phase-status.completed {
-  background: #1A936F;
-  color: #fff;
+  background: var(--color-success);
+  color: var(--color-surface);
 }
 
 /* FaseDescritivo Total */
@@ -1825,9 +1816,9 @@ onUnmounted(() => {
 .entity-tag {
   font-size: 0.75rem;
   padding: 4px 10px;
-  background: #F5F5F5;
-  border: 1px solid #E0E0E0;
-  color: #333;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  color: var(--color-on-surface);
 }
 
 /* relaçõesListas Arrays */
@@ -1840,7 +1831,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px dashed #eee;
+  border-bottom: 1px dashed var(--color-outline);
 }
 
 .relation-item:last-child {
@@ -1849,21 +1840,21 @@ onUnmounted(() => {
 
 .rel-source,
 .rel-target {
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .rel-arrow {
-  color: #ccc;
+  color: var(--color-outline);
 }
 
 .rel-name {
-  color: #FF6B35;
+  color: var(--color-error);
   font-weight: 500;
 }
 
 .relation-more {
   padding-top: 8px;
-  color: #999;
+  color: var(--color-disabled);
   font-size: 0.75rem;
 }
 
@@ -1873,14 +1864,14 @@ onUnmounted(() => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #FFF5F2;
-  border: 1px solid #FFE0D6;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-bg);
 }
 
 .progress-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid #FFE0D6;
+  border: 2px solid var(--color-error-bg);
   border-top-color: #FF6B35;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -1888,33 +1879,33 @@ onUnmounted(() => {
 
 .progress-text {
   font-size: 0.85rem;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 /* Queue Delay Status DB Check Vars Loops Value */
 .waiting-state {
   padding: 16px;
-  background: #F9F9F9;
-  border: 1px dashed #E0E0E0;
+  background: var(--color-background);
+  border: 1px dashed var(--color-outline);
   text-align: center;
 }
 
 .waiting-hint {
   font-size: 0.85rem;
-  color: #999;
+  color: var(--color-disabled);
 }
 
 /* ProgressBar HTML */
 .progress-bar {
   height: 6px;
-  background: var(--color-surface-container-highest, #E0E0E0);
+  background: var(--color-surface-container-highest, var(--color-outline));
   margin-bottom: 8px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: var(--profile-primary, #FF6B35);
+  background: var(--profile-primary, var(--color-error));
   transition: width 0.3s;
 }
 
@@ -1925,11 +1916,11 @@ onUnmounted(() => {
 }
 
 .progress-message {
-  color: #666;
+  color: var(--color-muted);
 }
 
 .progress-percent {
-  color: #FF6B35;
+  color: var(--color-error);
   font-weight: 600;
 }
 
@@ -1943,20 +1934,20 @@ onUnmounted(() => {
   flex: 1;
   text-align: center;
   padding: 12px;
-  background: #F5F5F5;
+  background: var(--color-surface-container-low);
 }
 
 .result-value {
   display: block;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #000;
+  color: var(--color-on-background);
   margin-bottom: 4px;
 }
 
 .result-label {
   font-size: 0.7rem;
-  color: #999;
+  color: var(--color-disabled);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -1965,7 +1956,7 @@ onUnmounted(() => {
 .next-step-section {
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--color-outline);
 }
 
 .next-step-btn {
@@ -1975,8 +1966,8 @@ onUnmounted(() => {
   justify-content: center;
   gap: 10px;
   padding: 16px;
-  background: #000000;
-  color: #e2e2e2;
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
   border: none;
   font-size: 1rem;
   font-family: var(--font-machine);
@@ -1988,9 +1979,9 @@ onUnmounted(() => {
 }
 
 .next-step-btn:hover:not(:disabled) {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .next-step-btn:disabled {
@@ -2005,8 +1996,8 @@ onUnmounted(() => {
 
 /* ProjetoPanel Console Area Box */
 .project-panel {
-  border-top: 1px solid #E0E0E0;
-  background: #FAFAFA;
+  border-top: 1px solid var(--color-outline);
+  background: var(--color-surface-container-low);
 }
 
 .project-header {
@@ -2014,11 +2005,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 12px 24px;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid var(--color-outline);
 }
 
 .project-icon {
-  color: #FF6B35;
+  color: var(--color-error);
 }
 
 .project-title {
@@ -2035,7 +2026,7 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 8px 0;
-  border-bottom: 1px dashed #E0E0E0;
+  border-bottom: 1px dashed var(--color-outline);
   font-size: 0.8rem;
 }
 
@@ -2044,12 +2035,12 @@ onUnmounted(() => {
 }
 
 .item-label {
-  color: #999;
+  color: var(--color-disabled);
   flex-shrink: 0;
 }
 
 .item-value {
-  color: #333;
+  color: var(--color-on-surface);
   text-align: right;
   max-width: 60%;
   word-break: break-all;
@@ -2058,7 +2049,7 @@ onUnmounted(() => {
 .item-value.code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-muted);
 }
 
 /* 响应式 */
@@ -2070,7 +2061,7 @@ onUnmounted(() => {
   .left-panel {
     width: 100% !important;
     border-right: none;
-    border-bottom: 1px solid #E0E0E0;
+    border-bottom: 1px solid var(--color-outline);
     height: 50vh;
   }
   

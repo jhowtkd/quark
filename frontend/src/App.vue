@@ -6,67 +6,187 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import AgentationWrapper from './components/AgentationWrapper.vue'
+import { useTheme } from './composables/useTheme.js'
 
-const theme = ref(localStorage.getItem('futuria_theme') || 'light')
+const { initTheme } = useTheme()
 
 // Initialize profile on body
-const initThemeAndProfile = () => {
+const initProfile = () => {
   const savedProfile = localStorage.getItem('futuria_profile') || 'generico'
   document.body.setAttribute('data-profile', savedProfile)
-  document.documentElement.setAttribute('data-theme', theme.value)
 }
 
 onMounted(() => {
-  initThemeAndProfile()
+  initTheme()
+  initProfile()
 })
-
-watch(theme, (newTheme) => {
-  document.documentElement.setAttribute('data-theme', newTheme)
-  localStorage.setItem('futuria_theme', newTheme)
-})
-
-// Expose a helper for child components to toggle theme
-const toggleTheme = () => {
-  theme.value = theme.value === 'light' ? 'dark' : 'light'
-}
-
-// Make toggleTheme available globally for any component
-window.__futuriaToggleTheme = toggleTheme
 </script>
 
 <style>
 :root {
+  /* Brand / Action */
   --color-primary: #000000;
-  --color-background: #f9f9f9;
-  --color-surface-container-low: #f3f3f3;
-  --color-on-background: #1b1b1b;
+  --color-primary-hover: #333333;
+  --color-primary-active: #1a1a1a;
+  --color-secondary: #444444;
   --color-on-primary: #e2e2e2;
-  --color-surface: #f9f9f9;
+
+  /* Surfaces */
+  --color-background: #f9f9f9;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: #ffffff;
+  --color-surface-container-low: #f3f3f3;
   --color-surface-container-highest: #e2e2e2;
+
+  /* Text */
+  --color-on-background: #1b1b1b;
+  --color-on-surface: #1b1b1b;
+  --color-muted: #666666;
+  --color-disabled: #999999;
+
+  /* Outlines */
   --color-outline: #777777;
+  --color-outline-strong: #444444;
+
+  /* Feedback */
   --color-error: #ba1a1a;
+  --color-error-bg: rgba(186, 26, 26, 0.12);
+  --color-success: #2e7d32;
+  --color-success-bg: rgba(46, 125, 50, 0.12);
+  --color-warning: #ed6c02;
+  --color-warning-bg: rgba(237, 108, 2, 0.12);
+  --color-info: #0288d1;
+  --color-info-bg: rgba(2, 136, 209, 0.12);
+
+  /* Code */
+  --color-code-bg: #f0f0f0;
+  --color-code-text: #1b1b1b;
+
+  /* Links */
+  --color-link: #000000;
+  --color-link-hover: #444444;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Radius */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  /* Typography */
   --font-machine: 'Space Grotesk', monospace;
   --font-human: 'Work Sans', sans-serif;
+
+  /* Profile colors (light defaults) */
   --profile-primary: #000000;
   --profile-accent: #444444;
   --profile-light: #f0f0f0;
-  --color-success: #2e7d32;
-  --color-warning: #ed6c02;
-  --color-info: #0288d1;
 }
 
-/* Tema escuro base */
+/* Explicit light mode (same as :root, for specificity) */
+[data-theme="light"] {
+  --color-primary: #000000;
+  --color-primary-hover: #333333;
+  --color-primary-active: #1a1a1a;
+  --color-secondary: #444444;
+  --color-on-primary: #e2e2e2;
+  --color-background: #f9f9f9;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: #ffffff;
+  --color-surface-container-low: #f3f3f3;
+  --color-surface-container-highest: #e2e2e2;
+  --color-on-background: #1b1b1b;
+  --color-on-surface: #1b1b1b;
+  --color-muted: #666666;
+  --color-disabled: #999999;
+  --color-outline: #777777;
+  --color-outline-strong: #444444;
+  --color-error-bg: rgba(186, 26, 26, 0.12);
+  --color-success-bg: rgba(46, 125, 50, 0.12);
+  --color-warning-bg: rgba(237, 108, 2, 0.12);
+  --color-info-bg: rgba(2, 136, 209, 0.12);
+  --color-code-bg: #f0f0f0;
+  --color-code-text: #1b1b1b;
+  --color-link: #000000;
+  --color-link-hover: #444444;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode override */
 [data-theme="dark"] {
+  --color-primary: #e0e0e0;
+  --color-primary-hover: #ffffff;
+  --color-primary-active: #cccccc;
+  --color-secondary: #aaaaaa;
+  --color-on-primary: #1b1b1b;
   --color-background: #0a0a0a;
   --color-surface: #1a1a1a;
+  --color-surface-elevated: #222222;
+  --color-surface-overlay: #2a2a2a;
   --color-surface-container-low: #141414;
   --color-surface-container-highest: #2a2a2a;
   --color-on-background: #e0e0e0;
-  --color-on-primary: #1b1b1b;
+  --color-on-surface: #e0e0e0;
+  --color-muted: #999999;
+  --color-disabled: #555555;
   --color-outline: #555555;
+  --color-outline-strong: #777777;
+  --color-error-bg: rgba(255, 100, 100, 0.12);
+  --color-success-bg: rgba(100, 255, 100, 0.12);
+  --color-warning-bg: rgba(255, 200, 100, 0.12);
+  --color-info-bg: rgba(100, 200, 255, 0.12);
+  --color-code-bg: #1a1a1a;
+  --color-code-text: #e0e0e0;
+  --color-link: #e0e0e0;
+  --color-link-hover: #ffffff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
   --profile-light: #1a1a1a;
+}
+
+/* Auto mode: respect OS preference when no data-theme is set */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --color-primary: #e0e0e0;
+    --color-primary-hover: #ffffff;
+    --color-primary-active: #cccccc;
+    --color-secondary: #aaaaaa;
+    --color-on-primary: #1b1b1b;
+    --color-background: #0a0a0a;
+    --color-surface: #1a1a1a;
+    --color-surface-elevated: #222222;
+    --color-surface-overlay: #2a2a2a;
+    --color-surface-container-low: #141414;
+    --color-surface-container-highest: #2a2a2a;
+    --color-on-background: #e0e0e0;
+    --color-on-surface: #e0e0e0;
+    --color-muted: #999999;
+    --color-disabled: #555555;
+    --color-outline: #555555;
+    --color-outline-strong: #777777;
+    --color-error-bg: rgba(255, 100, 100, 0.12);
+    --color-success-bg: rgba(100, 255, 100, 0.12);
+    --color-warning-bg: rgba(255, 200, 100, 0.12);
+    --color-info-bg: rgba(100, 200, 255, 0.12);
+    --color-code-bg: #1a1a1a;
+    --color-code-text: #e0e0e0;
+    --color-link: #e0e0e0;
+    --color-link-hover: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+    --profile-light: #1a1a1a;
+  }
 }
 
 /* Cores por perfil */
@@ -103,6 +223,22 @@ body[data-profile="saude"] {
 }
 [data-theme="dark"] body[data-profile="saude"] {
   --profile-light: #2a0a0a;
+}
+
+/* Auto-mode profile overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-theme="dark"]) body[data-profile="marketing"] {
+    --profile-light: #0a1a3a;
+  }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) body[data-profile="direito"] {
+    --profile-light: #2a1a0a;
+  }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) body[data-profile="economia"] {
+    --profile-light: #0a2a0a;
+  }
+  :root:not([data-theme="light"]):not([data-theme="dark"]) body[data-profile="saude"] {
+    --profile-light: #2a0a0a;
+  }
 }
 
 /* 全局样式重置 */
@@ -164,7 +300,7 @@ button {
 
 /* Status badges using profile colors */
 .badge.success {
-  background: rgba(46, 125, 50, 0.15);
+  background: var(--color-success-bg);
   color: var(--color-success);
 }
 
@@ -176,11 +312,11 @@ button {
 
 .badge.pending {
   background: var(--color-surface-container-highest);
-  color: var(--color-outline);
+  color: var(--color-muted);
 }
 
 .badge.error {
-  background: rgba(186, 26, 26, 0.15);
+  background: var(--color-error-bg);
   color: var(--color-error);
 }
 
@@ -189,26 +325,5 @@ button {
   border: 2px solid var(--profile-primary);
   box-shadow: 4px 4px 0 var(--profile-primary);
   transform: translate(-2px, -2px);
-}
-
-/* Theme toggle button style */
-.theme-toggle-btn {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-family: var(--font-machine);
-  font-size: 0.8rem;
-  border-radius: 0px;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.theme-toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.6);
 }
 </style>

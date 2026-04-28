@@ -113,8 +113,8 @@ onMounted(() => {
 .profile-selector {
   margin-bottom: 20px;
   padding: 16px;
-  border: 1px solid #e0e0e0;
-  background: #fafafa;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface-container-low);
 }
 
 .selector-header {
@@ -128,12 +128,12 @@ onMounted(() => {
 
 .selector-label {
   font-weight: 700;
-  color: #999;
+  color: var(--color-disabled);
   letter-spacing: 1px;
 }
 
 .selector-hint {
-  color: #bbb;
+  color: var(--color-disabled);
 }
 
 .profile-grid {
@@ -148,8 +148,8 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 16px 8px;
-  border: 2px solid #e0e0e0;
-  background: #fafafa;
+  border: 2px solid var(--color-outline);
+  background: var(--color-surface-container-low);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -158,8 +158,8 @@ onMounted(() => {
 }
 
 .profile-card:hover {
-  border-color: var(--profile-color, #000000);
-  background: var(--profile-light, #f0f0f0);
+  border-color: var(--profile-color, var(--color-on-background)000);
+  background: var(--profile-light, var(--color-surface-container-low));
 }
 
 .profile-card.active {
@@ -169,20 +169,20 @@ onMounted(() => {
 .profile-icon {
   font-size: 1.5rem;
   margin-bottom: 6px;
-  color: var(--profile-color, #000000);
+  color: var(--profile-color, var(--color-on-background));
 }
 
 .profile-name {
   font-family: 'Space Grotesk', monospace;
   font-weight: 600;
   font-size: 0.85rem;
-  color: #1b1b1b;
+  color: var(--color-on-background);
   margin-bottom: 4px;
 }
 
 .profile-desc {
   font-size: 0.65rem;
-  color: #888;
+  color: var(--color-muted);
   line-height: 1.3;
   font-family: 'Work Sans', sans-serif;
 }
@@ -193,7 +193,7 @@ onMounted(() => {
   right: 6px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--profile-color, #000000);
+  color: var(--profile-color, var(--color-on-background));
 }
 
 /* Responsive */

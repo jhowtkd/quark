@@ -599,7 +599,7 @@ const handlePromoteResearch = async () => {
 <style scoped>
 .workbench-panel {
   height: 100%;
-  background-color: #FAFAFA;
+  background-color: var(--color-surface-container-low);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -616,7 +616,7 @@ const handlePromoteResearch = async () => {
 }
 
 .step-card {
-  background: #e2e2e2;
+  background: var(--color-surface-container-highest);
   border-radius: 0;
   padding: 20px;
   border: none;
@@ -625,8 +625,8 @@ const handlePromoteResearch = async () => {
 }
 
 .step-card.active {
-  border: 2px solid var(--profile-primary, #000000);
-  box-shadow: 4px 4px 0 var(--profile-primary, #000000);
+  border: 2px solid var(--profile-primary, var(--color-on-background));
+  box-shadow: 4px 4px 0 var(--profile-primary, var(--color-on-background));
   transform: translate(-2px, -2px);
 }
 
@@ -647,12 +647,12 @@ const handlePromoteResearch = async () => {
   font-family: 'JetBrains Mono', monospace;
   font-size: 20px;
   font-weight: 700;
-  color: #E0E0E0;
+  color: var(--color-outline);
 }
 
 .step-card.active .step-num,
 .step-card.completed .step-num {
-  color: #000;
+  color: var(--color-on-background);
 }
 
 .step-title {
@@ -671,35 +671,35 @@ const handlePromoteResearch = async () => {
 
 .badge.success {
   background: rgba(46, 125, 50, 0.15);
-  color: var(--color-success, #2E7D32);
+  color: var(--color-success, var(--color-success));
 }
 
 .badge.processing,
 .badge.accent {
-  background: var(--profile-primary, #FF5722);
-  color: var(--color-on-primary, #FFF);
+  background: var(--profile-primary, var(--color-error));
+  color: var(--color-on-primary, var(--color-surface));
 }
 
 .badge.pending {
-  background: var(--color-surface-container-highest, #F5F5F5);
-  color: var(--color-outline, #999);
+  background: var(--color-surface-container-highest, var(--color-surface-container-low));
+  color: var(--color-outline, var(--color-disabled));
 }
 
 .badge.error {
   background: rgba(186, 26, 26, 0.15);
-  color: var(--color-error, #ba1a1a);
+  color: var(--color-error, var(--color-error));
 }
 
 .api-note {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
-  color: #999;
+  color: var(--color-disabled);
   margin-bottom: 8px;
 }
 
 .description {
   font-size: 12px;
-  color: #666;
+  color: var(--color-muted);
   line-height: 1.5;
   margin-bottom: 16px;
 }
@@ -709,14 +709,14 @@ const handlePromoteResearch = async () => {
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: var(--profile-primary, #FF5722);
+  color: var(--profile-primary, var(--color-error));
   margin-bottom: 12px;
 }
 
 .spinner-sm {
   width: 14px;
   height: 14px;
-  border: 2px solid var(--profile-light, #FFCCBC);
+  border: 2px solid var(--profile-light, var(--color-warning-bg));
   border-top-color: var(--profile-primary, #FF5722);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -741,7 +741,7 @@ const handlePromoteResearch = async () => {
 .tag-label {
   display: block;
   font-size: 10px;
-  color: #AAA;
+  color: var(--color-disabled);
   margin-bottom: 8px;
   font-weight: 600;
 }
@@ -753,12 +753,12 @@ const handlePromoteResearch = async () => {
 }
 
 .entity-tag {
-  background: #F5F5F5;
-  border: 1px solid #EEE;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 11px;
-  color: #333;
+  color: var(--color-on-surface);
   font-family: 'JetBrains Mono', monospace;
   transition: all 0.2s;
 }
@@ -768,8 +768,8 @@ const handlePromoteResearch = async () => {
 }
 
 .entity-tag.clickable:hover {
-  background: #E0E0E0;
-  border-color: #CCC;
+  background: var(--color-outline);
+  border-color: var(--color-outline);
 }
 
 .ontology-detail-overlay {
@@ -781,7 +781,7 @@ const handlePromoteResearch = async () => {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(4px);
   z-index: 10;
-  border: 1px solid #EAEAEA;
+  border: 1px solid var(--color-outline);
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -806,8 +806,8 @@ const handlePromoteResearch = async () => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #EAEAEA;
-  background: #FAFAFA;
+  border-bottom: 1px solid var(--color-outline);
+  background: var(--color-surface-container-low);
 }
 
 .detail-title-group {
@@ -819,8 +819,8 @@ const handlePromoteResearch = async () => {
 .detail-type-badge {
   font-size: 9px;
   font-weight: 700;
-  color: #FFF;
-  background: #000;
+  color: var(--color-surface);
+  background: var(--color-on-background);
   padding: 2px 6px;
   border-radius: 2px;
   text-transform: uppercase;
@@ -836,16 +836,16 @@ const handlePromoteResearch = async () => {
   background: none;
   border: none;
   font-size: 18px;
-  color: #999;
+  color: var(--color-disabled);
   cursor: pointer;
   line-height: 1;
   border-radius: 0;
 }
 
 .close-btn:hover {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .detail-body {
@@ -856,11 +856,11 @@ const handlePromoteResearch = async () => {
 
 .detail-desc {
   font-size: 12px;
-  color: #444;
+  color: var(--color-muted);
   line-height: 1.5;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px dashed #EAEAEA;
+  border-bottom: 1px dashed var(--color-outline);
 }
 
 .detail-section {
@@ -871,7 +871,7 @@ const handlePromoteResearch = async () => {
   display: block;
   font-size: 10px;
   font-weight: 600;
-  color: #AAA;
+  color: var(--color-disabled);
   margin-bottom: 8px;
 }
 
@@ -889,23 +889,23 @@ const handlePromoteResearch = async () => {
   gap: 6px;
   align-items: baseline;
   padding: 4px;
-  background: #F9F9F9;
+  background: var(--color-background);
   border-radius: 4px;
 }
 
 .attr-name {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
-  color: #000;
+  color: var(--color-on-background);
 }
 
 .attr-type {
-  color: #999;
+  color: var(--color-disabled);
   font-size: 10px;
 }
 
 .attr-desc {
-  color: #555;
+  color: var(--color-muted);
   flex: 1;
   min-width: 150px;
 }
@@ -918,11 +918,11 @@ const handlePromoteResearch = async () => {
 
 .example-tag {
   font-size: 11px;
-  background: #FFF;
-  border: 1px solid #E0E0E0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
   padding: 3px 8px;
   border-radius: 12px;
-  color: #555;
+  color: var(--color-muted);
 }
 
 .conn-item {
@@ -931,25 +931,25 @@ const handlePromoteResearch = async () => {
   gap: 8px;
   font-size: 11px;
   padding: 6px;
-  background: #F5F5F5;
+  background: var(--color-surface-container-low);
   border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
 }
 
 .conn-node {
   font-weight: 600;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .conn-arrow {
-  color: #BBB;
+  color: var(--color-disabled);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  background: #F9F9F9;
+  background: var(--color-background);
   padding: 16px;
   border-radius: 6px;
 }
@@ -962,13 +962,13 @@ const handlePromoteResearch = async () => {
   display: block;
   font-size: 20px;
   font-weight: 700;
-  color: #000;
+  color: var(--color-on-background);
   font-family: 'JetBrains Mono', monospace;
 }
 
 .stat-label {
   font-size: 9px;
-  color: #999;
+  color: var(--color-disabled);
   text-transform: uppercase;
   margin-top: 4px;
   display: block;
@@ -990,23 +990,23 @@ const handlePromoteResearch = async () => {
 .field-label {
   font-size: 10px;
   font-weight: 700;
-  color: #444;
+  color: var(--color-muted);
   text-transform: uppercase;
 }
 
 .field-input {
   width: 100%;
-  border: 1px solid #DADADA;
-  background: #FFF;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
   padding: 10px 12px;
   font-size: 12px;
   font-family: 'JetBrains Mono', monospace;
-  color: #111;
+  color: var(--color-on-background);
 }
 
 .field-hint {
   font-size: 10px;
-  color: #777;
+  color: var(--color-muted);
   line-height: 1.4;
 }
 
@@ -1019,14 +1019,14 @@ const handlePromoteResearch = async () => {
 }
 
 .callout.neutral {
-  background: #F5F5F5;
-  color: #444;
+  background: var(--color-surface-container-low);
+  color: var(--color-muted);
 }
 
 .callout.error {
-  background: #FFF3F2;
-  color: #A62B1F;
-  border: 1px solid #F3C5BF;
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-bg);
 }
 
 .action-stack {
@@ -1043,15 +1043,15 @@ const handlePromoteResearch = async () => {
 }
 
 .preview-card {
-  background: #FFFFFF;
-  border: 1px solid #E6E6E6;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
   border-radius: 6px;
   padding: 14px;
 }
 
 .preview-card.warning {
   border-color: #F0B273;
-  background: #FFF7EF;
+  background: var(--color-warning-bg);
 }
 
 .preview-header {
@@ -1066,7 +1066,7 @@ const handlePromoteResearch = async () => {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #333;
+  color: var(--color-on-surface);
 }
 
 .preview-pill {
@@ -1077,13 +1077,13 @@ const handlePromoteResearch = async () => {
 }
 
 .preview-pill.safe {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .preview-pill.warning {
-  background: #FFE0B2;
-  color: #A65A00;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .preview-grid {
@@ -1093,14 +1093,14 @@ const handlePromoteResearch = async () => {
 }
 
 .guardrail-card {
-  background: #FFF9E8;
-  border: 1px solid #F0D28A;
+  background: var(--color-warning-bg);
+  border: 1px solid var(--color-warning);
   border-radius: 6px;
   padding: 14px;
 }
 
 .guardrail-card.blocking {
-  background: #FFF3F2;
+  background: var(--color-error-bg);
   border-color: #F3C5BF;
 }
 
@@ -1116,7 +1116,7 @@ const handlePromoteResearch = async () => {
 .guardrail-label {
   font-size: 11px;
   font-weight: 700;
-  color: #333;
+  color: var(--color-on-surface);
   text-transform: uppercase;
 }
 
@@ -1128,13 +1128,13 @@ const handlePromoteResearch = async () => {
 }
 
 .guardrail-pill.warning {
-  background: #FFE0B2;
-  color: #A65A00;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .guardrail-pill.blocking {
-  background: #FDE2E0;
-  color: #B3261E;
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .guardrail-group + .guardrail-group {
@@ -1144,13 +1144,13 @@ const handlePromoteResearch = async () => {
 .guardrail-list {
   margin: 8px 0 0;
   padding-left: 18px;
-  color: #444;
+  color: var(--color-muted);
   font-size: 12px;
   line-height: 1.5;
 }
 
 .preview-stat {
-  background: #F9F9F9;
+  background: var(--color-background);
   border-radius: 6px;
   padding: 12px;
   min-height: 72px;
@@ -1161,22 +1161,22 @@ const handlePromoteResearch = async () => {
   font-size: 18px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
-  color: #111;
+  color: var(--color-on-background);
 }
 
 .preview-label {
   display: block;
   margin-top: 6px;
   font-size: 10px;
-  color: #666;
+  color: var(--color-muted);
   text-transform: uppercase;
 }
 
 .secondary-btn,
 .action-btn {
   width: 100%;
-  background: #000000;
-  color: #e2e2e2;
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
   border: none;
   padding: 14px;
   border-radius: 0;
@@ -1188,16 +1188,16 @@ const handlePromoteResearch = async () => {
 }
 
 .secondary-btn {
-  background: #F5F5F5;
-  color: #111;
-  border: 1px solid #DADADA;
+  background: var(--color-surface-container-low);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-outline);
 }
 
 .secondary-btn:hover:not(:disabled),
 .action-btn:hover:not(:disabled) {
-  background: #f9f9f9;
-  color: #000000;
-  box-shadow: 4px 4px 0 #000000;
+  background: var(--color-background);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .secondary-btn:disabled,
@@ -1209,9 +1209,9 @@ const handlePromoteResearch = async () => {
 
 .deep-research-btn {
   width: 100%;
-  background: #1a1a2e;
-  color: #e2e2e2;
-  border: 1px solid #4a4a6a;
+  background: var(--color-surface);
+  color: var(--color-surface-container-highest);
+  border: 1px solid var(--color-surface-elevated);
   padding: 14px;
   border-radius: 0;
   font-size: 12px;
@@ -1222,8 +1222,8 @@ const handlePromoteResearch = async () => {
 }
 
 .deep-research-btn:hover:not(:disabled) {
-  background: #2a2a4e;
-  box-shadow: 4px 4px 0 #4a4a6a;
+  background: var(--color-surface-elevated);
+  box-shadow: 4px 4px 0 var(--color-surface-elevated);
 }
 
 .deep-research-btn:disabled {
@@ -1244,13 +1244,13 @@ const handlePromoteResearch = async () => {
   justify-content: space-between;
   gap: 12px;
   font-size: 12px;
-  color: #444;
+  color: var(--color-muted);
 }
 
 .progress-bar {
   width: 100%;
   height: 10px;
-  background: var(--color-surface-container-highest, #EFEFEF);
+  background: var(--color-surface-container-highest, var(--color-surface-container-low));
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1262,22 +1262,22 @@ const handlePromoteResearch = async () => {
 }
 
 .system-logs {
-  background: #000;
-  color: #DDD;
+  background: var(--color-on-background);
+  color: var(--color-outline);
   padding: 16px;
   font-family: 'JetBrains Mono', monospace;
-  border-top: 1px solid #222;
+  border-top: 1px solid var(--color-surface-elevated);
   flex-shrink: 0;
 }
 
 .log-header {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--color-on-surface);
   padding-bottom: 8px;
   margin-bottom: 8px;
   font-size: 10px;
-  color: #888;
+  color: var(--color-muted);
 }
 
 .log-content {
@@ -1294,7 +1294,7 @@ const handlePromoteResearch = async () => {
 }
 
 .log-content::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-on-surface);
   border-radius: 2px;
 }
 
@@ -1306,12 +1306,12 @@ const handlePromoteResearch = async () => {
 }
 
 .log-time {
-  color: #666;
+  color: var(--color-muted);
   min-width: 75px;
 }
 
 .log-msg {
-  color: #CCC;
+  color: var(--color-outline);
   word-break: break-all;
 }
 
@@ -1319,8 +1319,8 @@ const handlePromoteResearch = async () => {
 .research-panel {
   margin-top: 20px;
   padding: 16px;
-  background: #FAFAFA;
-  border: 1px solid #E0E0E0;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
   border-radius: 6px;
 }
 
@@ -1335,7 +1335,7 @@ const handlePromoteResearch = async () => {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #000;
+  color: var(--color-on-background);
   letter-spacing: 1px;
 }
 
@@ -1349,23 +1349,23 @@ const handlePromoteResearch = async () => {
 
 .research-badge.pending,
 .research-badge.running {
-  background: #FFE0B2;
-  color: #A65A00;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .research-badge.completed {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: var(--color-info-bg);
+  color: var(--color-info);
 }
 
 .research-badge.approved {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .research-badge.failed {
-  background: #FFEBEE;
-  color: #C62828;
+  background: var(--color-error-bg);
+  color: var(--color-error);
 }
 
 .research-start {
@@ -1375,7 +1375,7 @@ const handlePromoteResearch = async () => {
 
 .research-desc {
   font-size: 12px;
-  color: #666;
+  color: var(--color-muted);
   margin-bottom: 16px;
 }
 
@@ -1400,15 +1400,15 @@ const handlePromoteResearch = async () => {
 }
 
 .research-result-preview {
-  background: #FFF;
-  border: 1px solid #E0E0E0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
   padding: 12px;
   border-radius: 4px;
 }
 
 .markdown-preview {
   font-size: 11px;
-  color: #444;
+  color: var(--color-muted);
   line-height: 1.5;
   max-height: 200px;
   overflow-y: auto;
@@ -1423,18 +1423,18 @@ const handlePromoteResearch = async () => {
 }
 
 .rerun-section {
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--color-outline);
   padding-top: 16px;
 }
 
 .rerun-textarea {
   width: 100%;
-  border: 1px solid #DADADA;
-  background: #FFF;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
   padding: 10px 12px;
   font-size: 12px;
   font-family: inherit;
-  color: #111;
+  color: var(--color-on-background);
   resize: vertical;
   min-height: 60px;
   margin: 8px 0;
@@ -1443,7 +1443,7 @@ const handlePromoteResearch = async () => {
 
 .rerun-textarea:focus {
   outline: none;
-  border-color: #000;
+  border-color: var(--color-on-background);
 }
 
 .research-approved {
@@ -1455,8 +1455,8 @@ const handlePromoteResearch = async () => {
   display: inline-block;
   font-size: 14px;
   font-weight: 700;
-  color: #2E7D32;
-  background: #E8F5E9;
+  color: var(--color-success);
+  background: var(--color-success-bg);
   padding: 8px 16px;
   border-radius: 4px;
   margin-bottom: 12px;
@@ -1464,13 +1464,13 @@ const handlePromoteResearch = async () => {
 
 .research-approved p {
   font-size: 12px;
-  color: #666;
+  color: var(--color-muted);
 }
 
 .promotion-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #E0E0E0;
+  border-top: 1px solid var(--color-outline);
 }
 
 .promotion-loading {
@@ -1478,20 +1478,20 @@ const handlePromoteResearch = async () => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #666;
+  color: var(--color-muted);
   font-size: 12px;
 }
 
 .promote-btn {
   width: 100%;
   background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%);
-  color: #FFF;
+  color: var(--color-surface);
   font-weight: 700;
 }
 
 .promote-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #388E3C 0%, #2E7D32 100%);
-  box-shadow: 4px 4px 0 #1B5E20;
+  box-shadow: 4px 4px 0 var(--color-success);
 }
 
 .research-failed {
@@ -1503,8 +1503,8 @@ const handlePromoteResearch = async () => {
   display: inline-block;
   font-size: 14px;
   font-weight: 700;
-  color: #C62828;
-  background: #FFEBEE;
+  color: var(--color-error);
+  background: var(--color-error-bg);
   padding: 8px 16px;
   border-radius: 4px;
   margin-bottom: 12px;
@@ -1512,7 +1512,7 @@ const handlePromoteResearch = async () => {
 
 .research-failed p {
   font-size: 12px;
-  color: #666;
+  color: var(--color-muted);
   margin-bottom: 16px;
 }
 
@@ -1534,14 +1534,14 @@ const handlePromoteResearch = async () => {
 
 .ontology-generating-overlay span {
   font-size: 14px;
-  color: #666;
+  color: var(--color-muted);
   font-weight: 500;
 }
 
 .spinner-lg {
   width: 40px;
   height: 40px;
-  border: 4px solid #FFCCBC;
+  border: 4px solid var(--color-warning-bg);
   border-top-color: #FF5722;
   border-radius: 50%;
   animation: spin 1s linear infinite;
