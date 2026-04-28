@@ -641,7 +641,8 @@ const parseInsightForge = (text) => {
       }).filter(Boolean)
     }
   } catch (e) {
-    console.warn('Parse insight_forge failed:', e)
+    // DEBUG: Parse insight_forge failed
+    void e
   }
   
   return result
@@ -703,7 +704,8 @@ const parsePanorama = (text) => {
       }).filter(Boolean)
     }
   } catch (e) {
-    console.warn('Parse panorama failed:', e)
+    // DEBUG: Parse panorama failed
+    void e
   }
   
   return result
@@ -918,7 +920,8 @@ const parseInterview = (text) => {
       result.summary = summaryMatch[1].trim()
     }
   } catch (e) {
-    console.warn('Parse interview failed:', e)
+    // DEBUG: Parse interview failed
+    void e
   }
   
   return result
@@ -975,7 +978,8 @@ const parseQuickSearch = (text) => {
       }).filter(Boolean)
     }
   } catch (e) {
-    console.warn('Parse quick_search failed:', e)
+    // DEBUG: Parse quick_search failed
+    void e
   }
   
   return result
@@ -2222,7 +2226,8 @@ const fetchAgentLog = async () => {
       }
     }
   } catch (err) {
-    console.warn('Failed to fetch agent log:', err)
+    // DEBUG: Failed to fetch agent log
+    void err
   }
 }
 
@@ -2292,7 +2297,8 @@ const fetchConsoleLog = async () => {
       }
     }
   } catch (err) {
-    console.warn('Failed to fetch console log:', err)
+    // DEBUG: Failed to fetch console log
+    void err
   }
 }
 

@@ -462,7 +462,7 @@ const fetchGraphData = async () => {
       }
     }
   } catch (err) {
-    console.warn('Graph fetch error:', err)
+    // DEBUG: Graph fetch error
     // On error, stop polling to avoid hammering Zep with requests
     stopPolling()
   }
@@ -505,7 +505,7 @@ const pollTaskStatus = async (taskId) => {
       }
     }
   } catch (e) {
-    console.error(e)
+    // DEBUG: Generic error
   }
 }
 
@@ -630,7 +630,7 @@ const pollResearchStatus = async () => {
       }
     }
   } catch (e) {
-    console.error('Research status poll error:', e)
+    // DEBUG: Research status poll error
   }
 }
 

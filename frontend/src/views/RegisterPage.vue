@@ -234,7 +234,7 @@ const handleRegister = async () => {
     // Redirect to home
     router.push('/')
   } catch (error) {
-    console.error('Registration failed:', error)
+    // DEBUG: Registration failed
     const msg = error?.message || ''
     if (msg.includes('User already exists')) {
       registerError.value = 'auth.errors.emailTaken'

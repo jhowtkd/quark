@@ -24,7 +24,8 @@ export default defineComponent({
         root.render(React.createElement(Agentation, {
           endpoint,
           onSessionCreated: (sessionId) => {
-            console.log('Agentation session:', sessionId)
+            // DEBUG: Agentation session created
+            void sessionId
           }
         }))
       }

@@ -615,7 +615,7 @@ const handleNewProject = async () => {
       error.value = response.error || 'Gerar OntologiaError Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output'
     }
   } catch (err) {
-    console.error('Handle new project error:', err)
+    // DEBUG: Handle new project error
     error.value = 'Falha ao inicializar projeto: ' + (err.message || 'Desconhecimento API ERROR...')
   } finally {
     loading.value = false
@@ -652,7 +652,7 @@ const loadProject = async () => {
       error.value = response.error || 'Falha ao carregar projeto'
     }
   } catch (err) {
-    console.error('Load project error:', err)
+    // DEBUG: Load project error
     error.value = 'Falha ao carregar projeto: ' + (err.message || 'Desconhecimento API ERROR...')
   } finally {
     loading.value = false
@@ -705,7 +705,7 @@ const startBuildGraph = async () => {
       buildProgress.value = null
     }
   } catch (err) {
-    console.error('Build graph error:', err)
+    // DEBUG: Build graph error
     error.value = 'Zep Create Error Method Display Event State Result Code Result Methods Mapping Output Run Execute Arrays Setup Data Display Fetch Values Method Displays Object Arrays Value Layout Handle Array Result Displays Output Displays Component Variables Prop Code Run Return Call Target Method Action Handling Properties Formatting Object State Formats Array Logic Process Output: ' + (err.message || 'Desconhecimento API ERROR...')
     buildProgress.value = null
   }
@@ -758,7 +758,7 @@ const fetchGraphData = async () => {
         const newNodeCount = newData.node_count || newData.nodes?.length || 0
         const oldNodeCount = graphData.value?.node_count || graphData.value?.nodes?.length || 0
         
-        console.log('Fetching graph data, nodes:', newNodeCount, 'edges:', newData.edge_count || newData.edges?.length || 0)
+        // DEBUG: Graph data fetched
         
         // If Array diff do Trigger DOM / D3 Update View
         if (newNodeCount !== oldNodeCount || !graphData.value) {
@@ -769,7 +769,7 @@ const fetchGraphData = async () => {
       }
     }
   } catch (err) {
-    console.log('Graph data fetch:', err.message || 'not ready')
+    // DEBUG: Graph data fetch
   }
 }
 
@@ -798,10 +798,10 @@ const pollTaskStatus = async (taskId) => {
         message: task.message || 'Processando...'
       }
       
-      console.log('Task status:', task.status, 'Progress:', task.progress)
+      // DEBUG: Task status
       
       if (task.status === 'completed') {
-        console.log('✅ Construir GrafoSuccess Wait Loop Graph Load Execution Render Setup Displays Formatting Check Returns Value Component State Displays Handle Mapping Object Outputs Maps Map Display Setup Methods Results Array Method Scope Fetch Handle Variables Code Exec Displays Formats Arrays Render Handling Target Event Method Formats Returns Variable Handling Objects Call Outputs Returns Regex Output Match Flow Formatting Call...')
+        // DEBUG: Graph build success
         
         stopPolling()
         stopGraphPolling()
@@ -820,9 +820,9 @@ const pollTaskStatus = async (taskId) => {
           
           // Final Data Merge Display Visual Vectors Render From Source JSON DB Object Tree Graph
           if (projectResponse.data.graph_id) {
-            console.log('📊 Carregando a base relacional inteira na tela...:', projectResponse.data.graph_id)
+            // DEBUG: Loading full relational base
             await loadGraph(projectResponse.data.graph_id)
-            console.log('✅ Nodes and Edges Full Rendered OK.')
+            // DEBUG: Nodes and edges rendered
           }
         }
         
@@ -836,7 +836,7 @@ const pollTaskStatus = async (taskId) => {
       }
     }
   } catch (err) {
-    console.error('Poll task error:', err)
+    // DEBUG: Poll task error
   }
 }
 
@@ -859,7 +859,7 @@ const loadGraph = async (graphId) => {
       renderGraph()
     }
   } catch (err) {
-    console.error('Load graph error:', err)
+    // DEBUG: Load graph error
   } finally {
     graphLoading.value = false
   }
@@ -868,13 +868,13 @@ const loadGraph = async (graphId) => {
 // Render Flow Graphics View Node & Links... (D3.js)
 const renderGraph = () => {
   if (!graphSvg.value || !graphData.value) {
-    console.log('Cannot render: svg or data missing')
+    // DEBUG: Cannot render - missing svg/data
     return
   }
   
   const container = graphContainer.value
   if (!container) {
-    console.log('Cannot render: container missing')
+    // DEBUG: Cannot render - missing container
     return
   }
   
@@ -884,11 +884,11 @@ const renderGraph = () => {
   const height = (rect.height || 600) - 60
   
   if (width <= 0 || height <= 0) {
-    console.log('Cannot render: invalid dimensions', width, height)
+    // DEBUG: Cannot render - invalid dimensions
     return
   }
   
-  console.log('Rendering graph:', width, 'x', height)
+  // DEBUG: Rendering graph
   
   const svg = d3.select(graphSvg.value)
     .attr('width', width)
@@ -902,7 +902,7 @@ const renderGraph = () => {
   const edgesData = graphData.value.edges || []
   
   if (nodesData.length === 0) {
-    console.log('No nodes to render')
+    // DEBUG: No nodes to render
     // Vazio / Clear State
     svg.append('text')
       .attr('x', width / 2)
@@ -942,7 +942,7 @@ const renderGraph = () => {
       }
     }))
   
-  console.log('Nodes:', nodes.length, 'Edges:', edges.length)
+  // DEBUG: Node and edge count
   
   // Color Palletes Node Array Map Hexes
   const types = [...new Set(nodes.map(n => n.type))]

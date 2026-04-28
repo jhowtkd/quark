@@ -171,7 +171,7 @@ const handleLogin = async () => {
       router.push('/')
     }
   } catch (error) {
-    console.error('Login failed:', error)
+    // DEBUG: Login failed
     loginError.value = 'auth.errors.loginFailed'
   } finally {
     loading.value = false

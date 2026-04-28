@@ -905,7 +905,7 @@ const pollPrepareStatus = async () => {
       }
     }
   } catch (err) {
-    console.warn('Status do pollingError Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output:', err)
+    if (import.meta.env.DEV) console.warn('Polling status error:', err)
   }
 }
 
@@ -949,7 +949,7 @@ const fetchProfilesRealtime = async () => {
       }
     }
   } catch (err) {
-    console.warn('Process Check Process Method App Layout Action Action Rendering Formats Component Method Outputs Result Function Value Method Results Process Logic Event Call String Call Match Displays Result Method Formats Variables View Setup String Flow Run Map Loop Displays Value Component Regex Action Execution Format Output Mapping Flow Process Properties Flow Layout Components Call Fetch Components Map Handling Fetch Layout Methods Formats Method Return Maps Properties Method Values Formatting Variables Setup Map Method Exec Map Result Displays Scope Formats Method Result Fetch Array Output Method Fetch Run Function Returns Method Method Result App Event Event Variables Handle Functions Result Returns Value Flow Array Variable Components Action Display Method Execution Method Components Setup Scope Method Setup Component Execute Prop Component Exec Displays Logic View Execute Output Call Regex Run Objects Scope Arrays Object Values Object Response Arrays Arrays Run Mapping Outputs Setup Mapping Process Logic Check Properties Data Event Map Displays String Display Setup Formats Method Result Setup Function Formats Handle Components Fetch Mapping Returns Fetch Props Call Return Logic Regex Layout Event App Method Mapping Displays Action Prop Logic Handling Maps Prop Display Data Function Target Function Data Results Prop Action Properties Setup Value Run Fetch Loop Displays Event Action Exec Action Logic Action Methods Profiles Error Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output:', err)
+    if (import.meta.env.DEV) console.warn('Profiles fetch error:', err)
   }
 }
 
@@ -1017,7 +1017,7 @@ const fetchConfigRealtime = async () => {
       }
     }
   } catch (err) {
-    console.warn('Process Check Process Method App Layout Action Action Rendering Formats Component Method Outputs Result Function Value Method Results Process Logic Event Call String Call Match Displays Result Method Formats Variables View Setup String Flow Run Map Loop Displays Value Component Regex Action Execution Format Output Mapping Flow Process Properties Flow Layout Components Call Fetch Components Map Handling Fetch Layout Methods Formats Method Return Maps Properties Method Values Formatting Variables Setup Map Method Exec Map Result Displays Scope Formats Method Result Fetch Array Output Method Fetch Run Function Returns Method Method Result App Event Event Variables Handle Functions Result Returns Value Flow Array Variable Components Action Display Method Execution Method Components Setup Scope Method Setup Component Execute Prop Component Exec Displays Logic View Execute Output Call Regex Run Objects Scope Arrays Object Values Object Response Arrays Arrays Run Mapping Outputs Setup Mapping Process Logic Check Properties Data Event Map Displays String Display Setup Formats Method Result Setup Function Formats Handle Components Fetch Mapping Returns Fetch Props Call Return Logic Regex Layout Event App Method Mapping Displays Action Prop Logic Handling Maps Prop Display Data Function Target Function Data Results Prop Action Properties Setup Value Run Fetch Loop Displays Event Action Exec Action Logic Action Methods Config Error Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output:', err)
+    if (import.meta.env.DEV) console.warn('Config fetch error:', err)
   }
 }
 

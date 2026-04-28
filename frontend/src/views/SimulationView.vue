@@ -220,7 +220,7 @@ const checkAndStopRunningSimulation = async () => {
     }
   } catch (err) {
     // Queda visual checada de rede ignora pass-by.
-    console.warn('Falácia em Checagem Sim:', err)
+    // DEBUG: Simulation check warning
   }
 }
 
