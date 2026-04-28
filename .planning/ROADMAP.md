@@ -23,7 +23,7 @@
   2. All screens (auth, dashboard, simulation, graph, report, settings) show no visual regressions in either theme.
   3. Zero hardcoded hex/rgb colors in component styles — all via CSS custom properties.
   4. Auto mode reacts live to OS `prefers-color-scheme` changes.
-**Plans**: 0 plans
+**Plans**: 1 plan (13-01)
 
 ### Phase 14: Design System Refinements
 **Goal**: Establish and apply Blueprint Noir v2 design tokens consistently across all reusable components.
