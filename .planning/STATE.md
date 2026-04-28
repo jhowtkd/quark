@@ -1,57 +1,66 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Blueprint Noir v2
-status: complete
-stopped_at: Phase 17 complete — milestone v1.4 finished
+milestone: v1.5
+milestone_name: Performance & Report Experience
+status: in_progress
+stopped_at: Milestone v1.5 planning complete — awaiting Phase 18 execution
 last_updated: "2026-04-28T13:36:00.000Z"
-last_activity: 2026-04-28 — Phase 17 Global UI Polish completed
+last_activity: 2026-04-28 — Milestone v1.5 planning completed
 progress:
   total_phases: 5
-  completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 ## Current Position
 
-Phase: 17 (complete)
-Plan: 17-01
-Status: Milestone v1.4 Blueprint Noir v2 — **COMPLETE**
-Last activity: 2026-04-28 — Global UI Polish and Accessibility implemented and committed
+Milestone: v1.5 Performance & Report Experience
+Phase: 18 (planned)
+Plan: 18-01
+Status: Milestone v1.5 — PLANNING COMPLETE
+Last activity: 2026-04-28 — v1.5 requirements and roadmap created
 
 ## Progress
 
-[██████████] 100% (Milestone v1.4 — 5/5 phases complete)
+[          ] 0% (Milestone v1.5 — 0/5 phases complete)
 
 ## Session Continuity
 
 Last session: 2026-04-28T13:36:00.000Z
-Stopped at: Milestone v1.4 completion
+Stopped at: Milestone v1.5 planning
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-04-28)
+See: .planning/milestones/v1.5/REQUIREMENTS.md
+See: .planning/milestones/v1.5/ROADMAP.md
 
 **Core value:** Execute and manage simulations with an intuitive, reliable user interface.
-**Current focus:** Milestone v1.4 released — ready for next milestone planning
+**Current focus:** Phase 18 Bundle Optimization & Code Splitting (next)
 
 ## Accumulated Context
 
-### Recent Decisions
-- **Phase 13 (2026-04-28)**: Dark mode system with useTheme composable.
-- **Phase 14 (2026-04-28)**: Design system v2 with 5 base components, Lucide icons, style guide.
-- **Phase 15 (2026-04-28)**: Animations — route transitions, hover states, 4 skeleton components, ProgressSteps.
-- **Phase 16 (2026-04-28)**: Report Viewer Redesign — tables, data source tags, mini-charts, floating outline, section cards, due-diligence styling.
-- **Phase 17 (2026-04-28)**: Global UI Polish — console cleanup, a11y (buttons/roles/aria), color tokenization, responsive breakpoints, prefers-reduced-motion.
+### v1.4 Completed (2026-04-28)
+- Phase 13: Dark mode system
+- Phase 14: Design system v2 (5 base components, Lucide icons, style guide)
+- Phase 15: Animations and micro-interactions
+- Phase 16: Report viewer redesign (cards, tables, mini-charts, outline)
+- Phase 17: Global UI polish and accessibility (WCAG AA, responsive, console cleanup)
 
-### Phase 17 Summary
-- **Console**: ~30 garbled/debug console statements removed or wrapped in `import.meta.env.DEV`
-- **A11y**: `type="button"` on all buttons, `role="button"`/`tabindex`/`@keydown` on clickable divs, `aria-expanded` on toggles, `aria-label` on icon-only buttons, `role="dialog"`/`aria-modal` on BaseModal
-- **Tokens**: `--color-overlay`, `--color-overlay-light`, `--color-overlay-subtle` added; ~50 rgba hardcoded colors replaced
-- **Responsive**: Mobile breakpoints added to Step4Report, Step5Interaction, Process, GraphPanel detail panels
-- **Motion**: `prefers-reduced-motion: reduce` respected globally
+### v1.5 Scope
+- Phase 18: Bundle optimization (lazy loading, vendor chunks, Lighthouse)
+- Phase 19: Report export & deep linking (PDF, anchors, shareable URLs)
+- Phase 20: Advanced visualization (mini-charts inline, table sorting, tooltips)
+- Phase 21: PWA foundation (manifest, service worker, offline caching)
+- Phase 22: Quality & polish (E2E tests, Lighthouse audit, docs)
+
+### Key Metrics at v1.4 End
+- JS bundle: ~1.17MB gzipped
+- CSS: ~213KB tokenized
+- Console: zero warnings (dev-only wrapped)
+- Accessibility: WCAG 2.1 AA compliant
 
 ### Blockers/Concerns
 None.

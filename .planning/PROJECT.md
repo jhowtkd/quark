@@ -19,7 +19,19 @@ Execute and manage simulations with an intuitive, reliable user interface.
 
 **Status:** Completed 2026-04-27
 
-## Current Milestone: v1.4 Blueprint Noir v2
+## Current Milestone: v1.5 Performance & Report Experience
+
+**Goal:** Optimize frontend performance, enhance report utility with export and sharing capabilities, and lay the foundation for a Progressive Web App.
+
+**Target features:**
+- Bundle optimization: code-splitting, lazy loading, vendor chunk separation
+- Report export: PDF generation with preserved styling and metadata
+- Deep linking: shareable URLs with section anchors
+- Advanced visualization: inline mini-charts, sortable tables, rich data source tooltips
+- PWA foundation: Web App Manifest, service worker, offline caching, install prompt
+- Quality assurance: E2E tests, Lighthouse audit, updated documentation
+
+## Previous Milestone: v1.4 Blueprint Noir v2
 
 **Goal:** Evolve the user interface across all screens with a refined design system, dark mode, purposeful animations, and a redesigned report viewer for a professional, accessible, and delightful experience.
 
@@ -29,6 +41,8 @@ Execute and manage simulations with an intuitive, reliable user interface.
 - Animations and micro-interactions: route transitions, hover/active feedback, skeleton loading, progress indicators
 - Report viewer redesign: card-based layout, interactive tables, mini-charts, anchor navigation
 - Accessibility and responsiveness: WCAG 2.1 AA, 320px–1440px+ coverage, zero console warnings
+
+**Status:** Completed 2026-04-28
 
 ## Requirements
 
@@ -48,6 +62,14 @@ Execute and manage simulations with an intuitive, reliable user interface.
   - Output quality gates: language consistency, Known Limitations auto-append, numeric sanity, self-contradiction detection — Phase 12
 
 ### Active
+- **v1.5 — Performance & Report Experience (Phases 18-22):**
+  - Bundle optimization and code splitting: lazy loading, vendor chunks, Lighthouse targets — Phase 18
+  - Report export and deep linking: PDF export, section anchors, shareable URLs — Phase 19
+  - Advanced report visualization: inline mini-charts, table sorting, tag tooltips, animations — Phase 20
+  - PWA foundation: manifest, service worker, offline caching, install prompt — Phase 21
+  - Quality and polish: E2E tests, Lighthouse audit, docs update, consistency pass — Phase 22
+
+### Validated
 - **v1.4 — Blueprint Noir v2 (Phases 13-17):**
   - Dark mode system: toggle, auto preference, CSS variables, full-screen coverage — Phase 13
   - Design system refinements: v2 tokens, component audit, icon standardization, living style guide — Phase 14
