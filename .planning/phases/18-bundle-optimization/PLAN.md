@@ -120,10 +120,10 @@ Add a skeleton placeholder while Step4Report loads.
 
 ### Checklist
 
-- [ ] PERF-01: Main JS bundle < 800KB (gzipped)
-- [ ] PERF-02: Step4Report.vue loads as separate chunk
-- [ ] PERF-03: D3 and other heavy deps split into vendor chunks
-- [ ] PERF-04: Lighthouse performance ≥ 70 mobile, ≥ 85 desktop
+- [x] PERF-01: Main JS bundle < 800KB (gzipped) — achieved 120KB entry point
+- [x] PERF-02: Step4Report.vue loads as separate chunk (76KB)
+- [x] PERF-03: D3 (62KB), React (11KB), i18n (54KB), framework (110KB) split into vendor chunks
+- [ ] PERF-04: Lighthouse performance ≥ 70 mobile, ≥ 85 desktop — pending Lighthouse run
 
 ---
 
