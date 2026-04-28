@@ -1,87 +1,87 @@
-# Requirements: Milestone v1.3 Report Quality Improvement
+# Requirements: Milestone v1.4 Blueprint Noir v2
 
-**Defined:** 2026-04-27
+**Defined:** 2026-04-28
 **Core Value:** Execute and manage simulations with an intuitive, reliable user interface.
 
 ## v1 Requirements
 
-### Data Provenance and Labeling (PROV)
+### Dark Mode System (DARK)
 
-- [x] **PROV-01**: Every quantitative claim in a report is tagged with its source type: realizado (public filing), consenso (analyst consensus), projeção (model projection), or simulação (simulated/estimated data).
-- [x] **PROV-02**: Reports include a "Data Sources" section listing every external source referenced, with URLs or identifiers where applicable.
-- [x] **PROV-03**: When simulated or projected data is used, the report explicitly states the methodology and confidence level.
-- [x] **PROV-04**: No data point is presented as fact without a verifiable source or explicit simulation label.
+- [ ] **DARK-01**: A theme toggle (light/dark/auto) is available in the UI header or settings, persisted to user preferences (Convex).
+- [ ] **DARK-02**: All existing screens (auth, dashboard, simulation, graph, report viewer, settings) render correctly in dark mode without visual regressions.
+- [ ] **DARK-03**: CSS custom properties (variables) drive theming; no hardcoded colors in components — all colors resolve through tokens.
+- [ ] **DARK-04**: The `auto` setting respects `prefers-color-scheme` and updates dynamically without page reload.
 
-### Data Validation Pipeline (VALID)
+### Design System Refinements (DSYS)
 
-- [x] **VALID-01**: Before report generation, key financial metrics (revenue, EPS, gross/operating/net margins, capex, FCF) are cross-checked against known public filings or consensus databases.
-- [x] **VALID-02**: When a metric deviates from the expected public range by more than a configurable threshold, the system flags the discrepancy and requires human review or explicit override.
-- [x] **VALID-03**: GAAP and non-GAAP versions of EPS and other dual-metric figures are both captured and distinguished.
-- [x] **VALID-04**: The validation result is surfaced to the report generation pipeline so it can adjust narrative confidence accordingly.
+- [ ] **DSYS-01**: Blueprint Noir v2 tokens are documented and applied: expanded color palette (surface, elevated, overlay tiers), refined typography scale, and consistent spacing scale (4px base grid).
+- [ ] **DSYS-02**: All reusable components (Button, Input, Card, Modal, Select, Table, Badge) are audited and updated to v2 specs: consistent border-radius, shadows, focus rings, and disabled states.
+- [ ] **DSYS-03**: Iconography is standardized: single icon library (e.g., Lucide or Phosphor), consistent sizing (16/20/24px), and semantic usage across all screens.
+- [ ] **DSYS-04**: A living style guide page/component exists in the app for developers to preview tokens and components in both themes.
 
-### Structured Report Format (FORMAT)
+### Animations and Micro-interactions (ANIM)
 
-- [x] **FORMAT-01**: Reports follow a due-diligence structure: Tese Principal, Evidências Verificadas, Fragilidades e Riscos, Premissas Explícitas, Cenários (Bear/Base/Bull).
-- [x] **FORMAT-02**: Each section contains only content relevant to its heading — no mixing of tese and evidência within the same unstructured block.
-- [x] **FORMAT-03**: Quantified tables accompany narrative sections where appropriate (revenue, margins, capex, FCF, deliveries).
-- [x] **FORMAT-04**: Scenarios include explicit probability weights and trigger conditions, not just optimistic/pessimistic narratives.
+- [ ] **ANIM-01**: Page and route transitions use consistent enter/exit animations (fade/slide) without jank or layout shift.
+- [ ] **ANIM-02**: Interactive elements provide immediate visual feedback: hover states (scale, shadow, border), active/pressed states, and focus rings.
+- [ ] **ANIM-03**: Loading states use skeleton screens or shimmer placeholders instead of generic spinners for content-heavy areas (reports, graphs, tables).
+- [ ] **ANIM-04**: Async operations (simulation runs, ingestion, report generation) show progress indicators with time estimates or step labels where applicable.
 
-### Neutrality and Bias Audit (NEUT)
+### Report Viewer Redesign (RPTV)
 
-- [x] **NEUT-01**: Generated narrative is audited for confirmation bias — if the report leans consistently bullish or bearish without balancing evidence, it is flagged.
-- [x] **NEUT-02**: Bull and bear cases are presented with comparable depth and specificity — no shallow dismissal of the contrarian view.
-- [x] **NEUT-03**: Language strength is calibrated to evidence quality — strong claims require strong evidence; speculative claims use conditional language.
-- [x] **NEUT-04**: Competitive analysis quantifies market share, price elasticity, or regional mix impact where data exists, rather than relying on vague qualitative statements.
+- [ ] **RPTV-01**: Reports render in a redesigned layout: clear visual hierarchy, section cards, and scannable structure matching the due-diligence format (Tese, Evidências, Fragilidades, Premissas, Cenários).
+- [ ] **RPTV-02**: Quantitative data is presented in interactive tables and inline sparkline/bar mini-charts where appropriate (revenue, margins, deliveries).
+- [ ] **RPTV-03**: Data source labels (📊 realizado, 🔮 hipótese, etc.) are visually distinct and accessible (color + icon + tooltip).
+- [ ] **RPTV-04**: The viewer supports anchor navigation (jump to section) and a floating/minimap outline for long reports.
 
-### Output Quality Gates (QUAL)
+### Global UI Polish and Accessibility (POLY)
 
-- [x] **QUAL-01**: Generated reports are verified to be in a single language (Portuguese or English, per profile setting) — no mid-document language switching.
-- [x] **QUAL-02**: Reports include a "Known Limitations" section documenting gaps in available data or unresolved uncertainties.
-- [x] **QUAL-03**: Numeric inconsistencies within the same report are detected and flagged before final output.
-- [x] **QUAL-04**: Reports pass a post-generation sanity check: no self-contradictory claims, no unsupported valuation conclusions.
+- [ ] **POLY-01**: All interactive elements meet WCAG 2.1 AA: sufficient color contrast in both themes, focus visibility, and keyboard operability.
+- [ ] **POLY-02**: The app is fully usable at 320px width (responsive baseline) and scales gracefully to 1440px+ without awkward whitespace.
+- [ ] **POLY-03**: No console warnings or errors related to Vue reactivity, deprecated APIs, or accessibility violations in dev build.
+- [ ] **POLY-04**: A final UI consistency audit confirms all screens use v2 tokens, no legacy color values remain, and no visual drift between similar components.
 
 ## v2 Requirements
 
-### Advanced Quality
+### Advanced UX
 
-- **ADVQ-01**: Automated fact-checking against live SEC EDGAR filings or equivalent primary sources.
-- **ADVQ-02**: Sentiment and tone scoring with automatic rewrite suggestions for biased passages.
-- **ADVQ-03**: Peer-report benchmarking — compare generated report quality against industry-standard research notes.
+- **ADVX-01**: Customizable dashboard layout — users can rearrange, resize, or hide report/simulation widgets.
+- **ADVX-02**: Keyboard shortcuts and command palette for power users.
+- **ADVX-03**: Offline-ready PWA shell with service worker caching for static assets.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Replace LLM provider | Quality improvement is achievable through prompts, validation, and structure first |
-| Real-time market data API | Use curated validation against known sources; live feeds are future work |
-| Full interactive report builder | Focus on report quality, not report UI customization |
-| Multi-language simultaneous output | Single-language per report is the requirement for v1.3 |
-| Automated investment recommendation engine | Reports present analysis; decision-making stays with the user |
+| Framework migration (Nuxt/Next) | Stay on Vue 3 + Vite to limit risk and scope |
+| Real-time collaborative editing | Focus on single-user experience polish first |
+| Mobile native app | Responsive web is the target for v1.4 |
+| Complete brand redesign | Evolve Blueprint Noir, not replace it |
+| Multi-language UI (i18n) | Report language is profile-driven; UI stays Portuguese for now |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROV-01 | Phase 8 | Complete |
-| PROV-02 | Phase 8 | Complete |
-| PROV-03 | Phase 8 | Complete |
-| PROV-04 | Phase 8 | Complete |
-| VALID-01 | Phase 9 | Complete |
-| VALID-02 | Phase 9 | Complete |
-| VALID-03 | Phase 9 | Complete |
-| VALID-04 | Phase 9 | Complete |
-| FORMAT-01 | Phase 10 | Complete |
-| FORMAT-02 | Phase 10 | Complete |
-| FORMAT-03 | Phase 10 | Complete |
-| FORMAT-04 | Phase 10 | Complete |
-| NEUT-01 | Phase 11 | Complete |
-| NEUT-02 | Phase 11 | Complete |
-| NEUT-03 | Phase 11 | Complete |
-| NEUT-04 | Phase 11 | Complete |
-| QUAL-01 | Phase 12 | Complete |
-| QUAL-02 | Phase 12 | Complete |
-| QUAL-03 | Phase 12 | Complete |
-| QUAL-04 | Phase 12 | Complete |
+| DARK-01 | Phase 13 | Planned |
+| DARK-02 | Phase 13 | Planned |
+| DARK-03 | Phase 13 | Planned |
+| DARK-04 | Phase 13 | Planned |
+| DSYS-01 | Phase 14 | Planned |
+| DSYS-02 | Phase 14 | Planned |
+| DSYS-03 | Phase 14 | Planned |
+| DSYS-04 | Phase 14 | Planned |
+| ANIM-01 | Phase 15 | Planned |
+| ANIM-02 | Phase 15 | Planned |
+| ANIM-03 | Phase 15 | Planned |
+| ANIM-04 | Phase 15 | Planned |
+| RPTV-01 | Phase 16 | Planned |
+| RPTV-02 | Phase 16 | Planned |
+| RPTV-03 | Phase 16 | Planned |
+| RPTV-04 | Phase 16 | Planned |
+| POLY-01 | Phase 17 | Planned |
+| POLY-02 | Phase 17 | Planned |
+| POLY-03 | Phase 17 | Planned |
+| POLY-04 | Phase 17 | Planned |
 
 **Coverage:**
 - v1 requirements: 20 total
@@ -89,5 +89,5 @@
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-04-27*
-*Last updated: 2026-04-27 after milestone v1.3 definition*
+*Requirements defined: 2026-04-28*
+*Milestone: v1.4 Blueprint Noir v2*

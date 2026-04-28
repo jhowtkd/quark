@@ -6,78 +6,78 @@
 
 ## Phases
 
-- [x] **Phase 8: Data Provenance and Labeling** — Enforce strict source tagging and transparency for every data point in generated reports.
-- [x] **Phase 9: Data Validation Pipeline** — Build pre-generation validation that cross-checks key financial metrics against public sources.
-- [x] **Phase 10: Structured Report Format** — Implement due-diligence report structure with explicit sections for tese, evidências, fragilidades, premissas e cenários.
-- [x] **Phase 11: Neutrality and Bias Audit** — Add bias detection and neutrality enforcement to analytical narrative generation.
-- [x] **Phase 12: Output Quality Gates** — Implement post-generation checks for language consistency, numeric sanity, and self-contradiction.
+- [ ] **Phase 13: Dark Mode System** — Implement system-wide dark mode with CSS variables, toggle, and auto preference detection.
+- [ ] **Phase 14: Design System Refinements** — Evolve Blueprint Noir v2 tokens, audit components, standardize icons, and build a living style guide.
+- [ ] **Phase 15: Animations and Micro-interactions** — Add page transitions, hover/active feedback, skeleton loading, and progress indicators.
+- [ ] **Phase 16: Report Viewer Redesign** — Rebuild report layout with cards, interactive tables, mini-charts, and section navigation.
+- [ ] **Phase 17: Global UI Polish and Accessibility** — WCAG 2.1 AA audit, responsive refinements, console cleanup, and final consistency pass.
 
 ## Phase Details
 
-### Phase 8: Data Provenance and Labeling
-**Goal**: Every data point in a report must carry an explicit source-type label, and simulated/projected data must never be presented as verified fact.
-**Depends on**: Phase 7 (completed)
-**Requirements**: [PROV-01, PROV-02, PROV-03, PROV-04]
+### Phase 13: Dark Mode System
+**Goal**: Every screen renders correctly in light, dark, and auto modes via a token-driven CSS variable system.
+**Depends on**: Phase 12 (completed)
+**Requirements**: [DARK-01, DARK-02, DARK-03, DARK-04]
 **Success Criteria** (what must be TRUE):
-  1. Every quantitative claim in a generated report is tagged with one of: realizado, consenso, projeção, simulação.
-  2. A "Data Sources" section is automatically appended to every report.
-  3. Simulated data points include a brief methodology note.
-  4. No untagged or ambiguously sourced data points appear in report output.
-**Plans**: 1 plan (08-01)
-
-### Phase 9: Data Validation Pipeline
-**Goal**: Prevent factual errors in key financial metrics by cross-checking them against known public sources before report generation.
-**Depends on**: Phase 8
-**Requirements**: [VALID-01, VALID-02, VALID-03, VALID-04]
-**Success Criteria** (what must be TRUE):
-  1. Revenue, EPS, margins, capex, and FCF figures are validated against a curated reference before narrative generation.
-  2. Deviations beyond a threshold trigger a warning or block generation until reviewed.
-  3. GAAP and non-GAAP EPS are both available to the report generator and correctly labeled.
-  4. Validation results influence narrative confidence levels.
+  1. User can toggle light/dark/auto and preference persists across sessions.
+  2. All screens (auth, dashboard, simulation, graph, report, settings) show no visual regressions in either theme.
+  3. Zero hardcoded hex/rgb colors in component styles — all via CSS custom properties.
+  4. Auto mode reacts live to OS `prefers-color-scheme` changes.
 **Plans**: 0 plans
 
-### Phase 10: Structured Report Format
-**Goal**: Replace free-form narrative with a disciplined due-diligence structure that separates tese from evidência and quantifies scenarios.
-**Depends on**: Phase 9
-**Requirements**: [FORMAT-01, FORMAT-02, FORMAT-03, FORMAT-04]
+### Phase 14: Design System Refinements
+**Goal**: Establish and apply Blueprint Noir v2 design tokens consistently across all reusable components.
+**Depends on**: Phase 13
+**Requirements**: [DSYS-01, DSYS-02, DSYS-03, DSYS-04]
 **Success Criteria** (what must be TRUE):
-  1. Reports follow a fixed section order: Tese, Evidências, Fragilidades, Premissas, Cenários.
-  2. Each section contains only content relevant to its heading.
-  3. Key metrics are presented in tables alongside narrative.
-  4. Bear/Base/Bull scenarios include explicit probability weights and triggers.
+  1. Token documentation exists and is discoverable in the running app (style guide).
+  2. All target components match v2 specs for radius, shadow, focus, and disabled states.
+  3. Single icon library is adopted and legacy icons are replaced.
+  4. Developers can preview any token/component in both themes from the style guide.
 **Plans**: 0 plans
 
-### Phase 11: Neutrality and Bias Audit
-**Goal**: Eliminate confirmation bias and ensure balanced presentation of bull and bear arguments.
-**Depends on**: Phase 10
-**Requirements**: [NEUT-01, NEUT-02, NEUT-03, NEUT-04]
+### Phase 15: Animations and Micro-interactions
+**Goal**: The UI feels responsive and alive through purposeful motion and clear loading states.
+**Depends on**: Phase 14
+**Requirements**: [ANIM-01, ANIM-02, ANIM-03, ANIM-04]
 **Success Criteria** (what must be TRUE):
-  1. A bias score is computed for each report; scores beyond a threshold trigger rewrite.
-  2. Bull and bear cases are presented with comparable depth.
-  3. Claim strength is calibrated to evidence quality.
-  4. Competitive analysis includes quantified metrics where available.
+  1. Route transitions are smooth and consistent (no flash of unstyled content).
+  2. Every interactive element has visible hover, active, and focus states.
+  3. Content-heavy loading areas use skeleton placeholders, not generic spinners.
+  4. Long-running operations show progress (step labels or time estimates).
 **Plans**: 0 plans
 
-### Phase 12: Output Quality Gates
-**Goal**: Catch language mixing, numeric inconsistencies, and self-contradictions before the report reaches the user.
-**Depends on**: Phase 11
-**Requirements**: [QUAL-01, QUAL-02, QUAL-03, QUAL-04]
+### Phase 16: Report Viewer Redesign
+**Goal**: Reports are scannable, visually rich, and easy to navigate with interactive data presentation.
+**Depends on**: Phase 15
+**Requirements**: [RPTV-01, RPTV-02, RPTV-03, RPTV-04]
 **Success Criteria** (what must be TRUE):
-  1. Reports are verified to be in a single language throughout.
-  2. A "Known Limitations" section is automatically included.
-  3. Internal numeric contradictions are detected and flagged.
-  4. No unsupported valuation conclusions or self-contradictory claims appear in final output.
+  1. Report layout follows the 5-section due-diligence structure with clear visual hierarchy.
+  2. Tables and mini-charts render inline for key metrics.
+  3. Data source tags are accessible and visually distinct.
+  4. Users can navigate long reports via anchor links or a floating outline.
+**Plans**: 0 plans
+
+### Phase 17: Global UI Polish and Accessibility
+**Goal**: The app meets professional accessibility and responsiveness standards with zero known UI drift.
+**Depends on**: Phase 16
+**Requirements**: [POLY-01, POLY-02, POLY-03, POLY-04]
+**Success Criteria** (what must be TRUE):
+  1. WCAG 2.1 AA contrast and keyboard requirements pass in both themes.
+  2. Layout is usable from 320px to 1440px+ without horizontal scroll or broken grids.
+  3. Dev build produces zero console warnings/errors related to UI.
+  4. Consistency audit confirms 100% token adoption and no legacy style leakage.
 **Plans**: 0 plans
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 8, 9, 10, 11, 12
+Phases execute in numeric order: 13, 14, 15, 16, 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 8. Data Provenance and Labeling | 1/1 | Complete | 2026-04-27 |
-| 9. Data Validation Pipeline | 1/1 | Complete | 2026-04-27 |
-| 10. Structured Report Format | 1/1 | Complete | 2026-04-27 |
-| 11. Neutrality and Bias Audit | 1/1 | Complete | 2026-04-27 |
-| 12. Output Quality Gates | 1/1 | Complete | 2026-04-27 |
+| 13. Dark Mode System | 0/0 | Planned | — |
+| 14. Design System Refinements | 0/0 | Planned | — |
+| 15. Animations and Micro-interactions | 0/0 | Planned | — |
+| 16. Report Viewer Redesign | 0/0 | Planned | — |
+| 17. Global UI Polish and Accessibility | 0/0 | Planned | — |
