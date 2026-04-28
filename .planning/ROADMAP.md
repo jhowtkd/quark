@@ -45,7 +45,7 @@
   2. Every interactive element has visible hover, active, and focus states.
   3. Content-heavy loading areas use skeleton placeholders, not generic spinners.
   4. Long-running operations show progress (step labels or time estimates).
-**Plans**: 0 plans
+**Plans**: 1 plan (15-01)
 
 ### Phase 16: Report Viewer Redesign
 **Goal**: Reports are scannable, visually rich, and easy to navigate with interactive data presentation.
