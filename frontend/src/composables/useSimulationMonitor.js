@@ -24,29 +24,30 @@ export function useSimulationMonitor(simulationIdRef) {
   }
 
   const fetchStatus = async () => {
-    if (!simulationIdRef.value) return
+    if (!simulationIdRef.value) return false
     const id = simulationIdRef.value
     try {
       const res = await getRunStatus(id)
-      if (simulationIdRef.value !== id) return
+      if (simulationIdRef.value !== id) return false
       if (res.success && res.data) {
         state.value = res.data
         error.value = null
         errorCount.value = 0
       }
     } catch (err) {
-      if (simulationIdRef.value !== id) return
+      if (simulationIdRef.value !== id) return false
       error.value = err.message
       errorCount.value++
     }
+    return true
   }
 
   const fetchDetail = async () => {
-    if (!simulationIdRef.value) return
+    if (!simulationIdRef.value) return false
     const id = simulationIdRef.value
     try {
       const res = await getRunStatusDetail(id)
-      if (simulationIdRef.value !== id) return
+      if (simulationIdRef.value !== id) return false
       if (res.success && res.data) {
         const serverActions = res.data.all_actions || []
         serverActions.forEach(action => {
@@ -58,8 +59,10 @@ export function useSimulationMonitor(simulationIdRef) {
         })
       }
     } catch (err) {
+      if (simulationIdRef.value !== id) return false
       // Silently fail detail fetch
     }
+    return true
   }
 
   const tick = async () => {
@@ -67,8 +70,10 @@ export function useSimulationMonitor(simulationIdRef) {
       scheduleNext()
       return
     }
-    await fetchStatus()
-    await fetchDetail()
+    const ok = await fetchStatus()
+    if (!ok) return
+    const detailOk = await fetchDetail()
+    if (!detailOk) return
     scheduleNext()
   }
 
