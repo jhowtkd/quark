@@ -17,7 +17,7 @@ export function useSimulationMonitor(simulationIdRef) {
 
   const getInterval = () => {
     if (state.value?.runner_status === 'running') {
-      const backoff = Math.min(2 ** errorCount.value * 1000, MAX_BACKOFF_MS)
+      const backoff = Math.min(3000 * (2 ** errorCount.value), MAX_BACKOFF_MS)
       return Math.max(POLL_INTERVAL_RUNNING, backoff)
     }
     return POLL_INTERVAL_IDLE
@@ -25,14 +25,17 @@ export function useSimulationMonitor(simulationIdRef) {
 
   const fetchStatus = async () => {
     if (!simulationIdRef.value) return
+    const id = simulationIdRef.value
     try {
-      const res = await getRunStatus(simulationIdRef.value)
+      const res = await getRunStatus(id)
+      if (simulationIdRef.value !== id) return
       if (res.success && res.data) {
         state.value = res.data
         error.value = null
         errorCount.value = 0
       }
     } catch (err) {
+      if (simulationIdRef.value !== id) return
       error.value = err.message
       errorCount.value++
     }
@@ -40,15 +43,17 @@ export function useSimulationMonitor(simulationIdRef) {
 
   const fetchDetail = async () => {
     if (!simulationIdRef.value) return
+    const id = simulationIdRef.value
     try {
-      const res = await getRunStatusDetail(simulationIdRef.value)
+      const res = await getRunStatusDetail(id)
+      if (simulationIdRef.value !== id) return
       if (res.success && res.data) {
         const serverActions = res.data.all_actions || []
         serverActions.forEach(action => {
-          const id = action.id || `${action.timestamp}-${action.platform}-${action.agent_id}-${action.action_type}`
-          if (!actionIds.has(id)) {
-            actionIds.add(id)
-            actions.value.push({ ...action, _uniqueId: id })
+          const actionId = action.id || `${action.timestamp}-${action.platform}-${action.agent_id}-${action.action_type}`
+          if (!actionIds.has(actionId)) {
+            actionIds.add(actionId)
+            actions.value.push({ ...action, _uniqueId: actionId })
           }
         })
       }
@@ -97,16 +102,20 @@ export function useSimulationMonitor(simulationIdRef) {
     errorCount.value = 0
   }
 
-  // Start polling immediately if simulationId is already provided
-  // (onMounted won't fire in test contexts without a component host)
-  if (simulationIdRef.value) startPolling()
+  const onVisibilityChange = () => {
+    if (!document.hidden && isPolling.value) {
+      tick()
+    }
+  }
 
   onMounted(() => {
     if (simulationIdRef.value && !isPolling.value) startPolling()
+    document.addEventListener('visibilitychange', onVisibilityChange)
   })
 
   onUnmounted(() => {
-    stopPolling()
+    reset()
+    document.removeEventListener('visibilitychange', onVisibilityChange)
   })
 
   watch(simulationIdRef, (newId, oldId) => {
@@ -116,25 +125,12 @@ export function useSimulationMonitor(simulationIdRef) {
     }
   })
 
-  const onVisibilityChange = () => {
-    if (!document.hidden && isPolling.value) {
-      tick()
-    }
-  }
-
-  onMounted(() => {
-    document.addEventListener('visibilitychange', onVisibilityChange)
-  })
-
-  onUnmounted(() => {
-    document.removeEventListener('visibilitychange', onVisibilityChange)
-  })
-
   return {
     state,
     actions,
     isPolling,
     error,
+    errorCount,
     startPolling,
     stopPolling,
     reset,
