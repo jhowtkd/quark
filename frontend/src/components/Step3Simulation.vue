@@ -22,6 +22,15 @@
       </div>
     </div>
 
+    <!-- Monitor Status Banners -->
+    <div v-if="error" class="monitor-error-banner" role="alert">
+      <span>Connection unstable. {{ error }}</span>
+      <button v-if="!isPolling" class="retry-btn" @click="startPolling">Retry</button>
+    </div>
+    <div v-else-if="isPolling && !state" class="monitor-loading-banner" role="status">
+      <span>Connecting to simulation...</span>
+    </div>
+
     <!-- Monitor Tabs -->
     <div class="monitor-tabs-wrapper">
       <SimMonitorTabs :state="state" :actions="actions" />
@@ -80,7 +89,7 @@ const logContent = ref(null)
 
 // Composable
 const simulationIdRef = toRef(props, 'simulationId')
-const { state, actions, startPolling, stopPolling, reset } = useSimulationMonitor(simulationIdRef)
+const { state, actions, isPolling, error, startPolling, stopPolling, reset } = useSimulationMonitor(simulationIdRef)
 
 // Watch for completion
 watch(state, (newState) => {
@@ -344,6 +353,33 @@ onUnmounted(() => {
 .log-time { color: var(--color-muted); min-width: 75px; }
 .log-msg { color: var(--color-disabled); word-break: break-all; }
 .mono { font-family: 'JetBrains Mono', monospace; }
+
+.monitor-error-banner {
+  padding: 10px 16px;
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-outline);
+}
+.retry-btn {
+  padding: 4px 10px;
+  background: var(--color-error);
+  color: var(--color-on-error);
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.monitor-loading-banner {
+  padding: 10px 16px;
+  background: var(--color-surface-container-high);
+  color: var(--color-muted);
+  font-size: 12px;
+  border-bottom: 1px solid var(--color-outline);
+}
 
 /* Loading spinner for button */
 .loading-spinner-small {
