@@ -6,12 +6,18 @@
       </Transition>
     </router-view>
     <AgentationWrapper />
+    <InstallPrompt />
+    <NetworkIndicator />
+    <UpdateNotification />
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import AgentationWrapper from './components/AgentationWrapper.vue'
+import InstallPrompt from './components/InstallPrompt.vue'
+import NetworkIndicator from './components/NetworkIndicator.vue'
+import UpdateNotification from './components/UpdateNotification.vue'
 import { useTheme } from './composables/useTheme.js'
 
 const { initTheme } = useTheme()
