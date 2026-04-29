@@ -7,6 +7,7 @@
         type="text"
         placeholder="Search agent..."
         class="search-input"
+        aria-label="Search agents"
       />
       <div class="platform-toggles">
         <button
@@ -14,12 +15,13 @@
           :key="p"
           class="toggle-chip"
           :class="{ active: selectedPlatforms.includes(p) }"
+          :aria-pressed="selectedPlatforms.includes(p)"
           @click="togglePlatform(p)"
         >
           {{ p === 'twitter' ? 'Plaza' : 'Community' }}
         </button>
       </div>
-      <select v-model="sortBy" class="sort-select">
+      <select v-model="sortBy" class="sort-select" aria-label="Sort by">
         <option value="activity">Most Active</option>
         <option value="name">Name A-Z</option>
       </select>
