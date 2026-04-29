@@ -69,9 +69,6 @@ const router = useRouter()
 // State
 const isGeneratingReport = ref(false)
 const phase = ref(0)
-const isStarting = ref(false)
-const isStopping = ref(false)
-const startError = ref(null)
 const logContent = ref(null)
 
 // Composable
@@ -95,9 +92,6 @@ const addLog = (msg) => {
 // Reset all state
 const resetAllState = () => {
   phase.value = 0
-  startError.value = null
-  isStarting.value = false
-  isStopping.value = false
   reset()
 }
 
@@ -110,8 +104,6 @@ const doStartSimulation = async () => {
 
   resetAllState()
   
-  isStarting.value = true
-  startError.value = null
   addLog(t('log.startingDualSim'))
   emit('update-status', 'processing')
   
@@ -143,91 +135,12 @@ const doStartSimulation = async () => {
       reset()
       startPolling()
     } else {
-      startError.value = res.error || '启动Error Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output'
       addLog(t('log.startFailed', { error: res.error || t('common.unknownError') }))
       emit('update-status', 'error')
     }
   } catch (err) {
-    startError.value = err.message
     addLog(t('log.startException', { error: err.message }))
     emit('update-status', 'error')
-  } finally {
-    isStarting.value = false
-  }
-}
-
-// 停止模拟
-const handleStopSimulation = async () => {
-  if (!props.simulationId) return
-  
-  isStopping.value = true
-  addLog(t('log.stoppingSim'))
-  
-  try {
-    const res = await stopSimulation({ simulation_id: props.simulationId })
-    
-    if (res.success) {
-      addLog(t('log.simStoppedSuccess'))
-      phase.value = 2
-      stopPolling()
-      emit('update-status', 'completed')
-    } else {
-      addLog(t('log.stopFailed', { error: res.error || t('common.unknownError') }))
-    }
-  } catch (err) {
-    addLog(t('log.stopException', { error: err.message }))
-  } finally {
-    isStopping.value = false
-  }
-}
-
-// Helpers
-const getActionTypeLabel = (type) => {
-  const labels = {
-    'CREATE_POST': 'POST',
-    'REPOST': 'REPOST',
-    'LIKE_POST': 'LIKE',
-    'CREATE_COMMENT': 'COMMENT',
-    'LIKE_COMMENT': 'LIKE',
-    'DO_NOTHING': 'IDLE',
-    'FOLLOW': 'FOLLOW',
-    'SEARCH_POSTS': 'SEARCH',
-    'QUOTE_POST': 'QUOTE',
-    'UPVOTE_POST': 'UPVOTE',
-    'DOWNVOTE_POST': 'DOWNVOTE'
-  }
-  return labels[type] || type || 'UNKNOWN'
-}
-
-const getActionTypeClass = (type) => {
-  const classes = {
-    'CREATE_POST': 'badge-post',
-    'REPOST': 'badge-action',
-    'LIKE_POST': 'badge-action',
-    'CREATE_COMMENT': 'badge-comment',
-    'LIKE_COMMENT': 'badge-action',
-    'QUOTE_POST': 'badge-post',
-    'FOLLOW': 'badge-meta',
-    'SEARCH_POSTS': 'badge-meta',
-    'UPVOTE_POST': 'badge-action',
-    'DOWNVOTE_POST': 'badge-action',
-    'DO_NOTHING': 'badge-idle'
-  }
-  return classes[type] || 'badge-default'
-}
-
-const truncateContent = (content, maxLength = 100) => {
-  if (!content) return ''
-  if (content.length > maxLength) return content.substring(0, maxLength) + '...'
-  return content
-}
-
-const formatActionTime = (timestamp) => {
-  if (!timestamp) return ''
-  try {
-    return new Date(timestamp).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  } catch {
-    return ''
   }
 }
 
@@ -400,8 +313,8 @@ onUnmounted(() => {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #FFF;
+  border: 2px solid color-mix(in srgb, var(--color-on-surface) 30%, transparent);
+  border-top-color: var(--color-on-surface);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-right: 6px;
