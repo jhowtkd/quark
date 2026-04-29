@@ -2,94 +2,6 @@
   <div class="simulation-panel">
     <!-- Top Control Bar -->
     <div class="control-bar">
-      <div class="status-group">
-        <!-- Twitter Evolução do sistema -->
-        <div class="platform-status twitter" :class="{ active: runStatus.twitter_running, completed: runStatus.twitter_completed }">
-          <div class="platform-header">
-            <svg class="platform-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-            <span class="platform-name">Info Plaza</span>
-            <span v-if="runStatus.twitter_completed" class="status-badge">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </span>
-          </div>
-          <div class="platform-stats">
-            <span class="stat">
-              <span class="stat-label">ROUND</span>
-              <span class="stat-value mono">{{ runStatus.twitter_current_round || 0 }}<span class="stat-total">/{{ runStatus.total_rounds || maxRounds || '-' }}</span></span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">TIME</span>
-              <span class="stat-value mono">{{ twitterElapsedTime }}</span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">ACTS</span>
-              <span class="stat-value mono">{{ runStatus.twitter_actions_count || 0 }}</span>
-            </span>
-          </div>
-          <!-- Dica de ação disponível -->
-          <div class="actions-tooltip">
-            <div class="tooltip-title">Available Actions</div>
-            <div class="tooltip-actions">
-              <span class="tooltip-action">POST</span>
-              <span class="tooltip-action">LIKE</span>
-              <span class="tooltip-action">REPOST</span>
-              <span class="tooltip-action">QUOTE</span>
-              <span class="tooltip-action">FOLLOW</span>
-              <span class="tooltip-action">IDLE</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Reddit Evolução do sistema -->
-        <div class="platform-status reddit" :class="{ active: runStatus.reddit_running, completed: runStatus.reddit_completed }">
-          <div class="platform-header">
-            <svg class="platform-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-            </svg>
-            <span class="platform-name">Topic Community</span>
-            <span v-if="runStatus.reddit_completed" class="status-badge">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </span>
-          </div>
-          <div class="platform-stats">
-            <span class="stat">
-              <span class="stat-label">ROUND</span>
-              <span class="stat-value mono">{{ runStatus.reddit_current_round || 0 }}<span class="stat-total">/{{ runStatus.total_rounds || maxRounds || '-' }}</span></span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">TIME</span>
-              <span class="stat-value mono">{{ redditElapsedTime }}</span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">ACTS</span>
-              <span class="stat-value mono">{{ runStatus.reddit_actions_count || 0 }}</span>
-            </span>
-          </div>
-          <!-- Dica de ação disponível -->
-          <div class="actions-tooltip">
-            <div class="tooltip-title">Available Actions</div>
-            <div class="tooltip-actions">
-              <span class="tooltip-action">POST</span>
-              <span class="tooltip-action">COMMENT</span>
-              <span class="tooltip-action">LIKE</span>
-              <span class="tooltip-action">DISLIKE</span>
-              <span class="tooltip-action">SEARCH</span>
-              <span class="tooltip-action">TREND</span>
-              <span class="tooltip-action">FOLLOW</span>
-              <span class="tooltip-action">MUTE</span>
-              <span class="tooltip-action">REFRESH</span>
-              <span class="tooltip-action">IDLE</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="action-controls">
         <button 
           class="action-btn primary"
@@ -103,170 +15,9 @@
       </div>
     </div>
 
-    <!-- Main Content: Dual Timeline -->
-    <div class="main-content-area" ref="scrollContainer">
-      <!-- Timeline Header -->
-      <div class="timeline-header" v-if="allActions.length > 0">
-        <div class="timeline-stats">
-          <span class="total-count">TOTAL EVENTS: <span class="mono">{{ allActions.length }}</span></span>
-          <span class="platform-breakdown">
-            <span class="breakdown-item twitter">
-              <svg class="mini-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              <span class="mono">{{ twitterActionsCount }}</span>
-            </span>
-            <span class="breakdown-divider">/</span>
-            <span class="breakdown-item reddit">
-              <svg class="mini-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-              <span class="mono">{{ redditActionsCount }}</span>
-            </span>
-          </span>
-        </div>
-      </div>
-      
-      <!-- Timeline Feed -->
-      <div class="timeline-feed">
-        <div class="timeline-axis"></div>
-        
-        <TransitionGroup name="timeline-item">
-          <div 
-            v-for="action in chronologicalActions" 
-            :key="action._uniqueId || action.id || `${action.timestamp}-${action.agent_id}`" 
-            class="timeline-item"
-            :class="action.platform"
-          >
-            <div class="timeline-marker">
-              <div class="marker-dot"></div>
-            </div>
-            
-            <div class="timeline-card">
-              <div class="card-header">
-                <div class="agent-info">
-                  <div class="avatar-placeholder">{{ (action.agent_name || 'A')[0] }}</div>
-                  <span class="agent-name">{{ action.agent_name }}</span>
-                </div>
-                
-                <div class="header-meta">
-                  <div class="platform-indicator">
-                    <svg v-if="action.platform === 'twitter'" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                    <svg v-else viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                  </div>
-                  <div class="action-badge" :class="getActionTypeClass(action.action_type)">
-                    {{ getActionTypeLabel(action.action_type) }}
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card-body">
-                <!-- CREATE_POST: Postar mensagem -->
-                <div v-if="action.action_type === 'CREATE_POST' && action.action_args?.content" class="content-text main-text">
-                  {{ action.action_args.content }}
-                </div>
-
-                <!-- QUOTE_POST: Referência PointerPost -->
-                <template v-if="action.action_type === 'QUOTE_POST'">
-                  <div v-if="action.action_args?.quote_content" class="content-text">
-                    {{ action.action_args.quote_content }}
-                  </div>
-                  <div v-if="action.action_args?.original_content" class="quoted-block">
-                    <div class="quote-header">
-                      <svg class="icon-small" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                      <span class="quote-label">@{{ action.action_args.original_author_name || 'User' }}</span>
-                    </div>
-                    <div class="quote-text">
-                      {{ truncateContent(action.action_args.original_content, 150) }}
-                    </div>
-                  </div>
-                </template>
-
-                <!-- REPOST: Compartilhar publicação -->
-                <template v-if="action.action_type === 'REPOST'">
-                  <div class="repost-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                    <span class="repost-label">Reposted from @{{ action.action_args?.original_author_name || 'User' }}</span>
-                  </div>
-                  <div v-if="action.action_args?.original_content" class="repost-content">
-                    {{ truncateContent(action.action_args.original_content, 200) }}
-                  </div>
-                </template>
-
-                <!-- LIKE_POST: 点赞Post -->
-                <template v-if="action.action_type === 'LIKE_POST'">
-                  <div class="like-info">
-                    <svg class="icon-small filled" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    <span class="like-label">Liked @{{ action.action_args?.post_author_name || 'User' }}'s post</span>
-                  </div>
-                  <div v-if="action.action_args?.post_content" class="liked-content">
-                    "{{ truncateContent(action.action_args.post_content, 120) }}"
-                  </div>
-                </template>
-
-                <!-- CREATE_COMMENT: 发表评论 -->
-                <template v-if="action.action_type === 'CREATE_COMMENT'">
-                  <div v-if="action.action_args?.content" class="content-text">
-                    {{ action.action_args.content }}
-                  </div>
-                  <div v-if="action.action_args?.post_id" class="comment-context">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    <span>Reply to post #{{ action.action_args.post_id }}</span>
-                  </div>
-                </template>
-
-                <!-- SEARCH_POSTS: 搜索Post -->
-                <template v-if="action.action_type === 'SEARCH_POSTS'">
-                  <div class="search-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <span class="search-label">Search Query:</span>
-                    <span class="search-query">"{{ action.action_args?.query || '' }}"</span>
-                  </div>
-                </template>
-
-                <!-- FOLLOW: 关注用户 -->
-                <template v-if="action.action_type === 'FOLLOW'">
-                  <div class="follow-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                    <span class="follow-label">Followed @{{ action.action_args?.target_user || action.action_args?.user_id || 'User' }}</span>
-                  </div>
-                </template>
-
-                <!-- UPVOTE / DOWNVOTE -->
-                <template v-if="action.action_type === 'UPVOTE_POST' || action.action_type === 'DOWNVOTE_POST'">
-                  <div class="vote-info">
-                    <svg v-if="action.action_type === 'UPVOTE_POST'" class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    <svg v-else class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    <span class="vote-label">{{ action.action_type === 'UPVOTE_POST' ? 'Upvoted' : 'Downvoted' }} Post</span>
-                  </div>
-                  <div v-if="action.action_args?.post_content" class="voted-content">
-                    "{{ truncateContent(action.action_args.post_content, 120) }}"
-                  </div>
-                </template>
-
-                <!-- DO_NOTHING: Inoperante (silêncio)） -->
-                <template v-if="action.action_type === 'DO_NOTHING'">
-                  <div class="idle-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span class="idle-label">Action Skipped</span>
-                  </div>
-                </template>
-
-                <!-- 通用回退：Identificador Unknown?Tipo ou tem conteúdo não processado acima -->
-                <div v-if="!['CREATE_POST', 'QUOTE_POST', 'REPOST', 'LIKE_POST', 'CREATE_COMMENT', 'SEARCH_POSTS', 'FOLLOW', 'UPVOTE_POST', 'DOWNVOTE_POST', 'DO_NOTHING'].includes(action.action_type) && action.action_args?.content" class="content-text">
-                  {{ action.action_args.content }}
-                </div>
-              </div>
-
-              <div class="card-footer">
-                <span class="time-tag">R{{ action.round_num }} • {{ formatActionTime(action.timestamp) }}</span>
-                <!-- Platform tag removed as it is in header now -->
-              </div>
-            </div>
-          </div>
-        </TransitionGroup>
-
-        <div v-if="allActions.length === 0" class="waiting-state">
-          <div class="pulse-ring"></div>
-          <span>Waiting for agent actions...</span>
-        </div>
-      </div>
+    <!-- Monitor Tabs -->
+    <div class="monitor-tabs-wrapper">
+      <SimMonitorTabs :state="state" :actions="actions" />
     </div>
 
     <!-- Bottom Info / Logs -->
@@ -286,25 +37,25 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   startSimulation,
-  stopSimulation,
-  getRunStatus,
-  getRunStatusDetail
+  stopSimulation
 } from '../api/simulation'
 import { generateReport } from '../api/report'
+import { useSimulationMonitor } from '../composables/useSimulationMonitor.js'
+import SimMonitorTabs from './simulation/SimMonitorTabs.vue'
 
 const { t } = useI18n()
 
 const props = defineProps({
   simulationId: String,
-  maxRounds: Number, // 从Step2传入的最大轮数
+  maxRounds: Number,
   minutesPerRound: {
     type: Number,
-    default: 30 // 默认每轮30分钟
+    default: 30
   },
   projectData: Object,
   graphData: Object,
@@ -317,66 +68,37 @@ const router = useRouter()
 
 // State
 const isGeneratingReport = ref(false)
-const phase = ref(0) // 0: 未开始, 1: Ativo, 2: 已完成
+const phase = ref(0)
 const isStarting = ref(false)
 const isStopping = ref(false)
 const startError = ref(null)
-const runStatus = ref({})
-const allActions = ref([]) // Todas ações (incremental)）
-const actionIds = ref(new Set()) // 用于去重的动作ID集合
-const scrollContainer = ref(null)
+const logContent = ref(null)
 
-// Computed
-// Mostrar ordem temporal）
-const chronologicalActions = computed(() => {
-  return allActions.value
-})
+// Composable
+const simulationIdRef = toRef(props, 'simulationId')
+const { state, actions, startPolling, stopPolling, reset } = useSimulationMonitor(simulationIdRef)
 
-// Contagem de ações por plataforma
-const twitterActionsCount = computed(() => {
-  return allActions.value.filter(a => a.platform === 'twitter').length
-})
-
-const redditActionsCount = computed(() => {
-  return allActions.value.filter(a => a.platform === 'reddit').length
-})
-
-// Calcular tempo passado com base em turno e min/turno）
-const formatElapsedTime = (currentRound) => {
-  if (!currentRound || currentRound <= 0) return '0h 0m'
-  const totalMinutes = currentRound * props.minutesPerRound
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  return `${hours}h ${minutes}m`
-}
-
-// Twitter平台的模拟流逝时间
-const twitterElapsedTime = computed(() => {
-  return formatElapsedTime(runStatus.value.twitter_current_round || 0)
-})
-
-// Reddit平台的模拟流逝时间
-const redditElapsedTime = computed(() => {
-  return formatElapsedTime(runStatus.value.reddit_current_round || 0)
-})
+// Watch for completion
+watch(state, (newState) => {
+  if (newState?.runner_status === 'completed' || newState?.runner_status === 'stopped') {
+    phase.value = 2
+    stopPolling()
+    emit('update-status', 'completed')
+  }
+}, { immediate: false })
 
 // Methods
 const addLog = (msg) => {
   emit('add-log', msg)
 }
 
-// 重置所有状态（用于重新Iniciar simulação）
+// Reset all state
 const resetAllState = () => {
   phase.value = 0
-  runStatus.value = {}
-  allActions.value = []
-  actionIds.value = new Set()
-  prevTwitterRound.value = 0
-  prevRedditRound.value = 0
   startError.value = null
   isStarting.value = false
   isStopping.value = false
-  stopPolling()  // Parar polling anterior
+  reset()
 }
 
 // Iniciar simulação
@@ -386,7 +108,6 @@ const doStartSimulation = async () => {
     return
   }
 
-  // 先重置所有状态，确保不会受到上一次模拟的影响
   resetAllState()
   
   isStarting.value = true
@@ -398,8 +119,8 @@ const doStartSimulation = async () => {
     const params = {
       simulation_id: props.simulationId,
       platform: 'parallel',
-      force: true,  // 强制重新开始
-      enable_graph_memory_update: true  // 开启动态图谱更新
+      force: true,
+      enable_graph_memory_update: true
     }
     
     if (props.maxRounds) {
@@ -419,10 +140,8 @@ const doStartSimulation = async () => {
       addLog(`  ├─ PID: ${res.data.process_pid || '-'}`)
       
       phase.value = 1
-      runStatus.value = res.data
-      
-      startStatusPolling()
-      startDetailPolling()
+      reset()
+      startPolling()
     } else {
       startError.value = res.error || '启动Error Catch Target Map Array Formatting Flow Maps Action Check Displays Displays Setup Values Values Flow Output Response Return Methods Regex Variable Setup Execute Component String Map Logic Mapping Outputs String Output'
       addLog(t('log.startFailed', { error: res.error || t('common.unknownError') }))
@@ -459,135 +178,6 @@ const handleStopSimulation = async () => {
     addLog(t('log.stopException', { error: err.message }))
   } finally {
     isStopping.value = false
-  }
-}
-
-// Status do polling
-let statusTimer = null
-let detailTimer = null
-
-const startStatusPolling = () => {
-  statusTimer = setInterval(fetchRunStatus, 2000)
-}
-
-const startDetailPolling = () => {
-  detailTimer = setInterval(fetchRunStatusDetail, 3000)
-}
-
-const stopPolling = () => {
-  if (statusTimer) {
-    clearInterval(statusTimer)
-    statusTimer = null
-  }
-  if (detailTimer) {
-    clearInterval(detailTimer)
-    detailTimer = null
-  }
-}
-
-// 追踪各平台的上一次轮次，用于检测变化并输出日志
-const prevTwitterRound = ref(0)
-const prevRedditRound = ref(0)
-
-const fetchRunStatus = async () => {
-  if (!props.simulationId) return
-  
-  try {
-    const res = await getRunStatus(props.simulationId)
-    
-    if (res.success && res.data) {
-      const data = res.data
-      
-      runStatus.value = data
-      
-      // Detectar mudança de turno por plataforma e logar
-      if (data.twitter_current_round > prevTwitterRound.value) {
-        addLog(`[Plaza] R${data.twitter_current_round}/${data.total_rounds} | T:${data.twitter_simulated_hours || 0}h | A:${data.twitter_actions_count}`)
-        prevTwitterRound.value = data.twitter_current_round
-      }
-      
-      if (data.reddit_current_round > prevRedditRound.value) {
-        addLog(`[Community] R${data.reddit_current_round}/${data.total_rounds} | T:${data.reddit_simulated_hours || 0}h | A:${data.reddit_actions_count}`)
-        prevRedditRound.value = data.reddit_current_round
-      }
-      
-      // 检测模拟是否已完成（Autorização runner_status Verso平台完成状态判断）
-      const isCompleted = data.runner_status === 'completed' || data.runner_status === 'stopped'
-      
-      // Exame extra de atraso de backend runner_status，Entretanto plataforma relatou término
-      // Autorização检测 twitter_completed 和 reddit_completed 状态判断
-      const platformsCompleted = checkPlatformsCompleted(data)
-      
-      if (isCompleted || platformsCompleted) {
-        if (platformsCompleted && !isCompleted) {
-          addLog(t('log.allPlatformsCompleted'))
-        }
-        addLog(t('log.simCompleted'))
-        phase.value = 2
-        stopPolling()
-        emit('update-status', 'completed')
-      }
-    }
-  } catch (err) {
-    if (import.meta.env.DEV) console.warn('Simulation polling error:', err)
-  }
-}
-
-// 检查所有启用的平台是否已完成
-const checkPlatformsCompleted = (data) => {
-  // Abortar se platform nula false
-  if (!data) return false
-  
-  // 检查各平台的完成状态
-  const twitterCompleted = data.twitter_completed === true
-  const redditCompleted = data.reddit_completed === true
-  
-  // 如果至少有一个平台完成了，检查是否所有启用的平台都完成了
-  // Autorização actions_count Avaliar plataforma ativada count > 0 Ou rodando previamente true）
-  const twitterEnabled = (data.twitter_actions_count > 0) || data.twitter_running || twitterCompleted
-  const redditEnabled = (data.reddit_actions_count > 0) || data.reddit_running || redditCompleted
-  
-  // 如果没有任何平台被启用，返回 false
-  if (!twitterEnabled && !redditEnabled) return false
-  
-  // 检查所有启用的平台是否都已完成
-  if (twitterEnabled && !twitterCompleted) return false
-  if (redditEnabled && !redditCompleted) return false
-  
-  return true
-}
-
-const fetchRunStatusDetail = async () => {
-  if (!props.simulationId) return
-  
-  try {
-    const res = await getRunStatusDetail(props.simulationId)
-    
-    if (res.success && res.data) {
-      // 使用 all_actions Resgatar ação completaListas Arrays
-      const serverActions = res.data.all_actions || []
-      
-      // Inserir novas ações incrementalmente (sem duplicação)）
-      let newActionsAdded = 0
-      serverActions.forEach(action => {
-        // 生成唯一ID
-        const actionId = action.id || `${action.timestamp}-${action.platform}-${action.agent_id}-${action.action_type}`
-        
-        if (!actionIds.value.has(actionId)) {
-          actionIds.value.add(actionId)
-          allActions.value.push({
-            ...action,
-            _uniqueId: actionId
-          })
-          newActionsAdded++
-        }
-      })
-      
-      // 不自动滚动，让用户自由查看时间轴
-      // 新动作会在底部追加
-    }
-  } catch (err) {
-    if (import.meta.env.DEV) console.warn('Action log fetch error:', err)
   }
 }
 
@@ -665,7 +255,6 @@ const handleNextStep = async () => {
       const reportId = res.data.report_id
       addLog(t('log.reportGenTaskStarted', { reportId }))
       
-      // 跳转到报告页面
       router.push({ name: 'Report', params: { reportId } })
     } else {
       addLog(t('log.reportGenFailed', { error: res.error || t('common.unknownError') }))
@@ -678,7 +267,6 @@ const handleNextStep = async () => {
 }
 
 // Scroll log to bottom
-const logContent = ref(null)
 watch(() => props.systemLogs?.length, () => {
   nextTick(() => {
     if (logContent.value) {
@@ -721,156 +309,6 @@ onUnmounted(() => {
   height: 64px;
 }
 
-.status-group {
-  display: flex;
-  gap: 12px;
-}
-
-/* Platform Status Cards */
-.platform-status {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  background: var(--color-surface-container-low);
-  border: 1px solid var(--color-outline);
-  opacity: 0.7;
-  transition: all 0.3s;
-  min-width: 140px;
-  position: relative;
-  cursor: pointer;
-}
-
-.platform-status.active {
-  opacity: 1;
-  border-color: var(--color-on-surface);
-  background: var(--color-surface);
-}
-
-.platform-status.completed {
-  opacity: 1;
-  border-color: var(--color-success);
-  background: var(--color-success-bg);
-}
-
-/* Actions Tooltip */
-.actions-tooltip {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
-  padding: 10px 14px;
-  background: var(--color-on-background);
-  color: var(--color-surface);
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 100;
-  min-width: 180px;
-  pointer-events: none;
-}
-
-.actions-tooltip::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid var(--color-on-background);
-}
-
-.platform-status:hover .actions-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.tooltip-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-disabled);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
-}
-
-.tooltip-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.tooltip-action {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-  color: var(--color-surface);
-  letter-spacing: 0.03em;
-}
-
-.platform-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.platform-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-on-background);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.platform-status.twitter .platform-icon { color: var(--color-on-background); }
-.platform-status.reddit .platform-icon { color: var(--color-on-background); }
-
-.platform-stats {
-  display: flex;
-  gap: 10px;
-}
-
-.stat {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-}
-
-.stat-label {
-  font-size: 8px;
-  color: var(--color-disabled);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stat-value {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-on-surface);
-}
-
-.stat-total, .stat-unit {
-  font-size: 9px;
-  color: var(--color-disabled);
-  font-weight: 400;
-}
-
-.status-badge {
-  margin-left: auto;
-  color: var(--color-success);
-  display: flex;
-  align-items: center;
-}
-
 /* Action Button */
 .action-btn {
   display: inline-flex;
@@ -906,313 +344,12 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-/* --- Main Content Area --- */
-.main-content-area {
+/* Monitor Tabs */
+.monitor-tabs-wrapper {
   flex: 1;
-  overflow-y: auto;
-  position: relative;
-  background: var(--color-surface);
-}
-
-/* Timeline Header */
-.timeline-header {
-  position: sticky;
-  top: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--color-outline);
-  z-index: 5;
-  display: flex;
-  justify-content: center;
-}
-
-.timeline-stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 11px;
-  color: var(--color-muted);
-  background: var(--color-surface-container-low);
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.total-count {
-  font-weight: 600;
-  color: var(--color-on-surface);
-}
-
-.platform-breakdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breakdown-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.breakdown-divider { color: var(--color-outline); }
-.breakdown-item.twitter { color: var(--color-on-background); }
-.breakdown-item.reddit { color: var(--color-on-background); }
-
-/* --- Timeline Feed --- */
-.timeline-feed {
-  padding: 24px 0;
-  position: relative;
-  min-height: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.timeline-axis {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--color-outline); /* Cleaner line */
-  transform: translateX(-50%);
-}
-
-.timeline-item {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 32px;
-  position: relative;
-  width: 100%;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: 50%;
-  top: 24px;
-  width: 10px;
-  height: 10px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-outline);
-  border-radius: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-dot {
-  width: 4px;
-  height: 4px;
-  background: var(--color-outline);
-  border-radius: 50%;
-}
-
-.timeline-item.twitter .marker-dot { background: var(--color-on-background); }
-.timeline-item.reddit .marker-dot { background: var(--color-on-background); }
-.timeline-item.twitter .timeline-marker { border-color: var(--color-on-background); }
-.timeline-item.reddit .timeline-marker { border-color: var(--color-on-background); }
-
-/* Card Layout */
-.timeline-card {
-  width: calc(100% - 48px);
-  background: var(--color-surface);
-  border-radius: 2px;
-  padding: 16px 20px;
-  border: 1px solid var(--color-outline);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-  position: relative;
-  transition: all 0.2s;
-}
-
-.timeline-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border-color: #DDD;
-}
-
-/* Left side (Twitter) */
-.timeline-item.twitter {
-  justify-content: flex-start;
-  padding-right: 50%;
-}
-.timeline-item.twitter .timeline-card {
-  margin-left: auto;
-  margin-right: 32px; /* Gap from axis */
-}
-
-/* Right side (Reddit) */
-.timeline-item.reddit {
-  justify-content: flex-end;
-  padding-left: 50%;
-}
-.timeline-item.reddit .timeline-card {
-  margin-right: auto;
-  margin-left: 32px; /* Gap from axis */
-}
-
-/* Card Content Styles */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-surface-container-low);
-}
-
-.agent-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar-placeholder {
-  width: 24px;
-  height: 24px;
-  background: var(--color-on-background);
-  color: var(--color-surface);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.agent-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-on-background);
-}
-
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.platform-indicator {
-  color: var(--color-disabled);
-  display: flex;
-  align-items: center;
-}
-
-.action-badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid transparent;
-}
-
-/* Monochromatic Badges */
-.badge-post { background: var(--color-surface-container-low); color: var(--color-on-surface); border-color: var(--color-outline); }
-.badge-comment { background: var(--color-surface-container-low); color: #666; border-color: var(--color-outline); }
-.badge-action { background: var(--color-surface); color: var(--color-muted); border: 1px solid var(--color-outline); }
-.badge-meta { background: var(--color-surface-container-low); color: var(--color-disabled); border: 1px dashed var(--color-outline); }
-.badge-idle { opacity: 0.5; }
-
-.content-text {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--color-on-surface);
-  margin-bottom: 10px;
-}
-
-.content-text.main-text {
-  font-size: 14px;
-  color: var(--color-on-background);
-}
-
-/* Info Blocks (Quote, Repost, etc) */
-.quoted-block, .repost-content {
-  background: var(--color-background);
-  border: 1px solid var(--color-outline);
-  padding: 10px 12px;
-  border-radius: 2px;
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--color-muted);
-}
-
-.quote-header, .repost-info, .like-info, .search-info, .follow-info, .vote-info, .idle-info, .comment-context {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: 11px;
-  color: var(--color-muted);
-}
-
-.icon-small {
-  color: var(--color-disabled);
-}
-.icon-small.filled {
-  color: var(--color-disabled); /* Keep icons neutral unless highlighted */
-}
-
-.search-query {
-  font-family: 'JetBrains Mono', monospace;
-  background: var(--color-surface-container-low);
-  padding: 0 4px;
-  border-radius: 2px;
-}
-
-.card-footer {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
-  font-size: 10px;
-  color: var(--color-disabled);
-  font-family: 'JetBrains Mono', monospace;
-}
-
-/* Waiting State */
-.waiting-state {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  color: var(--color-outline);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.pulse-ring {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--color-outline);
-  animation: ripple 2s infinite;
-}
-
-@keyframes ripple {
-  0% { transform: scale(0.8); opacity: 1; border-color: var(--color-outline); }
-  100% { transform: scale(2.5); opacity: 0; border-color: #EAEAEA; }
-}
-
-/* Animation */
-.timeline-item-enter-active,
-.timeline-item-leave-active {
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.timeline-item-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.timeline-item-leave-to {
-  opacity: 0;
 }
 
 /* Logs */
