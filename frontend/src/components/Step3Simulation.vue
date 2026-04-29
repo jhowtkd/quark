@@ -3,6 +3,13 @@
     <!-- Top Control Bar -->
     <div class="control-bar">
       <div class="action-controls">
+        <button
+          class="action-btn secondary"
+          :disabled="!state || state.runner_status !== 'running'"
+          @click="handleStopSimulation"
+        >
+          {{ $t('step3.stopSimulationBtn') }}
+        </button>
         <button 
           class="action-btn primary"
           :disabled="phase !== 2 || isGeneratingReport"
@@ -144,6 +151,24 @@ const doStartSimulation = async () => {
   }
 }
 
+const handleStopSimulation = async () => {
+  if (!props.simulationId) return
+  addLog(t('log.stoppingSim'))
+  try {
+    const res = await stopSimulation({ simulation_id: props.simulationId })
+    if (res.success) {
+      addLog(t('log.simStoppedSuccess'))
+      phase.value = 2
+      stopPolling()
+      emit('update-status', 'completed')
+    } else {
+      addLog(t('log.stopFailed', { error: res.error || t('common.unknownError') }))
+    }
+  } catch (err) {
+    addLog(t('log.stopException', { error: err.message }))
+  }
+}
+
 const handleNextStep = async () => {
   if (!props.simulationId) {
     addLog(t('log.errorMissingSimId'))
@@ -248,6 +273,18 @@ onUnmounted(() => {
 .action-btn.primary:hover:not(:disabled) {
   background: var(--color-background);
   color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
+}
+
+.action-btn.secondary {
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-background);
+  border: 1px solid var(--color-on-background);
+}
+
+.action-btn.secondary:hover:not(:disabled) {
+  background: var(--color-on-background);
+  color: var(--color-surface-container-highest);
   box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
