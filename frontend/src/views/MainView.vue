@@ -97,14 +97,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step1GraphBuild from '../components/Step1GraphBuild.vue'
 import Step2EnvSetup from '../components/Step2EnvSetup.vue'
 import { generateOntology, generateOntologyFromText, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
-import { startResearch, getResearchStatus, approveResearch, rejectResearch, rerunResearch } from '../api/research'
+import { startResearch, getResearchStatus, getResearchResult, approveResearch, rejectResearch, rerunResearch } from '../api/research'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
 import LanguageSwitcher from '../components/LanguageSwitcher.vue'
 
@@ -144,6 +144,13 @@ const researchResult = ref(null) // { markdown, connector_used }
 const researchActionError = ref('')
 const ontologyGenerating = ref(false)
 let researchPollTimer = null
+
+// Persist researchRunId to sessionStorage so it survives refresh
+watch(researchRunId, (newId) => {
+  if (newId && currentProjectId.value) {
+    sessionStorage.setItem(`research-run-${currentProjectId.value}`, newId)
+  }
+})
 
 // Polling timers
 let pollTimer = null
@@ -595,6 +602,28 @@ const startResearchPolling = () => {
   researchPollTimer = setInterval(pollResearchStatus, 5000)
 }
 
+const loadResearchStatusOnMount = async () => {
+  if (!researchRunId.value) return
+  try {
+    const res = await getResearchStatus(researchRunId.value)
+    if (res.success) {
+      researchStatus.value = {
+        status: res.data.status,
+        progress: res.data.progress || 0,
+        message: res.data.message || '',
+        error: res.data.error || ''
+      }
+      if (res.data.status === 'completed') {
+        await loadResearchResult()
+      } else if (res.data.status === 'running' || res.data.status === 'pending') {
+        startResearchPolling()
+      }
+    }
+  } catch (e) {
+    // Research status load error on mount — ignore
+  }
+}
+
 const pollResearchStatus = async () => {
   if (!researchRunId.value) return
   
@@ -801,6 +830,13 @@ const handlePromoteSuccess = async (result) => {
 
 onMounted(() => {
   initProject()
+  
+  // Restore research state from session storage (survives page refresh)
+  const savedResearchRunId = sessionStorage.getItem(`research-run-${currentProjectId.value}`)
+  if (savedResearchRunId) {
+    researchRunId.value = savedResearchRunId
+    loadResearchStatusOnMount()
+  }
 })
 
 onUnmounted(() => {

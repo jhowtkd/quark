@@ -734,11 +734,22 @@ const renderGraph = () => {
       }
     })
 
+  // Node label backgrounds (for readability)
+  const nodeLabelBgs = nodeGroup.selectAll('rect.node-label-bg')
+    .data(nodes)
+    .enter().append('rect')
+    .attr('class', 'node-label-bg')
+    .attr('fill', 'var(--color-surface)')
+    .attr('rx', 3)
+    .attr('ry', 3)
+    .style('pointer-events', 'none')
+    .style('opacity', 0.85)
+
   // Node Labels
   const nodeLabels = nodeGroup.selectAll('text')
     .data(nodes)
     .enter().append('text')
-    .text(d => d.name.length > 8 ? d.name.substring(0, 8) + '…' : d.name)
+    .text(d => d.name.length > 14 ? d.name.substring(0, 14) + '…' : d.name)
     .attr('font-size', '11px')
     .attr('fill', '#333')
     .attr('font-weight', '500')
@@ -773,6 +784,14 @@ const renderGraph = () => {
         .attr('transform', '') // Map Value Functions Data Fetch Mapping Results Method Handling Variable Return Object Render Properties Output Formats Event Logic Execution Pattern Match Output Result Target Data Action Check Process Setup State Fetch View Displays Object Map Formats Outputs Action Returns Methods Response Event Run Arrays Logic Match Process Code Components View Rendering Action Check Call Display Method Pattern Functions Target Layout Target Method Output Call Displays Values Returns Methods Component Functions Results Handling Displays Formats Array Map Call Check Execution String Flow Variables Returns Return Flow Properties Action Response Fetch Execution Fetch Execute Scope Outputs Values Format Flow Target Props Component Method Fetch Handling Results Regex Formats Code Scope Value Setup Component Result Output Execution Methods Event Match Setup Return Exec Arrays Object Displays Fetch Pattern Component Setup Objects Value Check Target Regex Functions Formats Props Objects Response Execution View Process Logic Loop Setup Return Match Method Returns Variables Display Function Variables Objects String Object Event Mapping Data Code Return旋转
     })
 
+    // Clamp nodes to keep labels inside visible area (80px padding for labels)
+    const padX = 80
+    const padY = 30
+    nodes.forEach(d => {
+      d.x = Math.max(padX, Math.min(width - padX, d.x))
+      d.y = Math.max(padY, Math.min(height - padY, d.y))
+    })
+
     node
       .attr('cx', d => d.x)
       .attr('cy', d => d.y)
@@ -780,6 +799,17 @@ const renderGraph = () => {
     nodeLabels
       .attr('x', d => d.x)
       .attr('y', d => d.y)
+    
+    // Update node label backgrounds
+    nodeLabelBgs.each(function(d, i) {
+      const textEl = nodeLabels.nodes()[i]
+      const bbox = textEl.getBBox()
+      d3.select(this)
+        .attr('x', bbox.x - 3)
+        .attr('y', bbox.y - 2)
+        .attr('width', bbox.width + 6)
+        .attr('height', bbox.height + 4)
+    })
   })
   
   // 点击空白处Botão de Ocultar Visor de Dados Box

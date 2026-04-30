@@ -290,18 +290,24 @@ class OasisProfileGenerator:
             span.update(output={"bio_length": len(profile_data.get("bio", ""))})
             span.end()
         
+        # Sanitizar idioma dos campos de texto
+        bio_fallback = f"{entity_type}: {name}"
+        persona_fallback = entity.summary or f"Um {entity_type} chamado {name}."
+        sanitized_bio = self._sanitize_language(profile_data.get("bio"), bio_fallback)
+        sanitized_persona = self._sanitize_language(profile_data.get("persona"), persona_fallback)
+
         return OasisAgentProfile(
             user_id=user_id,
             user_name=user_name,
             name=name,
-            bio=profile_data.get("bio", f"{entity_type}: {name}"),
-            persona=profile_data.get("persona", entity.summary or f"Um {entity_type} chamado {name}."),
+            bio=sanitized_bio,
+            persona=sanitized_persona,
             karma=profile_data.get("karma", random.randint(500, 5000)),
             friend_count=profile_data.get("friend_count", random.randint(50, 500)),
             follower_count=profile_data.get("follower_count", random.randint(100, 1000)),
             statuses_count=profile_data.get("statuses_count", random.randint(100, 2000)),
             age=profile_data.get("age"),
-            gender=profile_data.get("gender"),
+            gender=self._normalize_gender(profile_data.get("gender")),
             mbti=profile_data.get("mbti"),
             country=profile_data.get("country"),
             profession=profile_data.get("profession"),
@@ -1245,6 +1251,28 @@ Importante:
         
         logger.info(f"Salvos {len(profiles)} Twitter Profiles em {file_path} (formato CSV OASIS)")
     
+    def _sanitize_language(self, text: Optional[str], fallback: str) -> str:
+        """
+        Sanitizar texto para garantir que não contenha caracteres CJK/chinês indesejados.
+        Detecta presença de ideogramas e substitui pelo fallback.
+        """
+        if not text:
+            return fallback
+        # Detectar caracteres CJK (Unicode ranges: 4E00-9FFF, 3400-4DBF, 20000-2A6DF, etc.)
+        import re
+        # Python regex syntax: \U requires 8 hex digits, \u requires 4
+        cjk_pattern = re.compile(
+            '[\u4e00-\u9fff\u3400-\u4dbf'
+            '\U00020000-\U0002a6df'
+            '\U0002a700-\U0002b73f'
+            '\U0002b740-\U0002b81f]',
+            re.UNICODE
+        )
+        if cjk_pattern.search(text):
+            logger.warning(f"Texto contém caracteres CJK detectados, usando fallback: {fallback[:60]}...")
+            return fallback
+        return text
+
     def _normalize_gender(self, gender: Optional[str]) -> str:
         """
         Normalizar campo gender para o formato em inglês exigido pelo OASIS

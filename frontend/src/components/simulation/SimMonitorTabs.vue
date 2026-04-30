@@ -82,5 +82,6 @@ watch(activeTab, (val) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 </style>

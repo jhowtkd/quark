@@ -2,8 +2,11 @@
   <div class="overview-tab">
     <!-- Progress -->
     <div class="progress-section">
+      <div class="section-header-row">
+        <span class="section-title">Progresso</span>
+      </div>
       <div class="progress-header">
-        <span class="progress-label">Progress</span>
+        <span class="progress-label">Andamento</span>
         <span class="progress-value">{{ state?.progress_percent || 0 }}%</span>
       </div>
       <div class="progress-bar-bg">
@@ -16,6 +19,9 @@
     </div>
 
     <!-- Platform Cards -->
+    <div class="section-header-row">
+      <span class="section-title">Plataformas</span>
+    </div>
     <div class="platform-cards">
       <div class="platform-card twitter" :class="{ active: state?.twitter_running, completed: state?.twitter_completed }" :aria-label="`Info Plaza: ${state?.twitter_running ? 'running' : state?.twitter_completed ? 'completed' : 'idle'}`">
         <div class="card-title">
@@ -43,6 +49,9 @@
     </div>
 
     <!-- Recent Actions Mini-Feed -->
+    <div class="section-header-row" v-if="recentActions.length > 0">
+      <span class="section-title">Ações Recentes</span>
+    </div>
     <div class="mini-feed" v-if="recentActions.length > 0">
       <div class="mini-feed-title">Recent Actions</div>
       <SimActionFeedItem
@@ -82,6 +91,21 @@ const recentActions = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+.section-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-muted);
 }
 .progress-section {
   background: var(--color-surface-container-low);

@@ -305,7 +305,7 @@
             <div v-else-if="isResearchCompleted" class="research-review">
               <div v-if="researchResult?.markdown" class="research-result-preview">
                 <span class="section-label">PREVIEW</span>
-                <div class="markdown-preview" v-html="researchResult.markdown.substring(0, 500)"></div>
+                <div class="markdown-preview" v-html="(researchResult.markdown || '').substring(0, 500)"></div>
               </div>
               
               <div v-if="researchActionError" class="callout error">
@@ -1222,9 +1222,9 @@ const handlePromoteResearch = async () => {
 
 .deep-research-btn {
   width: 100%;
-  background: var(--color-surface);
+  background: var(--color-on-background);
   color: var(--color-surface-container-highest);
-  border: 1px solid var(--color-surface-elevated);
+  border: 2px solid var(--color-on-background);
   padding: 14px;
   border-radius: 0;
   font-size: 12px;
@@ -1235,8 +1235,9 @@ const handlePromoteResearch = async () => {
 }
 
 .deep-research-btn:hover:not(:disabled) {
-  background: var(--color-surface-elevated);
-  box-shadow: 4px 4px 0 var(--color-surface-elevated);
+  background: var(--color-surface-container-highest);
+  color: var(--color-on-background);
+  box-shadow: 4px 4px 0 var(--color-on-background);
 }
 
 .deep-research-btn:disabled {

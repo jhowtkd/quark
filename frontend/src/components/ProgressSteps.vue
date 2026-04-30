@@ -75,9 +75,13 @@ defineProps({
 
 .step-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
   flex: 1;
+}
+
+.orientation-horizontal .step-item {
+  align-items: flex-start;
 }
 
 .orientation-vertical .step-item {

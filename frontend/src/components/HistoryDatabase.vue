@@ -99,6 +99,13 @@
       </div>
     </div>
 
+    <!-- Empty State -->
+    <div v-if="projects.length === 0 && !loading" class="empty-state">
+      <div class="empty-icon">❖</div>
+      <span class="empty-title">{{ $t('history.noProjects') }}</span>
+      <span class="empty-desc">{{ $t('history.noProjectsDesc') }}</span>
+    </div>
+
     <!-- Loading Global -->
     <div v-if="loading" class="loading-state">
       <SkeletonText :lines="3" />
@@ -964,6 +971,20 @@ onUnmounted(() => {
   gap: 14px;
   padding: 48px;
   color: var(--color-disabled);
+}
+
+.empty-title {
+  font-family: var(--font-machine);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.empty-desc {
+  font-size: 0.8rem;
+  color: var(--color-disabled);
+  text-align: center;
+  max-width: 300px;
 }
 
 .empty-icon {

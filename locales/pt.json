@@ -396,7 +396,9 @@
     "notStarted": "Em modo Standby",
     "roundsProgress": "{current} sobre {total} frames",
     "untitledSimulation": "Projeto Anônimo",
-    "unknownFile": "Desconhecido"
+    "unknownFile": "Desconhecido",
+    "noProjects": "Nenhuma simulação encontrada",
+    "noProjectsDesc": "Crie uma nova simulação para começar a explorar cenários de opinião pública."
   },
   "api": {
     "projectNotFound": "Projeto indisponível: {id}",

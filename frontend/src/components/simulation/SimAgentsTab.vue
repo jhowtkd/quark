@@ -152,6 +152,8 @@ const formatTime = (timestamp) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  overflow-y: auto;
 }
 .filters-bar {
   display: flex;
