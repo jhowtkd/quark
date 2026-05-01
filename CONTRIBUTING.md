@@ -1,92 +1,85 @@
-# Contributing
+<!-- generated-by: gsd-doc-writer -->
 
-Thanks for contributing to FUTUR.IA.
+# Contributing to FUTUR.IA
 
-## Before you start
+Thank you for your interest in contributing to FUTUR.IA. This document covers the basics of setting up the project locally, running verification checks, and submitting changes.
 
-Make sure you can run the project locally:
+## Development setup
 
-```bash
-npm run setup:all
-npm run dev
-```
+1. Make sure you have the prerequisites installed:
+   - Node.js 18+
+   - Python 3.11+
+   - [uv](https://docs.astral.sh/uv/)
 
-Read these first if your change touches the public workflow or repo conventions:
+2. Install all dependencies:
 
-- [README.md](./README.md)
+   ```bash
+   npm run setup:all
+   ```
+
+3. Start the development environment:
+
+   ```bash
+   npm run dev
+   ```
+
+For detailed environment and workflow guidance, see:
+
 - [docs/GETTING-STARTED.md](./docs/GETTING-STARTED.md)
 - [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md)
 - [docs/TESTING.md](./docs/TESTING.md)
-- [docs/CONFIGURATION.md](./docs/CONFIGURATION.md)
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
-## Development workflow
+## Coding standards
 
-A practical local loop is:
+The project currently does not use an automated linter or formatter. Please follow these conventions when submitting code:
 
-1. install dependencies
-2. make the change
-3. run the relevant verification commands
-4. update docs if behavior or setup changed
-5. open a pull request with a clear summary
+- **Python**: Keep code PEP 8 compliant and include type hints where practical.
+- **JavaScript/Vue**: Use consistent indentation (2 spaces) and clear variable naming.
+- **All changes**: Run the relevant verification commands before opening a pull request.
 
-## Verification expectations
+### Verification commands
 
-Run the checks that match your change.
+Run the checks that match your change area:
 
-### Frontend or UI work
+- **Frontend or UI work**
 
-```bash
-npm run build
-```
+  ```bash
+  npm run build
+  ```
 
-### Backend logic or API work
+- **Backend logic or API work**
 
-```bash
-cd backend && uv run pytest
-```
+  ```bash
+  cd backend && uv run pytest
+  ```
 
-### Reporting or contamination-policy work
+- **Reporting or contamination-policy work**
 
-```bash
-npm run preflight
-```
+  ```bash
+  npm run preflight
+  ```
 
 If your change crosses multiple areas, run more than one of the above.
 
-## Code areas
+## Issue reporting
 
-- frontend app: `frontend/`
-- backend app: `backend/app/`
-- backend tests: `backend/tests/`
-- docs: `docs/`
+Bugs and feature requests are tracked via GitHub Issues. When opening an issue, please include:
 
-## Documentation changes
+- A clear, descriptive title
+- Steps to reproduce (for bugs), or the expected behavior and motivation (for features)
+- Your environment (Node.js version, Python version, OS)
+- Any relevant logs, screenshots, or error messages
 
-Please update docs when you change:
+## Pull request guidelines
 
-- setup steps
-- required environment variables
-- user-visible workflow behavior
-- API or backend lifecycle behavior that contributors need to know about
-
-At minimum, keep the affected file in sync with the code.
-
-## Auth caveat
-
-The committed frontend auth flow is a localStorage stub in `frontend/src/api/auth.js`. If you are changing login/register behavior, be explicit about whether you are:
-
-- still working within the stubbed frontend-only auth path, or
-- introducing a real backend auth implementation
-
-## Pull request guidance
-
-A good PR description includes:
-
-- what changed
-- why it changed
-- what you verified
-- any follow-up work or known limitations
+- Open a pull request from a feature branch against `main`.
+- Keep the change focused on a single concern; split unrelated changes into separate PRs.
+- Provide a clear PR description that explains **what** changed, **why** it changed, and **what you verified**.
+- Reference any related issues using `Closes #123` or `Fixes #123`.
+- Ensure the relevant verification commands pass before requesting review.
+- Update documentation if your change affects setup steps, environment variables, or user-visible behavior.
 
 ## License
 
-By contributing, you agree that your changes are made under the repository license: **AGPL-3.0**.
+By contributing, you agree that your contributions are made under the repository license: **AGPL-3.0**.

@@ -28,7 +28,7 @@
       </div>
       <div class="step-content">
         <span class="step-label">{{ step.label }}</span>
-        <span v-if="step.status === 'active' && step.detail" class="step-detail">
+        <span v-if="showDetail && step.status === 'active' && step.detail" class="step-detail">
           {{ step.detail }}
         </span>
       </div>
@@ -53,6 +53,10 @@ defineProps({
     type: String,
     default: 'horizontal',
     validator: (v) => ['horizontal', 'vertical'].includes(v),
+  },
+  showDetail: {
+    type: Boolean,
+    default: true,
   },
 })
 </script>

@@ -1,145 +1,185 @@
+<!-- generated-by: gsd-doc-writer -->
 # Configuration
 
-## Configuration sources
+This document covers all configuration sources, environment variables, and runtime tuning options for FUTUR.IA.
 
-The backend loads environment variables from a project-root `.env` file via `python-dotenv` in `backend/app/config.py`.
+## Configuration file format
 
-If `backend/.env` does not exist, the backend still reads environment variables from the current process environment.
+The primary configuration mechanism is a project-root `.env` file loaded by `python-dotenv` in `backend/app/config.py`. The loader reads from the project root without mutating `os.environ`, so process-level environment variables always take precedence over `.env` values.
 
-## Required variables
+There is no JSON/YAML/TOML config file for application settings. One additional static config file exists:
 
-`backend/run.py` calls `Config.validate()` before starting the Flask app.
+- `config/language_policy.json` — language integrity policy for reporting surfaces (allowed languages, contamination tracking, quarantine rules). This is read by the language integrity utilities, not by the main config loader.
 
-The committed validation requires:
+## Environment variables
 
-| Variable | Required | Purpose |
+### Required settings
+
+These variables cause startup failure if absent. `backend/run.py` calls `Config.validate()` before starting the Flask app and exits with code `1` if validation fails.
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | Yes | none | API key for the configured OpenAI-compatible LLM provider |
+| `ZEP_API_KEY` | Yes | none | API key for Zep graph/memory operations |
+
+### Conditionally required settings
+
+When `LANGFUSE_ENABLED=true`, the following become required and will cause startup failure if missing:
+
+| Variable | Required when | Default | Description |
+|---|---|---|---|
+| `LANGFUSE_HOST` | `LANGFUSE_ENABLED=true` | none | Langfuse host URL |
+| `LANGFUSE_PUBLIC_KEY` | `LANGFUSE_ENABLED=true` | none | Langfuse public key |
+| `LANGFUSE_SECRET_KEY` | `LANGFUSE_ENABLED=true` | none | Langfuse secret key |
+
+### LLM settings
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | Yes | none | API key for the primary OpenAI-compatible endpoint |
+| `LLM_BASE_URL` | No | `https://api.openai.com/v1` | Base URL for the LLM API |
+| `LLM_MODEL_NAME` | No | `gpt-4o-mini` | Default model identifier |
+| `LLM_BOOST_API_KEY` | No | none | Optional secondary LLM endpoint key |
+| `LLM_BOOST_BASE_URL` | No | none | Optional secondary LLM endpoint URL |
+| `LLM_BOOST_MODEL_NAME` | No | none | Optional secondary LLM model name |
+
+### Backend runtime settings
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `FLASK_HOST` | No | `0.0.0.0` | Bind address for the Flask development server |
+| `FLASK_PORT` | No | `5001` | Port for the Flask development server |
+| `FLASK_DEBUG` | No | `True` | Enables Flask debug mode and auto-reload |
+| `SECRET_KEY` | No | `futuria-secret-key` | Flask session/CSRF secret key |
+
+### Langfuse observability settings
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LANGFUSE_ENABLED` | No | `false` | Toggle Langfuse tracing on/off |
+| `LANGFUSE_HOST` | No | none | Langfuse host URL (required when enabled) |
+| `LANGFUSE_PUBLIC_KEY` | No | none | Langfuse public key (required when enabled) |
+| `LANGFUSE_SECRET_KEY` | No | none | Langfuse secret key (required when enabled) |
+| `LANGFUSE_ENV` | No | `development` | Environment label sent to Langfuse |
+| `LANGFUSE_RELEASE` | No | `local` | Release label sent to Langfuse |
+| `LANGFUSE_DEBUG` | No | `false` | Enables Langfuse SDK debug logging |
+| `LANGFUSE_SAMPLE_RATE` | No | `1.0` | Sampling rate for traces (0.0–1.0) |
+
+### Research connector API keys (optional)
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `BRAVE_SEARCH_API_KEY` | No | none | Brave Search API key for deep research |
+| `TAVILY_API_KEY` | No | none | Tavily API key for deep research |
+| `JINA_API_KEY` | No | none | Jina AI API key for deep research |
+
+### Frontend build-time settings
+
+Vite exposes only variables prefixed with `VITE_` to the client bundle.
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `VITE_CONVEX_URL` | No | none | Convex deployment URL. <!-- VERIFY: Convex is currently disabled in `frontend/src/convex.js`; this variable is present in `.env.example` but not actively consumed by the frontend runtime. --> |
+| `VITE_API_BASE_URL` | No | `/api` | Base URL for API requests. Set this if the frontend is served from a different origin than the backend. |
+
+### Simulation and report tuning
+
+These variables are read from the environment but have hardcoded defaults in `backend/app/config.py`.
+
+| Variable | Default | Description |
 |---|---|---|
-| `LLM_API_KEY` | Yes | API key for the configured OpenAI-compatible model provider |
-| `ZEP_API_KEY` | Yes | API key for Zep-backed graph/memory operations |
+| `OASIS_DEFAULT_MAX_ROUNDS` | `10` | Default maximum rounds for OASIS social media simulations |
+| `REPORT_AGENT_MAX_TOOL_CALLS` | `5` | Maximum tool calls per report agent run |
+| `REPORT_AGENT_MAX_REFLECTION_ROUNDS` | `2` | Maximum self-reflection rounds for the report agent |
+| `REPORT_AGENT_TEMPERATURE` | `0.5` | Sampling temperature for the report agent |
+| `DEFAULT_CHUNK_SIZE` | `300` | Text chunk size for document processing |
+| `DEFAULT_CHUNK_OVERLAP` | `30` | Chunk overlap for document processing |
 
-When `LANGFUSE_ENABLED=true`, these become required as well:
+The following constants are hardcoded in `backend/app/config.py` and are **not** overridable via environment variables:
 
-| Variable | Required when enabled | Purpose |
-|---|---|---|
-| `LANGFUSE_HOST` | Yes | Langfuse host URL |
-| `LANGFUSE_PUBLIC_KEY` | Yes | Langfuse public key |
-| `LANGFUSE_SECRET_KEY` | Yes | Langfuse secret key |
+- `MAX_CONTENT_LENGTH` — `50 MB` maximum upload size
+- `UPLOAD_FOLDER` — `backend/uploads/` (resolved relative to `config.py`)
+- `ALLOWED_EXTENSIONS` — `pdf`, `md`, `txt`, `markdown`
 
-## LLM settings
+## Required vs optional settings summary
 
-From `.env.example` and `backend/app/config.py`:
-
-| Variable | Default | Notes |
-|---|---|---|
-| `LLM_API_KEY` | none | Required by backend validation |
-| `LLM_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible base URL |
-| `LLM_MODEL_NAME` | `gpt-4o-mini` | Default model name |
-
-## Optional boost settings
-
-`.env.example` also includes optional secondary LLM settings:
-
-| Variable | Purpose |
+| Category | Absence behavior |
 |---|---|
-| `LLM_BOOST_API_KEY` | optional boosted endpoint key |
-| `LLM_BOOST_BASE_URL` | optional boosted endpoint URL |
-| `LLM_BOOST_MODEL_NAME` | optional boosted endpoint model |
+| `LLM_API_KEY`, `ZEP_API_KEY` | Backend exits at startup with validation error |
+| `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` | Backend exits at startup **only if** `LANGFUSE_ENABLED=true` |
+| All other variables listed above | Backend starts with documented defaults; features depending on those keys degrade gracefully |
 
-## Backend runtime settings
+## Defaults
 
-From `backend/app/config.py` and `backend/run.py`:
+All optional variables have the following defaults:
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `FLASK_HOST` | `0.0.0.0` | bind address |
-| `FLASK_PORT` | `5001` | backend port |
-| `FLASK_DEBUG` | `True` | toggles Flask debug behavior |
-| `SECRET_KEY` | `futuria-secret-key` | Flask secret key fallback |
+- `LLM_BASE_URL` → `https://api.openai.com/v1`
+- `LLM_MODEL_NAME` → `gpt-4o-mini`
+- `FLASK_HOST` → `0.0.0.0`
+- `FLASK_PORT` → `5001`
+- `FLASK_DEBUG` → `True`
+- `SECRET_KEY` → `futuria-secret-key`
+- `LANGFUSE_ENABLED` → `false`
+- `LANGFUSE_ENV` → `development`
+- `LANGFUSE_RELEASE` → `local`
+- `LANGFUSE_DEBUG` → `false`
+- `LANGFUSE_SAMPLE_RATE` → `1.0`
+- `OASIS_DEFAULT_MAX_ROUNDS` → `10`
+- `REPORT_AGENT_MAX_TOOL_CALLS` → `5`
+- `REPORT_AGENT_MAX_REFLECTION_ROUNDS` → `2`
+- `REPORT_AGENT_TEMPERATURE` → `0.5`
+- `VITE_API_BASE_URL` → `/api`
 
-## Langfuse settings
+## Per-environment overrides
 
-Optional observability settings defined in `.env.example` and consumed by `Config`:
+### Development (default)
 
-| Variable | Default |
-|---|---|
-| `LANGFUSE_ENABLED` | `false` |
-| `LANGFUSE_HOST` | none in code, `http://localhost:3000` in example file |
-| `LANGFUSE_PUBLIC_KEY` | none |
-| `LANGFUSE_SECRET_KEY` | none |
-| `LANGFUSE_ENV` | `development` |
-| `LANGFUSE_RELEASE` | `local` |
-| `LANGFUSE_DEBUG` | `false` |
-| `LANGFUSE_SAMPLE_RATE` | `1.0` |
-
-## Connector API keys
-
-The backend config exposes optional keys for research connectors:
-
-| Variable | Purpose |
-|---|---|
-| `BRAVE_SEARCH_API_KEY` | Brave connector |
-| `TAVILY_API_KEY` | Tavily connector |
-| `JINA_API_KEY` | Jina connector |
-
-## Simulation and report tuning
-
-The backend config also exposes non-secret tuning variables/constants:
-
-| Setting | Default |
-|---|---|
-| `OASIS_DEFAULT_MAX_ROUNDS` | `10` |
-| `REPORT_AGENT_MAX_TOOL_CALLS` | `5` |
-| `REPORT_AGENT_MAX_REFLECTION_ROUNDS` | `2` |
-| `REPORT_AGENT_TEMPERATURE` | `0.5` |
-| `DEFAULT_CHUNK_SIZE` | `300` |
-| `DEFAULT_CHUNK_OVERLAP` | `30` |
-| `MAX_CONTENT_LENGTH` | `50 MB` |
-
-Allowed upload extensions are hardcoded as:
-
-- `pdf`
-- `md`
-- `txt`
-- `markdown`
-
-## Frontend dev-server configuration
-
-`frontend/vite.config.js` defines local development behavior:
-
-| Setting | Value |
-|---|---|
-| dev host | `vite --host` |
-| dev port | `4000` |
-| alias `@` | `frontend/src` |
-| alias `@locales` | `locales/` |
-| `/api` proxy target | `http://localhost:5001` |
-| `/auth` proxy target | `http://127.0.0.1:3210` |
-
-## Auth configuration caveat
-
-The committed frontend auth implementation in `frontend/src/api/auth.js` uses localStorage and does not read auth credentials from environment variables. The `/auth` proxy exists in Vite config, but the current auth client does not use it.
-
-## Docker/runtime config files
-
-- `.env.example` — starter environment file
-- `docker-compose.yml` — compose service wiring with `env_file: .env`
-- `Dockerfile` — image build and default command
-
-## Minimal local setup
+Use the project-root `.env` file. The minimum viable `.env` for local development is:
 
 ```bash
 cp .env.example .env
 ```
 
-Set at least:
+Then edit `.env` and set at least:
 
 ```env
-LLM_API_KEY=...
-ZEP_API_KEY=...
+LLM_API_KEY=your_api_key_here
+ZEP_API_KEY=your_zep_api_key_here
 ```
 
-Then start the app:
+Start the full stack:
 
 ```bash
 npm run dev
 ```
+
+This runs the backend on `http://localhost:5001` and the Vite dev server on `http://localhost:4000`. The Vite dev proxy forwards `/api` to the backend automatically.
+
+### Frontend dev-server overrides
+
+`frontend/vite.config.js` hardcodes the following development behavior:
+
+| Setting | Value |
+|---|---|
+| Dev server port | `4000` |
+| `/api` proxy target | `http://localhost:5001` |
+| `/auth` proxy target | `http://127.0.0.1:3210` |
+
+These are **not** driven by environment variables. To change them, edit `vite.config.js` directly.
+
+### Docker / containerized
+
+`docker-compose.yml` wires services with `env_file: .env`. The compose file exposes:
+
+- Host port `3000` → container frontend dev server (`4000`)
+- Host port `5001` → container backend (`5001`)
+- Volume mount `./backend/uploads:/app/backend/uploads`
+
+<!-- VERIFY: Port mapping and volume paths above are taken from `docker-compose.yml`. Production deployment may use different orchestration not present in the repository. -->
+
+### Production considerations
+
+- Set `FLASK_DEBUG=false`
+- Set `SECRET_KEY` to a cryptographically random value
+- Set `LANGFUSE_ENV=production` and `LANGFUSE_RELEASE` to a version tag if using Langfuse
+- `VITE_API_BASE_URL` should point to the production backend origin if frontend and backend are served from different hosts

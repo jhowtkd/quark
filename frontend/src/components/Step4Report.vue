@@ -8,7 +8,7 @@
           <!-- Report Header -->
           <div class="report-header-block">
             <div class="report-meta">
-              <span class="report-tag">Prediction Report</span>
+              <span class="report-tag">Relatório de Predição</span>
               <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
             </div>
             <h1 class="main-title">{{ reportOutline.title }}</h1>
@@ -118,15 +118,15 @@
         <div class="workflow-overview" v-if="agentLogs.length > 0 || reportOutline">
           <div class="workflow-metrics">
             <div class="metric">
-              <span class="metric-label">Sections</span>
+              <span class="metric-label">Seções</span>
               <span class="metric-value mono">{{ completedSections }}/{{ totalSections }}</span>
             </div>
             <div class="metric">
-              <span class="metric-label">Elapsed</span>
+              <span class="metric-label">Decorrido</span>
               <span class="metric-value mono">{{ formatElapsedTime }}</span>
             </div>
             <div class="metric">
-              <span class="metric-label">Tools</span>
+              <span class="metric-label">Ferramentas</span>
               <span class="metric-value mono">{{ totalToolCalls }}</span>
             </div>
             <div class="metric metric-right">
@@ -195,11 +195,11 @@
                   <!-- Report Start -->
                   <template v-if="log.action === 'report_start'">
                     <div class="info-row">
-                      <span class="info-key">Simulation</span>
+                      <span class="info-key">Simulação</span>
                       <span class="info-val mono">{{ log.details?.simulation_id }}</span>
                     </div>
                     <div class="info-row" v-if="log.details?.simulation_requirement">
-                      <span class="info-key">Requirement</span>
+                      <span class="info-key">Requisito</span>
                       <span class="info-val">{{ log.details.simulation_requirement }}</span>
                     </div>
                   </template>
@@ -211,7 +211,7 @@
                   <template v-if="log.action === 'planning_complete'">
                     <div class="status-message success">{{ log.details?.message }}</div>
                     <div class="outline-badge" v-if="log.details?.outline">
-                      {{ log.details.outline.sections?.length || 0 }} sections planned
+                      {{ log.details.outline.sections?.length || 0 }} seções planejadas
                     </div>
                   </template>
 
@@ -336,12 +336,12 @@
                   <!-- LLM Response -->
                   <template v-if="log.action === 'llm_response'">
                     <div class="llm-meta">
-                      <span class="meta-tag">Iteration {{ log.details?.iteration }}</span>
+                      <span class="meta-tag">Iteração {{ log.details?.iteration }}</span>
                       <span class="meta-tag" :class="{ active: log.details?.has_tool_calls }">
-                        Tools: {{ log.details?.has_tool_calls ? 'Yes' : 'No' }}
+                        Ferramentas: {{ log.details?.has_tool_calls ? 'Sim' : 'Não' }}
                       </span>
                       <span class="meta-tag" :class="{ active: log.details?.has_final_answer, 'final-answer': log.details?.has_final_answer }">
-                        Final: {{ log.details?.has_final_answer ? 'Yes' : 'No' }}
+                        Resposta final: {{ log.details?.has_final_answer ? 'Sim' : 'Não' }}
                       </span>
                     </div>
                     <!-- Alert Box On Final Outputs -->
@@ -531,27 +531,27 @@ const isLogCollapsed = (log) => {
 // Tool configurations with display names and colors
 const toolConfig = {
   'insight_forge': {
-    name: 'Deep Insight',
+    name: 'Insight Profundo',
     color: 'purple',
     icon: 'lightbulb' // Light Map Methods Result Fetch Mapping Component Check Handling Formatting Scope Map Result Setup Returns Formatting Formats Array Methods Format Code Methods Components Rendering Display Execute Variables Action Setup Methods Components Outputs Displays Exec Method Handling Response Result Setup Method Outputs Execute Arrays Mapping Returns Props Object Logic Code Function Returns Call Action Output Display Results Variables Action Formatting Prop Value Regex Execute Scope Methods Target Return Component Displays Variables Scope Data Handling Layout Displays Execution Logic Display Object Properties Displays Arrays Map Object Component Props String Execution Setup Returns Map Objects Display Mapping Results Execute Property Setup Fetch Outputs Handling Variables Props Format Components State Response Format Prop Arrays Logic Array Result Map Displays Objects Format Functions Output Display Functions Arrays String Execution Execute - Insights Handling Component Props Format Handling Methods Rendering Display Data Target Layout Model Fetch Variables Map View Result Prop Components DOM Response Response Layout Result Fetch Method Render Model View Scope Result Flow Response Control Model Render Fetch Response Map Results Formatting Scope Variable Display Prop Process Handling Execution Return Values Layout Returns Rendering View Variables Formatting Return Setup Objects Format Returns Prop Variables Function Map Output Scope Call Action Handle Arrays Call Execute Props Methods Loop Object Exec Map Execute Logic DOM Flow Rendering Model Flow Rendering Response Values State DOM Prop Variable Data Fetch Run Run Formatting Flow Format Returns Method Displays Event Value Scope Rendering Map Map Map Returns Rendering
   },
   'panorama_search': {
-    name: 'Panorama Search',
+    name: 'Busca Panorama',
     color: 'blue',
     icon: 'globe' // Result Results Outputs Result Methods Execution Objects Mapping Setup Mapping Regex Handle Value Event Exec Execution Output Outputs Variables Fetch Objects Displays Action Maps Setup Variables Handle Handle Display Run Results Value Loop Action Layout Properties Object Component Response Formatting Prop Variables Action Flow Value Pattern Method Arrays Run Mapping Match Action Format Fetch Action Display Layout Displays State State Mapping Map Arrays Prop Call Component Event Method Values Action Map Execution Setup Map Mapping Handle Layout Layout Object Map Values Code - Panorama Seek Action Logic Maps Path Nodes Search BFS
   },
   'interview_agents': {
-    name: 'Agent Interview',
+    name: 'Entrevista de Agentes',
     color: 'green',
     icon: 'users' // String Returns Methods Outputs Methods Displays Call Returns Pattern Loop Target View Arrays Values Variable Formatting Setup Returns Output Map State Map Mapping Handling Results Output Outputs Handling Regex Setup Object Object View Render Handle App Methods Methods Format Array Mapping Render Arrays Variables Component Output Code Arrays String App Exec Event Maps Flow Formats Output Returns Call Rendering Display Output Component Props Fetch Flow Display Object Display Call Action Format Flow Scope Execution Map Logic Execution Regex Code Event Method Target Exec Call Logic Flow Fetch Execute Component Call Scope Objects Render Results Fetch Return Display Action String Results - Value Pattern Array Regex Return Check Code Method Display Execution Displays Formatting Mapping Value Returns Render Output Outputs Map Model Format Properties Object Method Fetch Method App Formats Displays Action Array Function Render Map Setup Results Call Target Flow Objects Execute Arrays Format Outputs Regex Output Method Flow String Loop Variables Mapping Object String Object Setup Target Layout Formatting Code Properties Handling App Target Display Flow Results Call Variables Maps Data Execution Variables Response Flow Methods Scope Response View Layout Layout String Rendering Loop Flow Component Map Returns Handling Prop Component Response Props Mapping Execution Array Target Data Exec Call Action Object Call Display View Components Layout Displays Format Value Map Return Object State Variable Model Logic Output Output Exec Regex Displays Results Render Action Call Properties Flow Scope Handling Displays String Mapping Formats Return String State Components Variable Data Variables Prop Method Component Match Execute Logic Model Component Data Run Scope Response Map Flow Setup Function
   },
   'quick_search': {
-    name: 'Quick Search',
+    name: 'Busca Rápida',
     color: 'orange',
     icon: 'zap' // Values Call Rendering Target Loop Results Result Handling Exec View Variables Result Execution Components Variables Values Setup Properties Action Run Object Flow Flow Formats Functions Component Render Format Fetch Exec Displays Call Display Method Layout Action Response Flow Regex Handling Render Result Layout Setup Component Return Array Component Model Variable Fetch Run Response Loop Mapping Properties Flow Execution Method Methods Fetch Layout Exec String Code Flow Functions App Rendering View Scope Setup Variables Values Arrays Returns View Props Returns Regex Event Object Loop Rendering Display Call Displays Execute Data Check Exec Check Prop Run Match Displays Results Mapping Render Action View Arrays Logic Scope Prop Result Flow - Represents Quick Mode Action Event Type String Setup Mode Choice Variables Enum Const Target Function Setup Config Switch Code Control Check
   },
   'get_graph_statistics': {
-    name: 'Graph Stats',
+    name: 'Estatísticas do Grafo',
     color: 'cyan',
     icon: 'chart' // Result Functions Arrays Outputs Pattern Process Regex Map Setup String Returns Arrays Run Setup Run Array Object Setup Variables Execution Regex Map Execution Properties Target Call Maps Logic Displays Array Response Regex Process Handle Component View Execution Event Arrays Fetch String Maps Value Setup Format Component Methods Handling Regex Exec Flow Data Setup Match Response Display Loop Function Prop Props Logic Properties Method Outputs Prop Flow Action Map Results Render Regex Execution Props Format Code Model Return Variables Function Results Exec Return Execute Setup Properties Map Result Run Results Execution Displays Loop Action Event Prop Execute Target Event Regex Variable Methods Run Fetch Output Component Setup Action Run Return Output Execution Map State Result Data Formatting Model State Flow Fetch Map Method Components Flow Result Components Action Exec Action Match Execution Action Code Model Layout Match Response Model String Object Returns Match Returns Handling Values Exec Model Returns Displays Method Flow Array Control Render Flow Format Props Objects Loop String - Mapping Map Pattern Methods Map Formats Formatting Arrays Logic Results Handle Execution Run Results State Code Result Run Model Target Action Logic Event Loop Variables Components Run Model Output Return Component Arrays Render Arrays Value Formatting Call Handling Component Results Displays Value Mapping Formats Methods Returns Result Map Flow Render Format Component Values Output Return Setup Logic Properties Format Layout Run Results Setup Scope Flow Arrays Handle Handling Check Target Map Method Component Output Action Returns Check Variables Exec Formats Return Component Handling Run Fetch Scope Returns Flow Model Mapping Mapping Process Formats Layout Flow Displays Execution Handling Arrays Loop Pattern Array Methods Action Logic Call Process Call String Displays Call Values Outputs Data Outputs Variable Run Returns Formatting Result Arrays Variables Values Fetch Handling Output Model Return Value Formatting Components Variable Results Components Execution Fetch Handling Output Logic Action Components Variables Fetch Render Variable Prop Display Props Layout Formats Variables Scope Handling Methods Logic Returns Output Layout Execute Format Call Execute Properties Formats Values Run String Return Returns Event Event Value Function
   },
@@ -1192,16 +1192,16 @@ const PanoramaDisplay = {
       // Header Section
       h('div', { class: 'panorama-header' }, [
         h('div', { class: 'header-main' }, [
-          h('div', { class: 'header-title' }, 'Panorama Search'),
+          h('div', { class: 'header-title' }, 'Busca Panorama'),
           h('div', { class: 'header-stats' }, [
             h('span', { class: 'stat-item' }, [
               h('span', { class: 'stat-value' }, props.result.stats.nodes),
-              h('span', { class: 'stat-label' }, 'Nodes')
+              h('span', { class: 'stat-label' }, 'Nós')
             ]),
             h('span', { class: 'stat-divider' }, '/'),
             h('span', { class: 'stat-item' }, [
               h('span', { class: 'stat-value' }, props.result.stats.edges),
-              h('span', { class: 'stat-label' }, 'Edges')
+              h('span', { class: 'stat-label' }, 'Arestas')
             ]),
             props.resultLength && h('span', { class: 'stat-divider' }, '·'),
             props.resultLength && h('span', { class: 'stat-size' }, formatSize(props.resultLength))
@@ -1512,10 +1512,10 @@ const InterviewDisplay = {
         ]),
         
         // Q&A Conversation Thread - Q And A Pattern Regex Pattern Match Run Flow Call Function Response Values Component View Scope Render Value Components Props Template Data Match Process Call Response Run Action Event Method Process Values Display Format Run App Variable Event Variables Format Regex Pattern Execution Results Control Action Loop Render Output Scope Return Process Function Action Values Display Format Flow Method Scope Mapping Code Layout Render Run Result Control Pattern Execute Handle Event Values Component Data Action Array Call Output Setup Regex Match Output State Pattern Mapping Render Result Run Action Array Pattern Flow Execute Event Handling Loop Execution Target Control Map Process Rendering Results Control Handling Format Returns Flow Event Handling Components Match Check Regex Output DOM Run Execute Rendering Values Layout Response Call Execution Pattern Output View Layout Event Handle View Returns Control Call Regex Formats Array DOM Model
-        h('div', { class: 'qa-thread' }, 
+          h('div', { class: 'qa-thread' }, 
           (props.result.interviews[activeIndex.value]?.questions?.length > 0 
             ? props.result.interviews[activeIndex.value].questions 
-            : [props.result.interviews[activeIndex.value]?.question || 'No question available']
+            : [props.result.interviews[activeIndex.value]?.question || 'Nenhuma pergunta disponível']
           ).map((question, qIdx) => {
             const interview = props.result.interviews[activeIndex.value]
             const currentPlatform = getPlatformTab(activeIndex.value, qIdx)
@@ -1639,11 +1639,11 @@ const QuickSearchDisplay = {
       // Header Section
       h('div', { class: 'quicksearch-header' }, [
         h('div', { class: 'header-main' }, [
-          h('div', { class: 'header-title' }, 'Quick Search'),
+          h('div', { class: 'header-title' }, 'Busca Rápida'),
           h('div', { class: 'header-stats' }, [
             h('span', { class: 'stat-item' }, [
               h('span', { class: 'stat-value' }, props.result.count || props.result.facts.length),
-              h('span', { class: 'stat-label' }, 'Results')
+              h('span', { class: 'stat-label' }, 'Resultados')
             ]),
             props.resultLength && h('span', { class: 'stat-divider' }, '·'),
             props.resultLength && h('span', { class: 'stat-size' }, formatSize(props.resultLength))
@@ -1748,9 +1748,9 @@ const statusClass = computed(() => {
 })
 
 const statusText = computed(() => {
-  if (isComplete.value) return 'Completed'
-  if (agentLogs.value.length > 0) return 'Generating...'
-  return 'Waiting'
+  if (isComplete.value) return 'Concluído'
+  if (agentLogs.value.length > 0) return 'Gerando...'
+  return 'Aguardando'
 })
 
 const totalSections = computed(() => {
@@ -1827,9 +1827,9 @@ const workflowSteps = computed(() => {
   steps.push({
     key: 'planning',
     noLabel: 'PL',
-    title: 'Planning / Outline',
+    title: 'Planejamento / Estrutura',
     status: planningStatus,
-    meta: planningStatus === 'active' ? 'IN PROGRESS' : ''
+    meta: planningStatus === 'active' ? 'EM ANDAMENTO' : ''
   })
 
   // Sections (if outline exists)
@@ -1845,7 +1845,7 @@ const workflowSteps = computed(() => {
       noLabel: String(idx).padStart(2, '0'),
       title: section.title,
       status,
-      meta: status === 'active' ? 'IN PROGRESS' : ''
+      meta: status === 'active' ? 'EM ANDAMENTO' : ''
     })
   })
 
@@ -1854,9 +1854,9 @@ const workflowSteps = computed(() => {
   steps.push({
     key: 'complete',
     noLabel: 'OK',
-    title: 'Complete',
+    title: 'Concluído',
     status: completeStatus,
-    meta: completeStatus === 'active' ? 'FINALIZING' : ''
+    meta: completeStatus === 'active' ? 'FINALIZANDO' : ''
   })
 
   return steps
@@ -2167,16 +2167,16 @@ const getConnectorClass = (log, idx, total) => {
 
 const getActionLabel = (action) => {
   const labels = {
-    'report_start': 'Report Started',
-    'planning_start': 'Planning',
-    'planning_complete': 'Plan Complete',
-    'section_start': 'Section Start',
-    'section_content': 'Content Ready',
-    'section_complete': 'Section Done',
-    'tool_call': 'Tool Call',
-    'tool_result': 'Tool Result',
-    'llm_response': 'LLM Response',
-    'report_complete': 'Complete'
+    'report_start': 'Relatório iniciado',
+    'planning_start': 'Planejamento',
+    'planning_complete': 'Planejamento concluído',
+    'section_start': 'Início da seção',
+    'section_content': 'Conteúdo pronto',
+    'section_complete': 'Seção concluída',
+    'tool_call': 'Chamada de ferramenta',
+    'tool_result': 'Resultado da ferramenta',
+    'llm_response': 'Resposta do LLM',
+    'report_complete': 'Concluído'
   }
   return labels[action] || action
 }

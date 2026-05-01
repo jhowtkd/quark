@@ -204,6 +204,7 @@
     "profileModalGender": "Gênero Aparente",
     "profileModalCountry": "País/Região",
     "profileModalMbti": "MBTI",
+    "profileModalMbtiHelp": "MBTI é um indicador de tipo de personalidade usado para descrever estilo de decisão e interação.",
     "profileModalBio": "Biografia da Persona",
     "profileModalTopics": "Tópicos Relacionados",
     "profileModalPersona": "Experiência de Evento",

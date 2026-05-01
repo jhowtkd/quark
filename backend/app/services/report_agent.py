@@ -560,6 +560,7 @@ The OASIS simulation environment must be running for this tool to work."""
 
 PLAN_SYSTEM_PROMPT = """\
 You are writing a future-prediction report about a simulated world. The simulation is a rehearsal of a possible future, not a commentary on the current real world.
+Write the entire outline in Portuguese brasileiro (pt-BR), including the title, summary, and all section titles.
 
 [Core Task]
 Design a concise report outline that explains:
@@ -607,6 +608,7 @@ Design the report structure that best explains the simulated future. Keep it con
 
 SECTION_SYSTEM_PROMPT_TEMPLATE = """\
 You are writing one chapter of a future-prediction report about a simulated world.
+Write this chapter entirely in Portuguese brasileiro (pt-BR), including the title, summary, headings, labels, and narrative text.
 
 Report title: {report_title}
 Report summary: {report_summary}
@@ -707,6 +709,7 @@ def _contains_forbidden_language(text: str) -> bool:
 
 CHAT_SYSTEM_PROMPT_TEMPLATE = """\
 You are a concise simulation-report assistant.
+Answer in Portuguese brasileiro (pt-BR) unless the user explicitly requests another language.
 
 [Context]
 Simulation requirement: {simulation_requirement}
@@ -735,7 +738,7 @@ Simulation requirement: {simulation_requirement}
 - Preserve entity names exactly; never substitute a person or organization with a different proper noun
 """
 
-CHAT_OBSERVATION_SUFFIX = "\n\nRespond concisely in English only."
+CHAT_OBSERVATION_SUFFIX = "\n\nResponda de forma concisa em português brasileiro."
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -1529,24 +1532,24 @@ class ReportAgent:
             # Fallback outline: usar estrutura due-diligence se o perfil exigir
             if getattr(self, 'outline_system_prompt', None):
                 return ReportOutline(
-                    title="Analise de Due Diligence",
-                    summary="Avaliacao estruturada do cenario economico simulado",
+                    title="Análise de Due Diligence",
+                    summary="Avaliação estruturada do cenário econômico simulado",
                     sections=[
                         ReportSection(title="Tese Principal"),
-                        ReportSection(title="Evidencias Verificadas"),
+                        ReportSection(title="Evidências Verificadas"),
                         ReportSection(title="Fragilidades e Riscos"),
-                        ReportSection(title="Premissas Explicitas"),
-                        ReportSection(title="Cenarios (Bear / Base / Bull)")
+                        ReportSection(title="Premissas Explícitas"),
+                        ReportSection(title="Cenários (Bear / Base / Bull)")
                     ]
                 )
             # Fallback generico
             return ReportOutline(
-                title="Future Prediction Report",
-                summary="Future Trends and Risk Analysis Based on Simulation",
+                title="Relatório de Predição Futura",
+                summary="Análise de tendências futuras e riscos com base na simulação",
                 sections=[
-                    ReportSection(title="Prediction Scenarios and Core Findings"),
-                    ReportSection(title="Crowd Behavior Prediction Analysis"),
-                    ReportSection(title="Trend Outlook and Risk Warnings")
+                    ReportSection(title="Cenários de Predição e Principais Achados"),
+                    ReportSection(title="Análise de Comportamento Coletivo"),
+                    ReportSection(title="Perspectivas de Tendência e Alertas de Risco")
                 ]
             )
 

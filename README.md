@@ -1,141 +1,89 @@
+<!-- generated-by: gsd-doc-writer -->
+
 # FUTUR.IA
 
-FUTUR.IA is a full-stack social-simulation workbench. It lets a user ingest source material, generate an ontology, build a knowledge graph, prepare simulation environments, run agent-based scenarios, generate reports, and inspect results through a Vue frontend backed by a Flask API.
+Swarm Intelligence Engine for Social Simulation
 
-## What is in the repo today
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![License](https://img.shields.io/badge/license-AGPL--3.0-green)
 
-- **Frontend:** Vue 3 + Vite app in `frontend/`
-- **Backend:** Flask service in `backend/`
-- **Workflow:** graph building, simulation preparation/execution, report generation, and deep-research runs
-- **Persistence:** local files under `backend/uploads/` plus external services configured through environment variables
-- **Observability:** optional Langfuse wiring plus backend observability tests
+## Overview
 
-A few behaviors are intentionally worth calling out:
+FUTUR.IA is a full-stack research and simulation platform that combines LLM-driven swarm intelligence with social media environment modeling. It provides an interactive workbench for generating knowledge graphs, running multi-agent simulations, and producing structured research reports.
 
-- The committed frontend auth client in `frontend/src/api/auth.js` is a **localStorage stub**. It does not call a real backend auth service.
-- The backend exposes a lightweight health endpoint at `GET /health`.
-- Root automation includes contamination/preflight checks, but there is **no root `npm test` script** in `package.json`.
-
-## Project flow
-
-The application UI is organized as a five-step workflow:
-
-1. **Build graph** — upload source material or promote deep-research output into a project
-2. **Prepare environment** — derive agent profiles and simulation config
-3. **Run simulation** — execute the generated scenario
-4. **Generate report** — synthesize report output from the simulation state
-5. **Interact** — inspect and chat against simulation/report context
-
-The committed frontend route map is:
-
-- `/` — home
-- `/login` and `/register` — guest-only auth screens
-- `/process/:projectId` — graph/research workbench
-- `/simulation/:simulationId` — environment preparation
-- `/simulation/:simulationId/start` — simulation run view
-- `/report/:reportId` — report view
-- `/interaction/:reportId` — interaction view
-
-## Quick start
-
-### Prerequisites
+## Prerequisites
 
 - Node.js 18+
 - Python 3.11+
-- `uv`
+- [uv](https://docs.astral.sh/uv/)
 
-### 1. Install dependencies
+## Installation
 
 ```bash
 npm run setup:all
 ```
 
-This installs root/frontend Node dependencies and backend Python dependencies.
+This installs root and frontend Node dependencies, then syncs the Python backend environment.
 
-### 2. Configure environment
+## Quick start
 
-Copy the example file and fill in the values you need:
+1. **Configure environment variables**
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` and add at minimum:
+
+   ```env
+   LLM_API_KEY=your_api_key_here
+   ZEP_API_KEY=your_zep_api_key_here
+   ```
+
+2. **Start the development servers**
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Open the app**
+
+   - Frontend: http://localhost:4000
+   - Backend health: http://localhost:5001/health
+
+## Usage examples
+
+### Run the backend tests
 
 ```bash
-cp .env.example .env
+cd backend && uv run pytest
 ```
 
-At minimum, backend startup validation requires:
-
-- `LLM_API_KEY`
-- `ZEP_API_KEY`
-
-See [docs/CONFIGURATION.md](./docs/CONFIGURATION.md) for the full list.
-
-### 3. Start the app in development
+### Build the frontend for production
 
 ```bash
-npm run dev
+npm run build
 ```
 
-This starts:
-
-- frontend Vite dev server on `http://localhost:4000`
-- backend Flask app on `http://localhost:5001`
-
-The frontend proxies `/api/*` to the backend during development.
-
-### 4. Verify the backend is up
-
-```bash
-curl http://localhost:5001/health
-```
-
-Expected response:
-
-```json
-{"status":"ok","service":"FUTUR.IA Backend"}
-```
-
-## Docker
-
-The repo includes a `Dockerfile` and `docker-compose.yml`.
+### Start with Docker
 
 ```bash
 docker compose up --build
 ```
 
-The compose file maps:
+The compose file exposes the frontend at `http://localhost:3000` and the backend at `http://localhost:5001`.
 
-- host `3000` -> container/frontend `4000`
-- host `5001` -> container/backend `5001`
+## Project structure
 
-The committed container command runs the frontend and backend in development mode.
+- `frontend/` — Vue 3 + Vite frontend application
+- `backend/app/` — Python/Flask backend API (`/api/graph`, `/api/simulation`, `/api/report`, `/api/research`)
+- `docs/` — Architecture, configuration, and development guides
+- `tests/` — Frontend and backend test suites
 
-## Development commands
+## Contributing
 
-```bash
-# install everything
-npm run setup:all
-
-# run frontend + backend
-npm run dev
-
-# build frontend production bundle
-npm run build
-
-# backend tests
-cd backend && uv run pytest
-
-# contamination / policy preflight checks
-npm run preflight
-```
-
-## Documentation
-
-- [Architecture](./docs/ARCHITECTURE.md)
-- [Getting started](./docs/GETTING-STARTED.md)
-- [Development](./docs/DEVELOPMENT.md)
-- [Testing](./docs/TESTING.md)
-- [Configuration](./docs/CONFIGURATION.md)
-- [Deployment](./docs/DEPLOYMENT.md)
-- [Contributing](./CONTRIBUTING.md)
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## License
 
-This repository is licensed under **AGPL-3.0**.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).

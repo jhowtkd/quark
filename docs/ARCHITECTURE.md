@@ -1,229 +1,122 @@
-# Architecture
+<!-- generated-by: gsd-doc-writer -->
+# FUTUR.IA Architecture
 
-## System overview
+## System Overview
 
-FUTUR.IA is a two-tier application:
+FUTUR.IA is an AI-powered platform for building social and economic simulations and generating structured analytical reports. The system ingests user requirements and source documents, constructs a knowledge graph via the Zep Cloud API, runs multi-agent simulations using the OASIS framework, and produces reflective reports through a ReACT-based report agent. It is implemented as a modular Flask backend serving a Vue 3 single-page application (SPA), communicating over RESTful JSON APIs with optional real-time synchronization via Convex.
 
-- a **Vue 3 frontend** in `frontend/` for project, graph, simulation, report, and interaction workflows
-- a **Flask backend** in `backend/` that exposes the graph, simulation, report, and research APIs
+## Component Diagram
 
-Runtime data is stored on disk under `backend/uploads/`. External systems are plugged in through environment variables rather than hardcoded providers.
+```mermaid
+graph TD
+    subgraph Frontend["Frontend (Vue 3 + Vite)"]
+        A[Views / Pages] --> B[Components]
+        B --> C[Composables]
+        C --> D[API Client Layer]
+        D --> E[Axios Instance]
+        B --> F[Vue Router]
+        A --> G[Vue I18n]
+    end
 
-## High-level shape
+    subgraph Backend["Backend (Flask)"]
+        E --> H[Flask App Factory]
+        H --> I[API Blueprints]
+        I --> J[Graph API]
+        I --> K[Simulation API]
+        I --> L[Report API]
+        I --> M[Research API]
+        J --> N[Services Layer]
+        K --> N
+        L --> N
+        M --> N
+        N --> O[Graph Builder Service]
+        N --> P[Simulation Runner]
+        N --> Q[Report Agent]
+        N --> R[Deep Research Agent]
+        N --> S[Simulation Manager]
+        N --> T[Ontology Generator]
+        O --> U[Zep Cloud Client]
+        P --> V[OASIS Subprocess]
+        Q --> W[LLM Client]
+        R --> W
+        R --> X[Search Connectors]
+        X --> Y[Brave / Tavily / Jina]
+        W --> Z[OpenAI-Compatible API]
+        H --> AA[Observability Client]
+        AA --> AB[Langfuse (optional)]
+    end
 
-```text
-frontend (Vue 3 + Vite)
-  -> /api/* proxied to backend during local dev
-  -> route-driven 5-step workflow UI
+    subgraph Data["State & Persistence"]
+        AC[Project Manager] --> AD[File System]
+        AE[Task Manager] --> AF[In-Memory State]
+        AG[Convex Client] --> AH[Convex Backend]
+    end
 
-backend (Flask)
-  -> /api/graph/*
-  -> /api/simulation/*
-  -> /api/report/*
-  -> /api/research/*
-  -> /health
-
-storage
-  -> backend/uploads/projects/
-  -> backend/uploads/research/
-  -> backend/uploads/reports/
-  -> backend/uploads/simulations/
+    N --> AC
+    N --> AE
+    D --> AG
 ```
 
-## Frontend
+## Data Flow
 
-### Stack
+A typical user journey begins on the Vue frontend where the user uploads documents and describes a simulation scenario. The frontend sends this payload to the `/api/graph` blueprint, which delegates to the `GraphBuilderService`. The service first generates an ontology via the `OntologyGenerator` (using an LLM), then creates and populates a standalone graph in Zep Cloud. The resulting graph identifiers and project context are persisted server-side by the `ProjectManager`, freeing the frontend from maintaining heavy state across requests.
 
-- Vue 3
-- Vue Router
-- Vue I18n
-- Vite
-- Axios
-- D3
+When the user triggers a simulation, the `SimulationManager` prepares parameters and hands them to the `SimulationRunner`, which spawns an OASIS subprocess. The runner communicates with the subprocess over IPC, records every agent action, and updates a `Task` object that the frontend polls via the `/api/simulation` endpoints. After the simulation completes, the `ReportAgent` executes a ReACT loop: it queries Zep for graph insights, plans a report outline, generates sections through the LLM client, and validates outputs through bias auditing, data validation, and quality gates before returning the final report.
 
-### Frontend structure
+For research-oriented workflows, the `DeepResearchAgent` compiles a LangGraph state machine that iterates through search, extraction, summarization, and source ranking nodes, routing queries through a fallback-enabled connector layer (Brave → Tavily → Jina).
 
-Key frontend directories:
+All backend services are wrapped by an observability facade that flushes traces to a self-hosted Langfuse instance when enabled; otherwise it operates as a no-op client.
 
-- `frontend/src/views/` — route-level screens
-- `frontend/src/components/` — shared UI
-- `frontend/src/api/` — HTTP clients and local auth helpers
-- `frontend/src/router/` — route table and guards
-- `frontend/src/store/` — lightweight local state helpers
-- `frontend/src/i18n/` — localization wiring
+## Key Abstractions
 
-Committed route views include:
+| Name | Type | Location | Description |
+|------|------|----------|-------------|
+| `create_app` | function | `backend/app/__init__.py` | Flask application factory that wires logging, CORS, observability, simulation cleanup, and API blueprints. |
+| `Config` | class | `backend/app/config.py` | Centralized configuration resolver that reads `.env` values and validates required keys (LLM, Zep, Langfuse). |
+| `GraphBuilderService` | class | `backend/app/services/graph_builder.py` | Orchestrates ontology normalization, Zep graph creation, and asynchronous node/edge ingestion with progress tracking. |
+| `SimulationRunner` | class | `backend/app/services/simulation_runner.py` | Manages the lifecycle of an OASIS simulation subprocess, including IPC, action logging, round summaries, and graceful shutdown. |
+| `ReportAgent` | class | `backend/app/services/report_agent.py` | ReACT agent that plans report outlines, queries Zep tools, generates sections via LLM, and enforces quality gates. |
+| `DeepResearchAgent` | graph | `backend/app/services/deep_research_agent.py` | LangGraph-compiled research workflow with search, extract, summarize, and source-validation nodes. |
+| `ConnectorFallbackRouter` | class | `backend/app/connectors/fallback_router.py` | Routes research search requests across Brave, Tavily, and Jina connectors with automatic fallback. |
+| `build_observability_client` | function | `backend/app/observability/langfuse_client.py` | Returns either a `LangfuseObservabilityClient` or a `NoOpObservabilityClient` based on feature flags. |
+| `useSimulationMonitor` | function | `frontend/src/composables/useSimulationMonitor.js` | Vue composable that polls simulation status and actions with backoff, exposing reactive refs for UI binding. |
+| `service` | object | `frontend/src/api/index.js` | Configured Axios instance with request/response interceptors for locale headers, success normalization, and retry logic. |
 
-- `Home.vue`
-- `LoginPage.vue`
-- `RegisterPage.vue`
-- `MainView.vue`
-- `SimulationView.vue`
-- `SimulationRunView.vue`
-- `ReportView.vue`
-- `InteractionView.vue`
+## Directory Structure Rationale
 
-### Frontend routing and auth
+```
+futuria-v2-refatorado/
+├── backend/
+│   ├── app/
+│   │   ├── api/              # Flask blueprints (graph, simulation, report, research)
+│   │   ├── connectors/       # External search adapters with fallback routing
+│   │   ├── models/           # In-memory domain models (Project, Task)
+│   │   ├── observability/    # Langfuse facade and no-op implementations
+│   │   ├── schemas/          # (reserved) Validation schemas
+│   │   ├── services/         # Core business logic and long-running agents
+│   │   ├── utils/            # Cross-cutting utilities (logger, retry, i18n, LLM client)
+│   │   ├── config.py         # Centralized env-based configuration
+│   │   └── __init__.py       # Application factory
+│   └── run.py                # Entry point: validates config and starts Flask
+├── frontend/
+│   ├── src/
+│   │   ├── api/              # HTTP client modules per domain
+│   │   ├── components/       # Vue components (pages split into step-based flows)
+│   │   ├── composables/      # Reusable Vue composition functions
+│   │   ├── router/           # Vue Router configuration with auth guards
+│   │   ├── store/            # Lightweight module-level state (pending uploads, profile)
+│   │   ├── utils/            # Frontend utilities (payload validation)
+│   │   ├── views/            # Top-level route views
+│   │   ├── App.vue           # Root component with global theming
+│   │   └── main.js           # Application bootstrap
+│   └── vite.config.js        # Vite build with PWA, proxy, and chunk splitting
+├── locales/                  # JSON translation files consumed by both frontend and backend i18n utilities
+├── docs/                     # Project documentation
+└── package.json              # Root orchestration scripts (dev, build, preflight checks)
+```
 
-The router protects the main workflow routes with guards from `frontend/src/router/index.js`.
+**Backend organization** follows a layered structure: `api/` handles HTTP surface area, `services/` contains all domain logic and agent implementations, `models/` holds ephemeral server-side state, and `connectors/` isolates third-party search integrations. This separation keeps the Flask layer thin and makes the agentic services testable outside of the request/response cycle.
 
-Important caveat: the committed auth client in `frontend/src/api/auth.js` is a **stub**. It accepts login/register data and stores a mock user in localStorage. The frontend route guards depend on that local state, not on a server-side auth session.
+**Frontend organization** is view-centric with step-based simulation flows (Step1 through Step5) living in `components/`, while `composables/` extract reactive logic such as polling and theming. The API layer mirrors backend blueprints so that domain boundaries remain consistent across the stack.
 
-### Development proxy
-
-`frontend/vite.config.js` configures:
-
-- `/api` -> `http://localhost:5001`
-- `/auth` -> `http://127.0.0.1:3210`
-
-The committed frontend auth module does not currently use that `/auth` proxy path.
-
-## Backend
-
-### Stack
-
-- Python 3.11+
-- Flask
-- Flask-CORS
-- Pydantic
-- python-dotenv
-
-### Application factory
-
-`backend/app/__init__.py` builds the Flask app and wires:
-
-- config loading
-- request/response logging
-- optional observability client
-- CORS for `/api/*`
-- simulation cleanup registration
-- blueprint registration
-- `GET /health`
-
-### Entry point
-
-`backend/run.py`:
-
-- validates required configuration before startup
-- creates the Flask app
-- runs the server on `FLASK_HOST` / `FLASK_PORT` with threaded mode enabled
-
-## Backend API surface
-
-The backend is split into four blueprint modules:
-
-### `backend/app/api/graph.py` -> `/api/graph/*`
-
-Responsibilities:
-
-- project CRUD and reset
-- ontology generation from uploaded files
-- ontology generation from existing extracted text
-- graph build preview and graph build execution
-- task status and graph data retrieval
-
-Notable routes include:
-
-- `GET /api/graph/project/<project_id>`
-- `GET /api/graph/project/list`
-- `DELETE /api/graph/project/<project_id>`
-- `POST /api/graph/project/<project_id>/reset`
-- `POST /api/graph/ontology/generate`
-- `POST /api/graph/ontology/generate-from-text/<project_id>`
-- `POST /api/graph/build`
-- `GET /api/graph/task/<task_id>`
-- `GET /api/graph/tasks`
-- `GET /api/graph/data/<graph_id>`
-- `DELETE /api/graph/delete/<graph_id>`
-
-### `backend/app/api/simulation.py` -> `/api/simulation/*`
-
-Responsibilities:
-
-- entity inspection from graph data
-- simulation creation
-- preparation workflow and status polling
-- run lifecycle control and status
-- profile/config retrieval
-- timeline, posts, comments, interview, and environment endpoints
-
-This is the broadest API module in the repo.
-
-### `backend/app/api/report.py` -> `/api/report/*`
-
-Responsibilities:
-
-- report generation
-- report retrieval and download
-- report progress/sections/log access
-- report chat
-- graph search/statistics helper endpoints used by reporting tools
-
-### `backend/app/api/research.py` -> `/api/research/*`
-
-Responsibilities:
-
-- deep research run start/status/result
-- approval and rejection
-- rerun with feedback
-- promotion into project extracted text
-- project creation from approved research
-
-The research flow is explicitly asynchronous and uses daemon threads plus task tracking.
-
-## Services and models
-
-Key service modules under `backend/app/services/` include:
-
-- `graph_builder.py`
-- `ontology_generator.py`
-- `simulation_manager.py`
-- `simulation_runner.py`
-- `simulation_config_generator.py`
-- `oasis_profile_generator.py`
-- `report_agent.py`
-- `deep_research_agent.py`
-- `zep_tools.py`
-- `zep_entity_reader.py`
-- `zep_graph_memory_updater.py`
-- `text_processor.py`
-- `simulation_ipc.py`
-
-Supporting models live under `backend/app/models/`, including project, task, and research-run persistence helpers.
-
-## Persistence and file layout
-
-The backend writes local state under `backend/uploads/`. The repo and tests reference subtrees for:
-
-- projects
-- research runs
-- reports
-- simulations
-
-The compose file also bind-mounts `./backend/uploads` into the container.
-
-## External integrations
-
-The codebase is prepared to integrate with:
-
-- an OpenAI-compatible LLM endpoint via `LLM_*`
-- Zep via `ZEP_API_KEY`
-- optional Langfuse observability via `LANGFUSE_*`
-- optional connector APIs for Brave, Tavily, and Jina
-- OASIS/CAMEL-related simulation dependencies from backend Python packages
-
-## Observability
-
-Observability is wired at app startup through a shared client stored in `app.config["OBSERVABILITY_CLIENT"]`.
-
-The repo has backend tests covering:
-
-- Langfuse configuration and client behavior
-- app wiring and health endpoint behavior
-- observability around graph, simulation, report, and research services
-
-## Current architectural caveats
-
-- The frontend auth implementation is stubbed in localStorage and is not backed by a committed server auth subsystem.
-- The container and compose setup run development-style commands rather than a hardened production process manager.
-- Some frontend views still contain noisy/generated-looking text in comments or log strings; docs here describe the committed route structure, not idealized UX copy.
+**Locales** live at the repository root so both the Python backend and the Vue frontend can share the same source of truth for translations without duplication.

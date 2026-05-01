@@ -90,8 +90,8 @@
                 @click="selectProfile(profile)"
               >
                 <div class="profile-header">
-                  <span class="profile-realname">{{ profile.username || 'Unknown' }}</span>
-                  <span class="profile-username">@{{ profile.name || `agent_${idx}` }}</span>
+                  <span class="profile-realname">{{ formatDisplayName(profile.username || profile.name, 'Unknown') }}</span>
+                  <span class="profile-username">@{{ formatDisplayName(profile.name || profile.username || `agent_${idx}`, `agent_${idx}`) }}</span>
                 </div>
                 <div class="profile-meta">
                   <span class="profile-profession">{{ profile.profession || $t('step2.unknownProfession') }}</span>
@@ -535,8 +535,8 @@
           <div class="modal-header">
           <div class="modal-header-info">
             <div class="modal-name-row">
-              <span class="modal-realname">{{ selectedProfile.username }}</span>
-              <span class="modal-username">@{{ selectedProfile.name }}</span>
+              <span class="modal-realname">{{ formatDisplayName(selectedProfile.username || selectedProfile.name, 'Unknown') }}</span>
+              <span class="modal-username">@{{ formatDisplayName(selectedProfile.name || selectedProfile.username, 'agent') }}</span>
             </div>
             <span class="modal-profession">{{ selectedProfile.profession }}</span>
           </div>
@@ -559,8 +559,9 @@
               <span class="info-value">{{ selectedProfile.country || '-' }}</span>
             </div>
             <div class="info-item">
-              <span class="info-label">{{ $t('step2.profileModalMbti') }}</span>
+              <span class="info-label" :title="$t('step2.profileModalMbtiHelp')">{{ $t('step2.profileModalMbti') }}</span>
               <span class="info-value mbti">{{ selectedProfile.mbti || '-' }}</span>
+              <span class="info-help">{{ $t('step2.profileModalMbtiHelp') }}</span>
             </div>
           </div>
 
@@ -720,13 +721,36 @@ const displayProfiles = computed(() => {
   return profiles.value.slice(0, 6)
 })
 
-// 根据agent_idProcess Check Process Method App Layout Action Action Rendering Formats Component Method Outputs Result Function Value Method Results Process Logic Event Call String Call Match Displays Result Method Formats Variables View Setup String Flow Run Map Loop Displays Value Component Regex Action Execution Format Output Mapping Flow Process Properties Flow Layout Components Call Fetch Components Map Handling Fetch Layout Methods Formats Method Return Maps Properties Method Values Formatting Variables Setup Map Method Exec Map Result Displays Scope Formats Method Result Fetch Array Output Method Fetch Run Function Returns Method Method Result App Event Event Variables Handle Functions Result Returns Value Flow Array Variable Components Action Display Method Execution Method Components Setup Scope Method Setup Component Execute Prop Component Exec Displays Logic View Execute Output Call Regex Run Objects Scope Arrays Object Values Object Response Arrays Arrays Run Mapping Outputs Setup Mapping Process Logic Check Properties Data Event Map Displays String Display Setup Formats Method Result Setup Function Formats Handle Components Fetch Mapping Returns Fetch Props Call Return Logic Regex Layout Event App Method Mapping Displays Action Prop Logic Handling Maps Prop Display Data Function Target Function Data Results Prop Action Properties Setup Value Run Fetch Loop Displays Event Action Exec Action Logic Action Methods对应的username
+// Display names for the profile list and activity logs.
+const formatDisplayName = (value, fallback = 'Unknown') => {
+  if (value === null || value === undefined) return fallback
+
+  const raw = String(value).trim().replace(/^@+/, '')
+  if (!raw) return fallback
+
+  const spaced = raw
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-zÀ-ÿ])([A-Z])/g, '$1 $2')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  return spaced
+    .split(' ')
+    .map((word) => {
+      if (!word) return word
+      if (/^\d+$/.test(word)) return word
+      if (/^[A-ZÀ-Ÿ]{2,}$/.test(word)) return word
+      return word.charAt(0).toLocaleUpperCase('pt-BR') + word.slice(1).toLocaleLowerCase('pt-BR')
+    })
+    .join(' ')
+}
+
 const getAgentUsername = (agentId) => {
   if (profiles.value && profiles.value.length > agentId && agentId >= 0) {
     const profile = profiles.value[agentId]
-    return profile?.username || `agent_${agentId}`
+    return formatDisplayName(profile?.username || `agent_${agentId}`, `agent_${agentId}`)
   }
-  return `agent_${agentId}`
+  return formatDisplayName(`agent_${agentId}`, `agent_${agentId}`)
 }
 
 // 计算所有人设的关联话题总数
@@ -936,7 +960,7 @@ const fetchProfilesRealtime = async () => {
         lastLoggedProfileCount = currentCount
         const total = expectedTotal.value || '?'
         const latestProfile = profiles.value[currentCount - 1]
-        const profileName = latestProfile?.name || latestProfile?.username || `Agent_${currentCount}`
+        const profileName = formatDisplayName(latestProfile?.name || latestProfile?.username || `Agent_${currentCount}`, `Agent_${currentCount}`)
         if (currentCount === 1) {
           addLog(t('log.startGeneratingAgentProfiles'))
         }
@@ -1953,6 +1977,12 @@ onUnmounted(() => {
 .info-value.mbti {
   font-family: 'JetBrains Mono', monospace;
   color: var(--color-error);
+}
+
+.info-help {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-disabled);
 }
 
 /* 模Chunks Format Results Array Handling Data Target Fetch Response Output View Run Exec Flow Component Return Render Variable Object Scope Values Execution Exec Result Function Flow View Render Execute Method Formatting Call Output Exec Prop Variable Results Formatting Handling Value Model Target Data Display Event Fetch Flow Call Mapping Response Mapping Fetch Array DOM Model Execution Fetch Variable Mapping Component Run Flow Output Arrays Map Loop Layout Handle Response Execute Component Handling Output DOM Value Data Object Result Result Variable Event Call Mapping Format Array Arrays Method Setup Variables Exec Output Rendering Execute Output Variables Exec Components Layout Handling Array Match Display Flow Control Function Loop Mapping Action Match Exec Event Output Response View Mapping Formatting Array Render Scope Array Call Data Event Mapping Flow Result Pattern Output Execution Function Pattern Array Function Result Method String Result Format Returns Map Layout区域 */

@@ -84,10 +84,20 @@ def get_language_instruction() -> str:
 
 
 def get_reporting_language_instruction() -> str:
-    """Return the strict English-only instruction for report generation and report chat."""
+    """Return the strict language instruction for report generation and report chat."""
+    locale = get_locale()
+    if str(locale).lower().startswith('en'):
+        return (
+            "Return English-only output for all system-controlled report surfaces. "
+            "Do not use Chinese, Japanese, Korean, Cyrillic, or fullwidth punctuation. "
+            "Translate quoted source material into natural English before using it. "
+            "Preserve proper nouns exactly; never substitute a person or organization with a different name."
+        )
+
     return (
-        "Return English-only output for all system-controlled report surfaces. "
-        "Do not use Chinese, Japanese, Korean, Cyrillic, or fullwidth punctuation. "
-        "Translate quoted source material into natural English before using it. "
-        "Preserve proper nouns exactly; never substitute a person or organization with a different name."
+        "Retorne todo o conteúdo controlado pelo sistema em português brasileiro. "
+        "Isso inclui título, subtítulo, seções, cabeçalhos, métricas, rótulos, legendas e respostas do Agente de Relatório. "
+        "Não use chinês, japonês, coreano, cirílico nem pontuação de largura total. "
+        "Traduza qualquer citação ou material de origem para português natural antes de usá-lo. "
+        "Preserve nomes próprios quando necessário, mas mantenha o restante do texto em pt-BR."
     )

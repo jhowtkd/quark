@@ -3,6 +3,7 @@
     <div class="scroll-container">
       <ProgressSteps
         :steps="graphSteps"
+        :show-detail="false"
         style="margin-bottom: var(--space-4);"
       />
       <div class="step-card" :class="{ active: currentPhase === 0 && !ontologyReady, completed: ontologyReady || currentPhase > 0 }">
