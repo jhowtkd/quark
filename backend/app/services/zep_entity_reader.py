@@ -16,6 +16,7 @@ from ..utils.exceptions import ZepUnavailableError
 from ..utils.entity_taxonomy import (
     ENTITY_KEYWORD_MAP,
     ENTITY_TYPE_ALIASES,
+    NON_ACTOR_ENTITY_TYPES,
     infer_entity_type_from_text,
     infer_entity_type_second_pass,
     resolve_entity_type,
@@ -100,6 +101,7 @@ class FilteredEntities:
     total_count: int
     filtered_count: int
     unknown_entity_count: int = 0
+    non_actor_count: int = 0
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -108,6 +110,7 @@ class FilteredEntities:
             "total_count": self.total_count,
             "filtered_count": self.filtered_count,
             "unknown_entity_count": self.unknown_entity_count,
+            "non_actor_count": self.non_actor_count,
         }
 
 
@@ -295,6 +298,7 @@ class ZepEntityReader:
         defined_entity_types: Optional[List[str]] = None,
         enrich_with_edges: bool = True,
         forbidden_scripts: Optional[List[str]] = None,
+        actor_only: bool = False,
     ) -> FilteredEntities:
         """
         筛选出符合预定义实体类型的节点
@@ -302,11 +306,13 @@ class ZepEntityReader:
         筛选逻辑：
         - 如果节点的Labels只有一个"Entity"，说明这个实体不符合我们预定义的类型，跳过
         - 如果节点的Labels包含除"Entity"和"Node"之外的标签，说明符合预定义类型，保留
+        - 如果 actor_only=True，丢弃非演员实体（Concept, Event, Location 等）
         
         Args:
             graph_id: 图谱ID
             defined_entity_types: 预定义的实体类型列表（可选，如果提供则只保留这些类型）
             enrich_with_edges: 是否获取每个实体的相关边信息
+            actor_only: 是否只保留可成为社交模拟主体的实体
             
         Returns:
             FilteredEntities: 过滤后的实体集合
@@ -327,6 +333,7 @@ class ZepEntityReader:
         filtered_entities = []
         entity_types_found = set()
         unknown_entity_count = 0
+        non_actor_count = 0
         
         for node in all_nodes:
             labels = node.get("labels", [])
@@ -373,6 +380,12 @@ class ZepEntityReader:
             if entity_type in ("Entity", "Unknown"):
                 unknown_entity_count += 1
                 logger.warning("Entity dropped: type unresolved after inference")
+                continue
+            
+            # Filtrar nao-atores quando actor_only=True
+            if actor_only and entity_type in NON_ACTOR_ENTITY_TYPES:
+                non_actor_count += 1
+                logger.info(f"Non-actor entity filtered out: {node['name']} (type={entity_type})")
                 continue
             
             entity_types_found.add(entity_type)
@@ -450,6 +463,7 @@ class ZepEntityReader:
             total_count=total_count,
             filtered_count=len(filtered_entities),
             unknown_entity_count=unknown_entity_count,
+            non_actor_count=non_actor_count,
         )
     
     def get_entity_with_context(

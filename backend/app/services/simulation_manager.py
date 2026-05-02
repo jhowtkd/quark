@@ -86,6 +86,10 @@ class SimulationState:
     entity_type_distribution: Dict[str, int] = field(default_factory=dict)
     quality_flags: List[str] = field(default_factory=list)
     
+    # Validacao input-output de agentes
+    io_validation_passed: Optional[bool] = None
+    io_validation_details: Optional[Dict[str, Any]] = None
+    
     def to_dict(self) -> Dict[str, Any]:
         """完整状态字典（内部使用）"""
         return {
@@ -112,6 +116,8 @@ class SimulationState:
             "resolved_entity_count": self.resolved_entity_count,
             "entity_type_distribution": self.entity_type_distribution,
             "quality_flags": self.quality_flags,
+            "io_validation_passed": self.io_validation_passed,
+            "io_validation_details": self.io_validation_details,
         }
     
     def to_simple_dict(self) -> Dict[str, Any]:
@@ -225,6 +231,17 @@ class SimulationManager:
             entity_type_distribution=data.get("entity_type_distribution", {}),
             quality_flags=data.get("quality_flags", []),
         )
+        
+        # Carregar validacao IO se existir
+        validation_path = os.path.join(sim_dir, "validation_io.json")
+        if os.path.exists(validation_path):
+            try:
+                with open(validation_path, 'r', encoding='utf-8') as f:
+                    validation_data = json.load(f)
+                state.io_validation_passed = validation_data.get("passed")
+                state.io_validation_details = validation_data
+            except Exception:
+                pass
         
         self._simulations[simulation_id] = state
         return state

@@ -267,6 +267,60 @@
               </div>
             </div>
 
+            <!-- Agent Fidelity Card -->
+            <div v-if="!dashboardLoading && ioValidation" class="fidelity-card">
+              <div class="fidelity-card-header">
+                <h3 class="fidelity-card-title">Fidelidade de Agentes</h3>
+                <span
+                  class="fidelity-badge"
+                  :class="ioValidation.passed ? 'badge-green' : 'badge-yellow'"
+                >
+                  {{ ioValidation.passed ? 'OK' : 'Atenção' }}
+                </span>
+              </div>
+              <div class="fidelity-coverage">
+                <span class="coverage-label">Cobertura:</span>
+                <span class="coverage-value">{{ Math.round((ioValidation.coverage_ratio || 0) * 100) }}%</span>
+              </div>
+              <div
+                v-if="ioValidation.missing_count > 0"
+                class="fidelity-tooltip"
+                title="Alguns agentes previstos nao produziram acoes. Isso pode indicar erro de configuracao ou falha de ativacao no OASIS."
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+                <span>Agentes ausentes detectados</span>
+              </div>
+              <div v-if="ioValidation.missing_count > 0" class="fidelity-section">
+                <button class="fidelity-toggle" @click="showMissing = !showMissing">
+                  <span>Agentes ausentes ({{ ioValidation.missing_count }})</span>
+                  <svg :class="{ 'is-expanded': showMissing }" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div v-show="showMissing" class="fidelity-list">
+                  <span v-for="aid in ioValidation.missing_agent_ids" :key="aid" class="fidelity-tag fidelity-missing">
+                    ID {{ aid }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="ioValidation.spurious_count > 0" class="fidelity-section">
+                <button class="fidelity-toggle" @click="showSpurious = !showSpurious">
+                  <span>Agentes espúrios ({{ ioValidation.spurious_count }})</span>
+                  <svg :class="{ 'is-expanded': showSpurious }" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div v-show="showSpurious" class="fidelity-list">
+                  <span v-for="aid in ioValidation.spurious_agent_ids" :key="aid" class="fidelity-tag fidelity-spurious">
+                    ID {{ aid }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <!-- No actions badge -->
             <div v-if="!dashboardLoading && dashboardStats.actions === 0" class="dashboard-badge">
               <span>Nenhuma ação registrada nesta simulação</span>
@@ -689,6 +743,9 @@ const timelineData = ref([])
 const timelineLoading = ref(false)
 const timelineViewMode = ref('round')
 const timelineLimit = ref(50)
+const ioValidation = ref(null)
+const showMissing = ref(false)
+const showSpurious = ref(false)
 
 // Helper Methods
 const isSectionCompleted = (sectionIndex) => {
@@ -1265,6 +1322,13 @@ const loadDashboardStats = async () => {
     }
     if (twitterRes.success && twitterRes.data) {
       posts += twitterRes.data.count || twitterRes.data.total || 0
+    }
+
+    // Parse io_validation from simulation response
+    if (simRes.success && simRes.data && simRes.data.io_validation) {
+      ioValidation.value = simRes.data.io_validation
+    } else {
+      ioValidation.value = null
     }
 
     if (agentRes.success && agentRes.data) {
@@ -3344,6 +3408,126 @@ watch(() => props.simulationId, (newId) => {
 
 .load-more-btn:hover {
   background: var(--color-surface-container-low);
+}
+
+/* Agent Fidelity Card */
+.fidelity-card {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--color-surface-container-low);
+  border-radius: 4px;
+  border: 1px solid var(--color-outline);
+}
+
+.fidelity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fidelity-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-on-background);
+  margin: 0;
+}
+
+.fidelity-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-yellow {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.fidelity-coverage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.coverage-label {
+  color: var(--color-muted);
+}
+
+.coverage-value {
+  font-weight: 700;
+  color: var(--color-on-background);
+}
+
+.fidelity-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+  cursor: help;
+}
+
+.fidelity-section {
+  margin-top: 8px;
+}
+
+.fidelity-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.fidelity-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.fidelity-toggle svg.is-expanded {
+  transform: rotate(180deg);
+}
+
+.fidelity-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.fidelity-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.fidelity-missing {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.fidelity-spurious {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 /* Top Agents */

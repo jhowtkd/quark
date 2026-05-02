@@ -88,7 +88,8 @@ def get_graph_entities(graph_id: str):
         result = reader.filter_defined_entities(
             graph_id=graph_id,
             defined_entity_types=entity_types,
-            enrich_with_edges=enrich
+            enrich_with_edges=enrich,
+            actor_only=True,
         )
         
         return jsonify({
@@ -424,7 +425,8 @@ def prepare_simulation():
             filtered_preview = reader.filter_defined_entities(
                 graph_id=state.graph_id,
                 defined_entity_types=entity_types_list,
-                enrich_with_edges=False  # 不获取边信息，加快速度
+                enrich_with_edges=False,  # 不获取边信息，加快速度
+                actor_only=True,
             )
             # 保存实体数量到状态（供前端立即获取）
             state.entities_count = filtered_preview.filtered_count
@@ -695,6 +697,12 @@ def get_simulation_status(simulation_id: str):
                 "config_generated": state.config_generated,
                 "error": state.error,
                 "profile": state.profile,
+                "io_validation": {
+                    "passed": state.io_validation_passed,
+                    "coverage_ratio": state.io_validation_details.get("coverage_ratio") if state.io_validation_details else None,
+                    "missing_count": state.io_validation_details.get("missing_count") if state.io_validation_details else None,
+                    "spurious_count": state.io_validation_details.get("spurious_count") if state.io_validation_details else None,
+                } if state.io_validation_details else None,
             }
         })
         
@@ -1206,7 +1214,8 @@ def generate_profiles():
         filtered = reader.filter_defined_entities(
             graph_id=graph_id,
             defined_entity_types=entity_types,
-            enrich_with_edges=True
+            enrich_with_edges=True,
+            actor_only=True,
         )
         
         if filtered.filtered_count == 0:

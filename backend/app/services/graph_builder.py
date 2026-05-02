@@ -20,6 +20,7 @@ from ..models.task import TaskManager, TaskStatus
 from ..utils.zep_paging import fetch_all_nodes, fetch_all_edges
 from .text_processor import TextProcessor
 from ..utils.locale import t, get_locale, set_locale
+from ..utils.entity_taxonomy import classify_actor_status, NON_ACTOR_ENTITY_TYPES
 
 
 RESERVED_ATTR_NAMES = {'uuid', 'name', 'group_id', 'name_embedding', 'summary', 'created_at'}
@@ -398,8 +399,8 @@ class GraphBuilderService:
             })
 
         except Exception as e:
-            import traceback
-            error_msg = f"{str(e)}\n{traceback.format_exc()}"
+            logger.exception(f"Graph build failed: {e}")
+            error_msg = str(e)
             self.task_manager.fail_task(task_id, error_msg)
 
     def build_graph_async(
@@ -567,8 +568,8 @@ class GraphBuilderService:
             })
             
         except Exception as e:
-            import traceback
-            error_msg = f"{str(e)}\n{traceback.format_exc()}"
+            logger.exception(f"Graph build failed: {e}")
+            error_msg = str(e)
             self.task_manager.fail_task(task_id, error_msg)
     
     def create_graph(self, name: str) -> str:
@@ -943,6 +944,48 @@ class GraphBuilderService:
             "edges": edges_data,
             "node_count": len(nodes_data),
             "edge_count": len(edges_data),
+        }
+    
+    def analyze_graph_actor_fidelity(self, graph_id: str) -> Dict[str, Any]:
+        """
+        Analisa a fidelidade do grafo em relacao a taxonomia Actor vs Non-Actor.
+        
+        Retorna contagem de atores, nao-atores, desconhecidos, exemplos de nao-atores
+        e o score de fidelidade (ator_count / total).
+        """
+        nodes = fetch_all_nodes(self.client, graph_id)
+        
+        actor_count = 0
+        non_actor_count = 0
+        unknown_count = 0
+        non_actor_examples: List[str] = []
+        
+        for node in nodes:
+            labels = node.labels or []
+            custom_labels = [l for l in labels if l not in ("Entity", "Node")]
+            entity_type = custom_labels[0] if custom_labels else "Entity"
+            
+            status = classify_actor_status(entity_type)
+            if status == "actor":
+                actor_count += 1
+            elif status == "non_actor":
+                non_actor_count += 1
+                if len(non_actor_examples) < 10:
+                    non_actor_examples.append(node.name or "")
+            else:
+                unknown_count += 1
+        
+        total = actor_count + non_actor_count + unknown_count
+        fidelity_score = actor_count / total if total > 0 else 0.0
+        
+        return {
+            "graph_id": graph_id,
+            "actor_count": actor_count,
+            "non_actor_count": non_actor_count,
+            "unknown_count": unknown_count,
+            "total": total,
+            "non_actor_examples": non_actor_examples,
+            "fidelity_score": round(fidelity_score, 2),
         }
     
     def delete_graph(self, graph_id: str):

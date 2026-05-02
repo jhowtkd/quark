@@ -42,6 +42,7 @@ class RunnerStatus(str, Enum):
     STOPPING = "stopping"
     STOPPED = "stopped"
     COMPLETED = "completed"
+    DEGRADED = "degraded"
     FAILED = "failed"
 
 
@@ -57,6 +58,7 @@ class AgentAction:
     action_args: Dict[str, Any] = field(default_factory=dict)
     result: Optional[str] = None
     success: bool = True
+    action_log: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -69,6 +71,7 @@ class AgentAction:
             "action_args": self.action_args,
             "result": self.result,
             "success": self.success,
+            "action_log": self.action_log,
         }
 
 
@@ -141,6 +144,10 @@ class SimulationRunState:
     # 错误信息
     error: Optional[str] = None
     
+    # 零动作原因（用于诊断）
+    twitter_zero_action_reason: Optional[str] = None
+    reddit_zero_action_reason: Optional[str] = None
+    
     # 进程ID（用于停止）
     process_pid: Optional[int] = None
     
@@ -157,9 +164,25 @@ class SimulationRunState:
         
         self.updated_at = datetime.now().isoformat()
     
+    def _canonical_status(self) -> str:
+        """将内部9个状态映射为5个标准状态（用于前后端一致性）"""
+        mapping = {
+            RunnerStatus.IDLE: "pending",
+            RunnerStatus.STARTING: "pending",
+            RunnerStatus.RUNNING: "running",
+            RunnerStatus.PAUSED: "running",
+            RunnerStatus.STOPPING: "running",
+            RunnerStatus.DEGRADED: "degraded",
+            RunnerStatus.COMPLETED: "completed",
+            RunnerStatus.FAILED: "failed",
+            RunnerStatus.STOPPED: "failed",
+        }
+        return mapping.get(self.runner_status, "pending")
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "simulation_id": self.simulation_id,
+            "status": self._canonical_status(),
             "runner_status": self.runner_status.value,
             "current_round": self.current_round,
             "total_rounds": self.total_rounds,
@@ -181,6 +204,8 @@ class SimulationRunState:
             "started_at": self.started_at,
             "updated_at": self.updated_at,
             "completed_at": self.completed_at,
+            "twitter_zero_action_reason": self.twitter_zero_action_reason,
+            "reddit_zero_action_reason": self.reddit_zero_action_reason,
             "error": self.error,
             "process_pid": self.process_pid,
         }
@@ -271,6 +296,8 @@ class SimulationRunner:
                 reddit_completed=data.get("reddit_completed", False),
                 twitter_actions_count=data.get("twitter_actions_count", 0),
                 reddit_actions_count=data.get("reddit_actions_count", 0),
+                twitter_zero_action_reason=data.get("twitter_zero_action_reason"),
+                reddit_zero_action_reason=data.get("reddit_zero_action_reason"),
                 started_at=data.get("started_at"),
                 updated_at=data.get("updated_at", datetime.now().isoformat()),
                 completed_at=data.get("completed_at"),
@@ -336,10 +363,14 @@ class SimulationRunner:
         Returns:
             SimulationRunState
         """
-        # 检查是否已在运行
-        existing = cls.get_run_state(simulation_id)
-        if existing and existing.runner_status in [RunnerStatus.RUNNING, RunnerStatus.STARTING]:
-            raise ValueError(f"模拟已在运行中: {simulation_id}")
+        # Acquire concurrency lock to prevent duplicate starts
+        from ..utils.concurrency import get_concurrency_guard
+        from ..utils.exceptions import SimulationAlreadyRunningError
+        guard = get_concurrency_guard()
+        if not guard.acquire_simulation_lock(simulation_id, operation="start_simulation", timeout=5.0):
+            raise SimulationAlreadyRunningError(
+                f"Simulacao {simulation_id} ja esta em execucao ou foi iniciada por outra requisicao. Aguarde a conclusao."
+            )
 
         # Create observability span before config validation so failures are traced too
         span = None
@@ -360,6 +391,11 @@ class SimulationRunner:
 
         state: Optional[SimulationRunState] = None
         try:
+            # 检查是否已在运行 (redundant but kept as safety net)
+            existing = cls.get_run_state(simulation_id)
+            if existing and existing.runner_status in [RunnerStatus.RUNNING, RunnerStatus.STARTING]:
+                raise SimulationAlreadyRunningError(f"Simulacao {simulation_id} ja esta em execucao.")
+
             # 加载模拟配置
             sim_dir = os.path.join(cls.RUN_STATE_DIR, simulation_id)
             config_path = os.path.join(sim_dir, "simulation_config.json")
@@ -511,6 +547,7 @@ class SimulationRunner:
                 span.update(status_message=str(e))
             raise
         finally:
+            guard.release_simulation_lock(simulation_id)
             if span is not None:
                 span.end()
     
@@ -561,9 +598,57 @@ class SimulationRunner:
             exit_code = process.returncode
             
             if exit_code == 0:
-                state.runner_status = RunnerStatus.COMPLETED
+                total_actions = state.twitter_actions_count + state.reddit_actions_count
+                if total_actions == 0:
+                    state.runner_status = RunnerStatus.FAILED
+                    state.error = "Simulacao concluida sem produzir nenhuma acao. Verifique configuracao de agentes e eventos iniciais."
+                    logger.error(f"Simulacao {simulation_id} falhou: zero acoes produzidas")
+                elif (state.twitter_actions_count == 0 and state.reddit_actions_count > 0) or \
+                     (state.reddit_actions_count == 0 and state.twitter_actions_count > 0):
+                    state.runner_status = RunnerStatus.DEGRADED
+                    state.error = "Simulacao parcial: uma plataforma nao produziu acoes."
+                    logger.warning(f"Simulacao {simulation_id} degradada: uma plataforma sem acoes")
+                else:
+                    state.runner_status = RunnerStatus.COMPLETED
+                    logger.info(f"模拟完成: {simulation_id}")
                 state.completed_at = datetime.now().isoformat()
-                logger.info(f"模拟完成: {simulation_id}")
+                state.simulated_hours = max(state.twitter_simulated_hours, state.reddit_simulated_hours)
+                if state.simulated_hours == 0 and state.total_simulation_hours > 0:
+                    state.simulated_hours = state.total_simulation_hours
+                
+                # Input-output validation
+                try:
+                    from .simulation_validation import SimulationInputOutputValidator
+                    from .simulation_config_generator import AgentActivityConfig
+                    
+                    config_path = os.path.join(sim_dir, "simulation_config.json")
+                    agent_configs = []
+                    if os.path.exists(config_path):
+                        with open(config_path, 'r', encoding='utf-8') as f:
+                            config_data = json.load(f)
+                        for cfg in config_data.get("agent_configs", []):
+                            agent_configs.append(AgentActivityConfig(**{k: v for k, v in cfg.items() if k in AgentActivityConfig.__dataclass_fields__}))
+                    
+                    all_actions = cls.get_all_actions(simulation_id)
+                    validator = SimulationInputOutputValidator()
+                    validation_result = validator.validate(agent_configs, all_actions)
+                    
+                    validation_path = os.path.join(sim_dir, "validation_io.json")
+                    with open(validation_path, 'w', encoding='utf-8') as f:
+                        json.dump(validation_result, f, ensure_ascii=False, indent=2)
+                    logger.info(f"Validacao IO persistida: {validation_path}")
+                    
+                    if not validation_result["passed"]:
+                        state.runner_status = RunnerStatus.DEGRADED
+                        missing = validation_result.get("missing_agent_ids", [])
+                        spurious = validation_result.get("spurious_agent_ids", [])
+                        logger.warning(
+                            f"Simulacao {simulation_id} degradada por validacao IO: "
+                            f"missing={missing}, spurious={spurious}, "
+                            f"coverage={validation_result.get('coverage_ratio')}"
+                        )
+                except Exception as e:
+                    logger.warning(f"Falha na validacao IO pos-simulacao: {e}")
             else:
                 state.runner_status = RunnerStatus.FAILED
                 # 从主日志文件读取错误信息
@@ -573,8 +658,8 @@ class SimulationRunner:
                     if os.path.exists(main_log_path):
                         with open(main_log_path, 'r', encoding='utf-8') as f:
                             error_info = f.read()[-2000:]  # 取最后2000字符
-                except Exception:
-                    pass
+                except (OSError, IOError) as e:
+                    logger.warning(f"Nao foi possivel ler simulation.log: {e}")
                 state.error = f"进程退出码: {exit_code}, 错误: {error_info}"
                 logger.error(f"模拟失败: {simulation_id}, error={state.error}")
             
@@ -606,14 +691,14 @@ class SimulationRunner:
             if simulation_id in cls._stdout_files:
                 try:
                     cls._stdout_files[simulation_id].close()
-                except Exception:
-                    pass
+                except (OSError, IOError) as e:
+                    logger.debug(f"Falha ao fechar arquivo de log: {e}")
                 cls._stdout_files.pop(simulation_id, None)
             if simulation_id in cls._stderr_files and cls._stderr_files[simulation_id]:
                 try:
                     cls._stderr_files[simulation_id].close()
-                except Exception:
-                    pass
+                except (OSError, IOError) as e:
+                    logger.debug(f"Falha ao fechar arquivo de log: {e}")
                 cls._stderr_files.pop(simulation_id, None)
     
     @classmethod
@@ -657,14 +742,19 @@ class SimulationRunner:
                                 
                                 # 检测 simulation_end 事件，标记平台已完成
                                 if event_type == "simulation_end":
+                                    total_actions_event = action_data.get("total_actions", 0)
                                     if platform == "twitter":
                                         state.twitter_completed = True
                                         state.twitter_running = False
-                                        logger.info(f"Twitter 模拟已完成: {state.simulation_id}, total_rounds={action_data.get('total_rounds')}, total_actions={action_data.get('total_actions')}")
+                                        if total_actions_event == 0:
+                                            state.twitter_zero_action_reason = "Nenhuma acao registrada no log da plataforma"
+                                        logger.info(f"Twitter 模拟已完成: {state.simulation_id}, total_rounds={action_data.get('total_rounds')}, total_actions={total_actions_event}")
                                     elif platform == "reddit":
                                         state.reddit_completed = True
                                         state.reddit_running = False
-                                        logger.info(f"Reddit 模拟已完成: {state.simulation_id}, total_rounds={action_data.get('total_rounds')}, total_actions={action_data.get('total_actions')}")
+                                        if total_actions_event == 0:
+                                            state.reddit_zero_action_reason = "Nenhuma acao registrada no log da plataforma"
+                                        logger.info(f"Reddit 模拟已完成: {state.simulation_id}, total_rounds={action_data.get('total_rounds')}, total_actions={total_actions_event}")
                                     
                                     # 检查是否所有启用的平台都已完成
                                     # 如果只运行了一个平台，只检查那个平台
@@ -708,6 +798,7 @@ class SimulationRunner:
                                 action_args=action_data.get("action_args", {}),
                                 result=action_data.get("result"),
                                 success=action_data.get("success", True),
+                                action_log=action_data.get("action_log") or action_data.get("error"),
                             )
                             state.add_action(action)
                             
@@ -857,8 +948,12 @@ class SimulationRunner:
                     try:
                         process.terminate()
                         process.wait(timeout=5)
-                    except Exception:
-                        process.kill()
+                    except (ProcessLookupError, OSError) as e:
+                        logger.warning(f"Processo ja encerrado ou inacessivel: {e}")
+                        try:
+                            process.kill()
+                        except (ProcessLookupError, OSError) as kill_err:
+                            logger.warning(f"Falha ao forcar kill do processo: {kill_err}")
             
             state.runner_status = RunnerStatus.STOPPED
             state.twitter_running = False
@@ -1295,8 +1390,12 @@ class SimulationRunner:
                         try:
                             process.terminate()
                             process.wait(timeout=3)
-                        except Exception:
-                            process.kill()
+                        except (ProcessLookupError, OSError) as e:
+                            logger.warning(f"Processo ja encerrado ou inacessivel: {e}")
+                            try:
+                                process.kill()
+                            except (ProcessLookupError, OSError) as kill_err:
+                                logger.warning(f"Falha ao forcar kill do processo: {kill_err}")
                     
                     # 更新 run_state.json
                     state = cls.get_run_state(simulation_id)
@@ -1334,16 +1433,16 @@ class SimulationRunner:
             try:
                 if file_handle:
                     file_handle.close()
-            except Exception:
-                pass
+            except (OSError, IOError) as e:
+                logger.debug(f"Falha ao fechar handle durante cleanup: {e}")
         cls._stdout_files.clear()
         
         for simulation_id, file_handle in list(cls._stderr_files.items()):
             try:
                 if file_handle:
                     file_handle.close()
-            except Exception:
-                pass
+            except (OSError, IOError) as e:
+                logger.debug(f"Falha ao fechar handle durante cleanup: {e}")
         cls._stderr_files.clear()
         
         # 清理内存中的状态

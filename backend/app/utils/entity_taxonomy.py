@@ -3,7 +3,91 @@ Catálogo ontologico expandido de tipos de entidade.
 Mapeia dominios, keywords heuristicas e aliases para inferencia de tipo.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Literal
+
+# ---------------------------------------------------------------------------
+# Taxonomia Actor vs Non-Actor
+# ---------------------------------------------------------------------------
+
+ACTOR_ENTITY_TYPES: frozenset[str] = frozenset({
+    "Person",
+    "Student",
+    "Professor",
+    "Expert",
+    "PublicFigure",
+    "Official",
+    "Journalist",
+    "Celebrity",
+    "Executive",
+    "Lawyer",
+    "Doctor",
+    "Organization",
+    "University",
+    "Company",
+    "GovernmentAgency",
+    "MediaOutlet",
+    "Hospital",
+    "School",
+    "NGO",
+    "SocialMediaPlatform",
+})
+
+NON_ACTOR_ENTITY_TYPES: frozenset[str] = frozenset({
+    "Concept",
+    "Event",
+    "Location",
+    "Technology",
+    "Product",
+    "Artefact",
+})
+
+ENTITY_TYPE_DESCRIPTIONS: Dict[str, str] = {
+    # Atores sociais
+    "Person": "Individuo capaz de expressar opiniao e interagir em redes sociais.",
+    "Student": "Ator social ativo em comunidades academicas e plataformas digitais.",
+    "Professor": "Ator social com voz em debates academicos e midia.",
+    "Expert": "Ator social que participa de discussoes publicas como especialista.",
+    "PublicFigure": "Ator social com alta visibilidade e capacidade de influencia.",
+    "Official": "Representante de governo ou instituicao com voz oficial.",
+    "Journalist": "Ator social que produz e dissemina conteudo na midia.",
+    "Celebrity": "Figura publica com grande alcance em redes sociais.",
+    "Executive": "Lider empresarial com voz em debates de negocios.",
+    "Lawyer": "Profissional do direito que participa de discussoes juridicas.",
+    "Doctor": "Profissional de saude com voz em debates de saude publica.",
+    "Organization": "Entidade coletiva que pode atuar como agente institutional.",
+    "University": "Instituicao de ensino com presenca e voz em redes sociais.",
+    "Company": "Empresa com capacidade de comunicacao institutional.",
+    "GovernmentAgency": "Orgao governamental com voz oficial.",
+    "MediaOutlet": "Veiculo de comunicacao com capacidade de disseminar informacao.",
+    "Hospital": "Instituicao de saude com presenca publica e voz institucional.",
+    "School": "Instituicao educacional com presenca em comunidades.",
+    "NGO": "Organizacao nao-governamental com voz em causas sociais.",
+    "SocialMediaPlatform": "Plataforma digital como ator do ecossistema de informacao.",
+    # Nao-atores
+    "Concept": "Entidade abstrata; nao possui voz propria em rede social.",
+    "Event": "Ocorrencia temporal; nao pode postar ou interagir.",
+    "Location": "Lugar geografico; deve ser modelado como atributo de um ator.",
+    "Technology": "Ferramenta ou sistema; nao tem agency social.",
+    "Product": "Bem ou servico; nao e agente de simulacao social.",
+    "Artefact": "Objeto material ou documento; nao participa de interacoes sociais.",
+}
+
+
+def classify_actor_status(entity_type: str) -> Literal["actor", "non_actor", "unknown"]:
+    """Classifica um tipo de entidade como ator, nao-ator ou desconhecido."""
+    if not entity_type:
+        return "unknown"
+    resolved = resolve_entity_type(entity_type)
+    if resolved in ACTOR_ENTITY_TYPES:
+        return "actor"
+    if resolved in NON_ACTOR_ENTITY_TYPES:
+        return "non_actor"
+    return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Catalogo ontologico expandido
+# ---------------------------------------------------------------------------
 
 ENTITY_TYPE_CATALOG: Dict[str, List[str]] = {
     "Health": [
