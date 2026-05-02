@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from collections import Counter
 
 from ..config import Config
 from ..utils.logger import get_logger
@@ -67,6 +68,7 @@ class SimulationState:
     current_round: int = 0
     twitter_status: str = "not_started"
     reddit_status: str = "not_started"
+    degraded_mode: bool = False
     
     # 时间戳
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -77,6 +79,12 @@ class SimulationState:
     
     # 用户资料档案 (perfil de analise, opcional)
     profile: str = "generico"
+    
+    # 实体类型质量指标
+    unknown_entity_count: int = 0
+    resolved_entity_count: int = 0
+    entity_type_distribution: Dict[str, int] = field(default_factory=dict)
+    quality_flags: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
         """完整状态字典（内部使用）"""
@@ -95,10 +103,15 @@ class SimulationState:
             "current_round": self.current_round,
             "twitter_status": self.twitter_status,
             "reddit_status": self.reddit_status,
+            "degraded_mode": self.degraded_mode,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "error": self.error,
             "profile": self.profile,
+            "unknown_entity_count": self.unknown_entity_count,
+            "resolved_entity_count": self.resolved_entity_count,
+            "entity_type_distribution": self.entity_type_distribution,
+            "quality_flags": self.quality_flags,
         }
     
     def to_simple_dict(self) -> Dict[str, Any]:
@@ -114,6 +127,9 @@ class SimulationState:
             "config_generated": self.config_generated,
             "error": self.error,
             "profile": self.profile,
+            "unknown_entity_count": self.unknown_entity_count,
+            "resolved_entity_count": self.resolved_entity_count,
+            "quality_flags": self.quality_flags,
         }
 
 
@@ -199,10 +215,15 @@ class SimulationManager:
             current_round=data.get("current_round", 0),
             twitter_status=data.get("twitter_status", "not_started"),
             reddit_status=data.get("reddit_status", "not_started"),
+            degraded_mode=data.get("degraded_mode", False),
             created_at=data.get("created_at", datetime.now().isoformat()),
             updated_at=data.get("updated_at", datetime.now().isoformat()),
             error=data.get("error"),
             profile=data.get("profile", "generico"),
+            unknown_entity_count=data.get("unknown_entity_count", 0),
+            resolved_entity_count=data.get("resolved_entity_count", 0),
+            entity_type_distribution=data.get("entity_type_distribution", {}),
+            quality_flags=data.get("quality_flags", []),
         )
         
         self._simulations[simulation_id] = state
@@ -286,220 +307,43 @@ class SimulationManager:
         observation: Any = None,
     ) -> SimulationState:
         """
-        准备模拟环境（全程自动化）
-
-        步骤：
-        1. 从Zep图谱读取并过滤实体
-        2. 为每个实体生成OASIS Agent Profile（可选LLM增强，支持并行）
-        3. 使用LLM智能生成模拟配置参数（时间、活跃度、发言频率等）
-        4. 保存配置文件和Profile文件
-        5. 复制预设脚本到模拟目录
-
-        Args:
-            simulation_id: 模拟ID
-            simulation_requirement: 模拟需求描述（用于LLM生成配置）
-            document_text: 原始文档内容（用于LLM理解背景）
-            defined_entity_types: 预定义的实体类型（可选）
-            use_llm_for_profiles: 是否使用LLM生成详细人设
-            progress_callback: 进度回调函数 (stage, progress, message)
-            parallel_profile_count: 并行生成人设的数量，默认3
-            observation: Observability span for tracing
-
-        Returns:
-            SimulationState
+        准备模拟环境（全程自动化）— delegates to OasisPreparationService.
         """
+        from .oasis_preparation_service import OasisPreparationService
+
         state = self._load_simulation_state(simulation_id)
         if not state:
             raise ValueError(f"模拟不存在: {simulation_id}")
-        
+
         try:
             state.status = SimulationStatus.PREPARING
             self._save_simulation_state(state)
-            
+
+            from .graph_backend import GraphBackendFactory
+            graph_backend = GraphBackendFactory.create()
+            state.degraded_mode = graph_backend.is_degraded()
+
             sim_dir = self._get_simulation_dir(simulation_id)
-            
-            # ========== 阶段1: 读取并过滤实体 ==========
-            if progress_callback:
-                progress_callback("reading", 0, t('progress.connectingZepGraph'))
-            
-            reader = ZepEntityReader()
-            
-            if progress_callback:
-                progress_callback("reading", 30, t('progress.readingNodeData'))
-            
-            filtered = reader.filter_defined_entities(
-                graph_id=state.graph_id,
-                defined_entity_types=defined_entity_types,
-                enrich_with_edges=True
-            )
-            
-            state.entities_count = filtered.filtered_count
-            state.entity_types = list(filtered.entity_types)
-            
-            if progress_callback:
-                progress_callback(
-                    "reading", 100,
-                    t('progress.readingComplete', count=filtered.filtered_count),
-                    current=filtered.filtered_count,
-                    total=filtered.filtered_count
-                )
-            
-            if filtered.filtered_count == 0:
-                state.status = SimulationStatus.FAILED
-                state.error = "没有找到符合条件的实体，请检查图谱是否正确构建"
-                self._save_simulation_state(state)
-                return state
-            
-            # ========== 阶段2: 生成Agent Profile ==========
-            total_entities = len(filtered.entities)
-            
-            if progress_callback:
-                progress_callback(
-                    "generating_profiles", 0,
-                    t('progress.startGenerating'),
-                    current=0,
-                    total=total_entities
-                )
-            
-            # 传入graph_id以启用Zep检索功能，获取更丰富的上下文
-            generator = OasisProfileGenerator(graph_id=state.graph_id)
-            
-            def profile_progress(current, total, msg):
-                if progress_callback:
-                    progress_callback(
-                        "generating_profiles", 
-                        int(current / total * 100), 
-                        msg,
-                        current=current,
-                        total=total,
-                        item_name=msg
-                    )
-            
-            # 设置实时保存的文件路径（优先使用 Reddit JSON 格式）
-            realtime_output_path = None
-            realtime_platform = "reddit"
-            if state.enable_reddit:
-                realtime_output_path = os.path.join(sim_dir, "reddit_profiles.json")
-                realtime_platform = "reddit"
-            elif state.enable_twitter:
-                realtime_output_path = os.path.join(sim_dir, "twitter_profiles.csv")
-                realtime_platform = "twitter"
-            
-            profiles = generator.generate_profiles_from_entities(
-                entities=filtered.entities,
-                use_llm=use_llm_for_profiles,
-                progress_callback=profile_progress,
-                graph_id=state.graph_id,  # 传入graph_id用于Zep检索
-                parallel_count=parallel_profile_count,  # 并行生成数量
-                realtime_output_path=realtime_output_path,  # 实时保存路径
-                output_platform=realtime_platform  # 输出格式
-            )
-            
-            state.profiles_count = len(profiles)
-            
-            # 保存Profile文件（注意：Twitter使用CSV格式，Reddit使用JSON格式）
-            # Reddit 已经在生成过程中实时保存了，这里再保存一次确保完整性
-            if progress_callback:
-                progress_callback(
-                    "generating_profiles", 95,
-                    t('progress.savingProfiles'),
-                    current=total_entities,
-                    total=total_entities
-                )
-            
-            if state.enable_reddit:
-                generator.save_profiles(
-                    profiles=profiles,
-                    file_path=os.path.join(sim_dir, "reddit_profiles.json"),
-                    platform="reddit"
-                )
-            
-            if state.enable_twitter:
-                # Twitter使用CSV格式！这是OASIS的要求
-                generator.save_profiles(
-                    profiles=profiles,
-                    file_path=os.path.join(sim_dir, "twitter_profiles.csv"),
-                    platform="twitter"
-                )
-            
-            if progress_callback:
-                progress_callback(
-                    "generating_profiles", 100,
-                    t('progress.profilesComplete', count=len(profiles)),
-                    current=len(profiles),
-                    total=len(profiles)
-                )
-            
-            # ========== 阶段3: LLM智能生成模拟配置 ==========
-            if progress_callback:
-                progress_callback(
-                    "generating_config", 0,
-                    t('progress.analyzingRequirements'),
-                    current=0,
-                    total=3
-                )
-            
-            config_generator = SimulationConfigGenerator()
-            
-            if progress_callback:
-                progress_callback(
-                    "generating_config", 30,
-                    t('progress.callingLLMConfig'),
-                    current=1,
-                    total=3
-                )
-            
-            sim_params = config_generator.generate_config(
+            prep_service = OasisPreparationService()
+            state = prep_service.prepare(
                 simulation_id=simulation_id,
-                project_id=state.project_id,
-                graph_id=state.graph_id,
                 simulation_requirement=simulation_requirement,
                 document_text=document_text,
-                entities=filtered.entities,
-                enable_twitter=state.enable_twitter,
-                enable_reddit=state.enable_reddit
+                state=state,
+                sim_dir=sim_dir,
+                defined_entity_types=defined_entity_types,
+                use_llm_for_profiles=use_llm_for_profiles,
+                progress_callback=progress_callback,
+                parallel_profile_count=parallel_profile_count,
             )
-            
-            if progress_callback:
-                progress_callback(
-                    "generating_config", 70,
-                    t('progress.savingConfigFiles'),
-                    current=2,
-                    total=3
-                )
-            
-            # 保存配置文件
-            config_path = os.path.join(sim_dir, "simulation_config.json")
-            with open(config_path, 'w', encoding='utf-8') as f:
-                f.write(sim_params.to_json())
-            
-            state.config_generated = True
-            state.config_reasoning = sim_params.generation_reasoning
-            
-            if progress_callback:
-                progress_callback(
-                    "generating_config", 100,
-                    t('progress.configComplete'),
-                    current=3,
-                    total=3
-                )
-            
-            # 注意：运行脚本保留在 backend/scripts/ 目录，不再复制到模拟目录
-            # 启动模拟时，simulation_runner 会从 scripts/ 目录运行脚本
-            
-            # 更新状态
-            state.status = SimulationStatus.READY
+
             self._save_simulation_state(state)
-            
             logger.info(f"模拟准备完成: {simulation_id}, "
                        f"entities={state.entities_count}, profiles={state.profiles_count}")
-            
             return state
-            
+
         except Exception as e:
-            logger.error(f"模拟准备失败: {simulation_id}, error={str(e)}")
-            import traceback
-            logger.error(traceback.format_exc())
+            logger.exception(f"Simulation manager error: {simulation_id}, error={e}")
             state.status = SimulationStatus.FAILED
             state.error = str(e)
             self._save_simulation_state(state)

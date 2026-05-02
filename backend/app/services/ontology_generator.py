@@ -9,6 +9,7 @@ import re
 from typing import Dict, Any, List, Optional
 from ..utils.llm_client import LLMClient
 from ..utils.locale import get_language_instruction
+from ..utils.entity_taxonomy import ENTITY_TYPE_CATALOG
 
 logger = logging.getLogger(__name__)
 
@@ -131,27 +132,28 @@ B. **具体类型（8个，根据文本内容设计）**：
 
 ## 实体类型参考
 
-**个人类（具体）**：
-- Student: 学生
-- Professor: 教授/学者
-- Journalist: 记者
-- Celebrity: 明星/网红
-- Executive: 高管
-- Official: 政府官员
-- Lawyer: 律师
-- Doctor: 医生
+以下类型来自项目的实体类型目录，请在设计时优先从中选择：
+
+**健康（Health）**：
+- Hospital, Doctor, Patient, PharmaceuticalCompany, MedicalResearcher, HealthAgency, MedicalDevice, Nurse
+
+**营销（Marketing）**：
+- Brand, Influencer, AdvertisingAgency, Consumer, MediaPlatform, MarketingCampaign, Product, MarketAnalyst
+
+**法律（Law）**：
+- LawFirm, Judge, Lawyer, Court, LegalOrganization, Legislation, RegulatoryAgency, Prosecutor
+
+**经济（Economy）**：
+- Bank, Company, Investor, StockExchange, Startup, Entrepreneur, FinancialAnalyst, Corporation
+
+**地缘政治（Geopolitics）**：
+- GovernmentAgency, PublicFigure, PoliticalParty, Country, MilitaryOrganization, Diplomat, NGO, InternationalOrganization
+
+**通用（General）**：
+- Person, Organization, University, MediaOutlet, Expert, Student, Event, Location, Technology, Concept
 
 **个人类（兜底）**：
 - Person: 任何自然人（不属于上述具体类型时使用）
-
-**组织类（具体）**：
-- University: 高校
-- Company: 公司企业
-- GovernmentAgency: 政府机构
-- MediaOutlet: 媒体机构
-- Hospital: 医院
-- School: 中小学
-- NGO: 非政府组织
 
 **组织类（兜底）**：
 - Organization: 任何组织机构（不属于上述具体类型时使用）

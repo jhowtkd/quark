@@ -12,6 +12,14 @@ from zep_cloud.client import Zep
 from ..config import Config
 from ..utils.logger import get_logger
 from ..utils.zep_paging import fetch_all_nodes, fetch_all_edges
+from ..utils.exceptions import ZepUnavailableError
+from ..utils.entity_taxonomy import (
+    ENTITY_KEYWORD_MAP,
+    ENTITY_TYPE_ALIASES,
+    infer_entity_type_from_text,
+    infer_entity_type_second_pass,
+    resolve_entity_type,
+)
 
 logger = get_logger('futuria.zep_entity_reader')
 
@@ -49,41 +57,6 @@ def _contains_forbidden_script(text: str, forbidden_scripts: List[str] = None) -
     return False
 
 
-def _infer_entity_type_from_context(name: str, summary: str, labels: List[str]) -> Optional[str]:
-    """
-    Inferencia heuristica de tipo de entidade baseada em nome e summary.
-    Usada quando Zep retorna apenas labels genericas ("Entity", "Node").
-
-    Args:
-        name: Nome da entidade
-        summary: Resumo da entidade
-        labels: Labels existentes
-
-    Returns:
-        Tipo inferido ou None
-    """
-    text = f"{name} {summary}".lower()
-
-    # Heuristicas baseadas em palavras-chave
-    keywords_map = {
-        "GovernmentAgency": ["ministerio", "secretaria", "agencia", "orgao", "tribunal", "camara", "senado", "prefeitura", "governo", "instituto", "federal", "estadual"],
-        "PublicFigure": ["politico", "deputado", "senador", "prefeito", "presidente", "vereador", "ministro", "governador", "candidato", "eleito", "lider", "ativista", "jornalista"],
-        "Expert": ["professor", "pesquisador", "cientista", "medico", "economista", "advogado", "doutor", "phd", "especialista", "consultor", "analista", "engenheiro"],
-        "Organization": ["empresa", "instituicao", "fundacao", "associacao", "cooperativa", "sociedade", "ong", "startup", "corporacao", "grupo", "holdings"],
-        "MediaOutlet": ["jornal", "revista", "portal", "tv", "radio", "blog", "site", "midia", "imprensa", "emissora", "canal", "publicacao"],
-        "Student": ["aluno", "estudante", "graduacao", "mestrado", "doutorado", "universitario", "escola", "faculdade"],
-        "University": ["universidade", "faculdade", "instituto federal", "escola tecnica", "centro universitario"],
-    }
-
-    for entity_type, keywords in keywords_map.items():
-        for kw in keywords:
-            if kw in text:
-                return entity_type
-
-    return None
-
-
-# 用于泛型返回类型
 T = TypeVar('T')
 
 
@@ -126,6 +99,7 @@ class FilteredEntities:
     entity_types: Set[str]
     total_count: int
     filtered_count: int
+    unknown_entity_count: int = 0
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -133,6 +107,7 @@ class FilteredEntities:
             "entity_types": list(self.entity_types),
             "total_count": self.total_count,
             "filtered_count": self.filtered_count,
+            "unknown_entity_count": self.unknown_entity_count,
         }
 
 
@@ -180,6 +155,11 @@ class ZepEntityReader:
                 return func()
             except Exception as e:
                 last_exception = e
+                err_str = str(e).lower()
+                is_connectivity = any(
+                    kw in err_str
+                    for kw in ("timeout", "connection", "refused", "dns", "unreachable", "503", "502", "504")
+                )
                 if attempt < max_retries - 1:
                     logger.warning(
                         f"Zep {operation_name} 第 {attempt + 1} 次尝试失败: {str(e)[:100]}, "
@@ -189,6 +169,8 @@ class ZepEntityReader:
                     delay *= 2  # 指数退避
                 else:
                     logger.error(f"Zep {operation_name} 在 {max_retries} 次尝试后仍失败: {str(e)}")
+                    if is_connectivity:
+                        raise ZepUnavailableError(f"Zep indisponivel em {operation_name}: {str(e)}") from e
         
         raise last_exception
     
@@ -303,42 +285,9 @@ class ZepEntityReader:
     def _infer_entity_type_from_context(self, name: str, summary: str) -> str:
         """
         Infere o tipo de entidade a partir do nome e summary usando heurística.
+        Usa ENTITY_KEYWORD_MAP como fonte unica de heuristicas.
         """
-        text = (name + " " + summary).lower()
-        heuristics = {
-            "Person": ["professor", "doutor", "dr.", "médico", "engenheiro", "advogado",
-                      "pesquisador", "cientista", "jornalista", "autor", "artista",
-                      "presidente", "ministro", "deputado", "senador", "governador",
-                      "ceo", "diretor", "fundador", "fundadora", "nascido", "nascida"],
-            "Organization": ["empresa", "instituição", "universidade", "hospital",
-                           "banco", "consultoria", "startup", "fundação", "instituto",
-                           "associação", "cooperativa", "multinacional", "holding",
-                           "s/a", "ltda", "mei", "ong"],
-            "Event": ["eleição", "cop", "olimpíada", "conferência", "cimeira",
-                     "guerra", "crise", "pandemia", "recessão", "boom", "colapso",
-                     "inauguração", "lançamento", "merger", "aquisição", "ipo"],
-            "Location": ["brasil", "estados unidos", "china", "europa", "áfrica",
-                        "são paulo", "rio de janeiro", "brasília", "curitiba",
-                        "continente", "país", "estado", "cidade", "região"],
-            "Technology": ["algoritmo", "plataforma", "software", "hardware",
-                          "inteligência artificial", "ia", "machine learning",
-                          "blockchain", "app", "aplicativo", "sistema", "api",
-                          "protocolo", "framework", "banco de dados"],
-            "Product": ["medicamento", "vacina", "dispositivo", "equipamento",
-                       "veículo", "smartphone", "computador", "drug", "remédio",
-                       "suplemento", "aparelho", "instrumento", "ferramenta"],
-            "Concept": ["teoria", "modelo", "hipótese", "paradigma", "framework",
-                       "índice", "métrica", "indicador", "variável", "taxa",
-                       "inflação", "pib", "desemprego", "juros", "dólar"],
-        }
-        scores = {}
-        for entity_type, keywords in heuristics.items():
-            score = sum(1 for kw in keywords if kw.lower() in text)
-            if score > 0:
-                scores[entity_type] = score
-        if scores:
-            return max(scores, key=scores.get)
-        return "Entity"
+        return infer_entity_type_from_text(name + " " + summary)
 
     def filter_defined_entities(
         self, 
@@ -377,6 +326,7 @@ class ZepEntityReader:
         # 筛选符合条件的实体
         filtered_entities = []
         entity_types_found = set()
+        unknown_entity_count = 0
         
         for node in all_nodes:
             labels = node.get("labels", [])
@@ -393,6 +343,8 @@ class ZepEntityReader:
             if not custom_labels:
                 # 只有默认标签，推断类型而不是跳过
                 inferred_type = self._infer_entity_type_from_context(node.get("name", ""), node.get("summary", ""))
+                # Normalizar via aliases
+                inferred_type = resolve_entity_type(inferred_type)
                 custom_labels = [inferred_type]
                 logger.debug(f"推断实体类型: '{node.get('name', '')[:50]}' -> {inferred_type}")
             
@@ -405,13 +357,45 @@ class ZepEntityReader:
             else:
                 entity_type = custom_labels[0]
             
+            # Normalizar tipo via aliases
+            entity_type = resolve_entity_type(entity_type)
+            
+            # Segunda passada para tipos genericos
+            if entity_type in ("Entity", "Unknown"):
+                second_pass_type = infer_entity_type_second_pass(node.get("name", ""), node.get("summary", ""))
+                second_pass_type = resolve_entity_type(second_pass_type)
+                if second_pass_type not in ("Entity", "Unknown"):
+                    entity_type = second_pass_type
+                    custom_labels = [entity_type]
+                    logger.debug(f"Segunda passada inferiu: '{node.get('name', '')[:50]}' -> {entity_type}")
+            
+            # Rejeitar nos com tipo ainda generico apos segunda passada
+            if entity_type in ("Entity", "Unknown"):
+                unknown_entity_count += 1
+                logger.warning("Entity dropped: type unresolved after inference")
+                continue
+            
             entity_types_found.add(entity_type)
+            
+            # Atualizar labels do no para refletir o tipo inferido/canonico
+            if any(l not in ("Entity", "Node") for l in labels):
+                # Substituir o primeiro label customizado pelo tipo canonico
+                updated_labels = []
+                replaced = False
+                for l in labels:
+                    if l not in ("Entity", "Node") and not replaced:
+                        updated_labels.append(entity_type)
+                        replaced = True
+                    else:
+                        updated_labels.append(l)
+            else:
+                updated_labels = labels + [entity_type]
             
             # 创建实体节点对象
             entity = EntityNode(
                 uuid=node["uuid"],
                 name=node["name"],
-                labels=labels,
+                labels=updated_labels,
                 summary=node["summary"],
                 attributes=node["attributes"],
             )
@@ -465,6 +449,7 @@ class ZepEntityReader:
             entity_types=entity_types_found,
             total_count=total_count,
             filtered_count=len(filtered_entities),
+            unknown_entity_count=unknown_entity_count,
         )
     
     def get_entity_with_context(
