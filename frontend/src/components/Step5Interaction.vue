@@ -125,6 +125,18 @@
             </svg>
             <span>{{ $t('step5.dashboard.surveyTab') }}</span>
           </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'explore' }"
+            @click="selectDashboardTab('explore')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <span>{{ $t('step5.dashboard.exploreTab') }}</span>
+          </button>
         </div>
 
         <!-- Unified Action Bar - Professional Design -->
@@ -498,6 +510,11 @@
           </div>
         </div>
 
+        <!-- Explore Mode -->
+        <div v-if="dashboardTab === 'explore'" class="explore-container">
+          <ActionExplorer :simulationId="props.simulationId" />
+        </div>
+
         <!-- Survey Mode -->
         <div v-if="dashboardTab !== 'overview' && activeTab === 'survey'" class="survey-container">
           <!-- Survey Setup -->
@@ -602,6 +619,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { chatWithReport, getReport, getAgentLog } from '../api/report'
 import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts } from '../api/simulation'
+import ActionExplorer from './ActionExplorer.vue'
 import { detectContamination, sanitizeContent, validateChatHistory } from '../utils/payloadValidator'
 
 const { t } = useI18n()
@@ -1323,6 +1341,8 @@ const selectDashboardTab = (tab) => {
     showAgentDropdown.value = false
   } else if (tab === 'survey') {
     activeTab.value = 'survey'
+    showAgentDropdown.value = false
+  } else if (tab === 'explore') {
     showAgentDropdown.value = false
   }
 }
@@ -2574,6 +2594,13 @@ watch(() => props.simulationId, (newId) => {
 }
 
 /* Survey Container */
+.explore-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .survey-container {
   flex: 1;
   display: flex;

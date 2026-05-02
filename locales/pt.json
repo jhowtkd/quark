@@ -348,6 +348,7 @@
             "overviewTab": "Visão Geral",
             "chatTab": "Chat",
             "surveyTab": "Pesquisa",
+            "exploreTab": "Explorar",
             "agents": "Agentes",
             "rounds": "Rounds",
             "actions": "Ações",
@@ -398,6 +399,41 @@
         "senderYou": "Você",
         "senderReportAgent": "Agente Repórter",
         "senderAgent": "Agente"
+    },
+    "explorer": {
+        "title": "Explorar Ações",
+        "searchPlaceholder": "Buscar em posts e comentários...",
+        "filterAgent": "Agente",
+        "filterPlatform": "Plataforma",
+        "filterActionType": "Tipo de ação",
+        "filterRound": "Round",
+        "filterSuccess": "Sucesso",
+        "clearFilters": "Limpar filtros",
+        "resultsCount": "{count} ações encontradas",
+        "colRound": "Round",
+        "colTime": "Hora",
+        "colAgent": "Agente",
+        "colPlatform": "Plataforma",
+        "colAction": "Ação",
+        "colContent": "Conteúdo",
+        "colSuccess": "Sucesso",
+        "prevPage": "Anterior",
+        "nextPage": "Próxima",
+        "pageInfo": "Página {page} de {total} ({count} ações)",
+        "all": "Todos",
+        "success": "Sucesso",
+        "failure": "Falha",
+        "noData": "Nenhuma ação encontrada com os filtros atuais."
+    },
+    "actions": {
+        "types": {
+            "CREATE_POST": "Criar post",
+            "LIKE_POST": "Curtir",
+            "QUOTE_POST": "Citar",
+            "REPOST_POST": "Repostar",
+            "CREATE_COMMENT": "Comentar",
+            "FOLLOW": "Seguir"
+        }
     },
     "graph": {
         "panelTitle": "Visualização Topográfica do Grafo",
