@@ -344,6 +344,24 @@
         }
     },
     "step5": {
+        "dashboard": {
+            "overviewTab": "Visão Geral",
+            "chatTab": "Chat",
+            "surveyTab": "Pesquisa",
+            "agents": "Agentes",
+            "rounds": "Rounds",
+            "actions": "Ações",
+            "posts": "Posts",
+            "likes": "Likes",
+            "quotes": "Quotes",
+            "noSimulation": "Selecione uma simulação para visualizar o dashboard.",
+            "noTimelineData": "Nenhum dado de timeline disponível.",
+            "loadMore": "Carregar mais",
+            "byRound": "Por Round",
+            "byHour": "Por Hora",
+            "topAgents": "Agentes mais ativos",
+            "viewAll": "Ver todos"
+        },
         "interactiveTools": "Ferramentas de Interação",
         "agentsAvailable": "{count} ativos em jogo",
         "chatWithReportAgent": "Dialogar c/ Agente Repórter",
