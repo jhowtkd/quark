@@ -21,6 +21,24 @@
         <div v-if="reportOutline" class="report-content-wrapper">
           <!-- Report Header -->
           <div class="report-header-block">
+            <!-- Quality Indicator -->
+            <div class="report-quality-indicator">
+              <div class="quality-score">
+                <span class="quality-label">{{ $t('step4.qualityIndicator.title') }}</span>
+                <span class="quality-value">{{ qualityScore }}%</span>
+              </div>
+              <div class="quality-badges">
+                <span v-if="contaminatedSections.size > 0" class="badge badge--warning">
+                  {{ $t('step4.qualityIndicator.contaminated', { count: contaminatedSections.size }) }}
+                </span>
+                <span v-if="failedSections.size > 0" class="badge badge--error">
+                  {{ $t('step4.qualityIndicator.failed', { count: failedSections.size }) }}
+                </span>
+                <span class="badge badge--success">
+                  {{ $t('step4.qualityIndicator.filtered') }}
+                </span>
+              </div>
+            </div>
             <div class="report-meta">
               <span class="report-tag">Relatório de Predição</span>
               <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
@@ -122,6 +140,29 @@
                     </div>
                     <span class="warning-text">{{ $t('contamination.contentRemoved') }}</span>
                   </div>
+
+                  <!-- Section Error State -->
+                  <div v-else-if="failedSections.has(idx + 1)" class="section-error-state">
+                    <div class="error-icon">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <div class="error-content">
+                      <p class="error-title">{{ $t('step4.sectionError.title') }}</p>
+                      <p class="error-detail">{{ failedSections.get(idx + 1)?.error }}</p>
+                    </div>
+                    <button
+                      class="retry-section-btn"
+                      :disabled="retryingSections.has(idx + 1)"
+                      @click.stop="handleRetrySection(idx + 1)"
+                    >
+                      <span v-if="retryingSections.has(idx + 1)" class="retry-spinner"></span>
+                      {{ retryingSections.has(idx + 1) ? $t('step4.sectionError.retrying') : $t('step4.sectionError.retryButton') }}
+                    </button>
+                  </div>
                   
                   <!-- Loading State -->
                   <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
@@ -139,8 +180,25 @@
           </div>
         </div>
 
+        <!-- Empty State: Report Not Found -->
+        <div v-if="reportNotFound" class="report-empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="18"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h2 class="empty-state-title">{{ $t('step4.emptyState.title') }}</h2>
+          <p class="empty-state-description">{{ $t('step4.emptyState.description') }}</p>
+          <button class="empty-state-back-btn" @click="$router.push({ name: 'Main' })">
+            {{ $t('step4.emptyState.backButton') }}
+          </button>
+        </div>
+
         <!-- Waiting State -->
-        <div v-if="!reportOutline" class="waiting-placeholder">
+        <div v-if="!reportNotFound && !reportOutline" class="waiting-placeholder">
           <div class="waiting-animation">
             <div class="waiting-ring"></div>
             <div class="waiting-ring"></div>
@@ -467,7 +525,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getAgentLog, getConsoleLog } from '../api/report'
+import { getAgentLog, getConsoleLog, getReport, getReportProgress, retrySection } from '../api/report'
 import { detectContamination, sanitizeContent, validateAgentLog } from '../utils/payloadValidator'
 
 const router = useRouter()
@@ -515,6 +573,11 @@ const activeSectionNavId = ref('')
 // Contamination tracking state
 const contaminatedSections = ref(new Set()) // Set of section indices that are contaminated
 const sectionWarnings = reactive({}) // { [sectionIndex]: { reason: string, severity: string } }
+
+// Empty / error state tracking
+const reportNotFound = ref(false)
+const failedSections = ref(new Map()) // key: sectionIndex, value: { error, retryCount }
+const retryingSections = ref(new Set()) // Set of section indices currently being retried
 
 // Focus mode toggle
 const toggleFocusMode = () => {
@@ -1831,6 +1894,11 @@ const progressPercent = computed(() => {
   return Math.round((completedSections.value / totalSections.value) * 100)
 })
 
+const qualityScore = computed(() => {
+  if (totalSections.value === 0) return 0
+  return Math.round((completedSections.value / totalSections.value) * 100)
+})
+
 const totalToolCalls = computed(() => {
   return agentLogs.value.filter(l => l.action === 'tool_call').length
 })
@@ -2430,12 +2498,80 @@ const loadReportData = async () => {
   try {
     reportError.value = null
     reportErrorRetryable.value = false
+    reportNotFound.value = false
+    
+    // First check if report exists
+    const reportRes = await getReport(props.reportId)
+    if (!reportRes.success && reportRes.status === 404) {
+      reportNotFound.value = true
+      return
+    }
+    
+    // Fetch progress for failed sections
+    await fetchReportProgress()
+    
     await fetchAgentLog()
     await fetchConsoleLog()
     startPolling()
   } catch (err) {
     reportError.value = t('step4.reportLoadError', { error: err.message })
     reportErrorRetryable.value = true
+  }
+}
+
+const fetchReportProgress = async () => {
+  try {
+    const res = await getReportProgress(props.reportId)
+    if (res.success && res.data) {
+      const progress = res.data
+      if (progress.failed_sections && Array.isArray(progress.failed_sections)) {
+        progress.failed_sections.forEach((fs) => {
+          failedSections.value.set(fs.section_index, {
+            error: fs.error_message,
+            retryCount: 0
+          })
+        })
+      }
+    }
+  } catch (err) {
+    // Silently ignore - progress may not be available yet
+  }
+}
+
+const handleRetrySection = async (sectionIndex) => {
+  if (retryingSections.value.has(sectionIndex)) return
+  
+  retryingSections.value.add(sectionIndex)
+  try {
+    const res = await retrySection(props.reportId, sectionIndex)
+    if (res.success) {
+      // Remove from failed sections and wait for agent log to repopulate
+      failedSections.value.delete(sectionIndex)
+      // Poll for the section to be regenerated
+      const checkInterval = setInterval(async () => {
+        try {
+          await fetchAgentLog()
+          if (generatedSections.value[sectionIndex]) {
+            clearInterval(checkInterval)
+            retryingSections.value.delete(sectionIndex)
+          }
+        } catch (e) {
+          clearInterval(checkInterval)
+          retryingSections.value.delete(sectionIndex)
+        }
+      }, 3000)
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkInterval)
+        retryingSections.value.delete(sectionIndex)
+      }, 300000)
+    } else {
+      reportError.value = res.error || t('step4.sectionError.retryFailed')
+      retryingSections.value.delete(sectionIndex)
+    }
+  } catch (err) {
+    reportError.value = t('step4.sectionError.retryFailed')
+    retryingSections.value.delete(sectionIndex)
   }
 }
 
@@ -2586,6 +2722,9 @@ watch(() => props.reportId, (newId) => {
     collapsedSections.value = new Set()
     isComplete.value = false
     startTime.value = null
+    reportNotFound.value = false
+    failedSections.value = new Map()
+    retryingSections.value = new Set()
     
     loadReportData()
   }
@@ -5902,8 +6041,207 @@ watch(() => props.reportId, (newId) => {
   display: none;
 }
 
+/* Empty State */
+.report-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.empty-state-icon {
+  color: var(--color-muted);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: var(--color-muted);
+  max-width: 400px;
+  margin: 0;
+}
+
+.empty-state-back-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--color-outline);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.empty-state-back-btn:hover {
+  border-color: var(--color-on-background);
+  background: var(--color-surface-container-high);
+}
+
+/* Quality Indicator */
+.report-quality-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.quality-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quality-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quality-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-on-background);
+}
+
+.quality-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quality-badges .badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.badge--warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.badge--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge--success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* Section Error State */
+.section-error-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.section-error-state .error-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.section-error-state .error-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-error-state .error-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+  margin: 0 0 4px;
+}
+
+.section-error-state .error-detail {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 0;
+  word-break: break-word;
+}
+
+.retry-section-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.retry-section-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.retry-section-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.retry-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: retry-spin 0.8s linear infinite;
+}
+
+@keyframes retry-spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 768px) {
   .report-section-nav .nav-list {
+    flex-direction: column;
+  }
+  .report-quality-indicator {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .section-error-state {
     flex-direction: column;
   }
 }

@@ -506,6 +506,10 @@
         "reportGenerateFailed": "Fração corrompida. Não há síntese.",
         "sectionNotFound": "O bloco documental (section_{index}.md) extraviou.",
         "reportProgressNotAvail": "ID da tarefa subjacente é inalcançável : {id}",
+        "requireSectionIndex": "section_index é obrigatório.",
+        "invalidSectionIndex": "section_index deve ser um número inteiro válido.",
+        "sectionNotFailed": "A seção {index} não está marcada como falha.",
+        "reportOutlineMissing": "Estrutura do relatório não encontrada.",
         "requireAgentId": "É impossíel intimar este simulado sem o agent_id.",
         "requirePrompt": "Instrução textual da interpelação escapou.",
         "invalidInterviewPlatform": "A plataforma necessita enquadrar-se nas chancelas 'twitter' e 'reddit'.",
@@ -520,7 +524,10 @@
         "envRunning": "Permissão liberada com motor acionado para a entrevista ser validada.",
         "envNotRunningShort": "O cenário subjaz congelado neste espectro restritivo.",
         "requireGraphIdAndQuery": "Recomponha os vetores exigentes para Graph e Query sintáticos.",
-        "initReportAgent": "Inicializando o agente de relatório..."
+        "initReportAgent": "Inicializando o agente de relatório...",
+        "retryingSection": "Tentando novamente: {title}...",
+        "sectionRetryDone": "Seção re-gerada: {title}",
+        "sectionRetryFailed": "Falha ao re-gerar seção: {title}"
     },
     "progress": {
         "initGraphService": "Inicializando serviço de construção do grafo...",
