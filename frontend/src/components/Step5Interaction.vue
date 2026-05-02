@@ -137,6 +137,18 @@
             </svg>
             <span>{{ $t('step5.dashboard.exploreTab') }}</span>
           </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'compare' }"
+            @click="selectDashboardTab('compare')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            <span>{{ $t('step5.dashboard.compareTab') }}</span>
+          </button>
         </div>
 
         <!-- Unified Action Bar - Professional Design -->
@@ -515,6 +527,11 @@
           <ActionExplorer :simulationId="props.simulationId" />
         </div>
 
+        <!-- Compare Mode -->
+        <div v-if="dashboardTab === 'compare'" class="compare-container">
+          <SimulationCompare :baseSimulationId="props.simulationId" />
+        </div>
+
         <!-- Survey Mode -->
         <div v-if="dashboardTab !== 'overview' && activeTab === 'survey'" class="survey-container">
           <!-- Survey Setup -->
@@ -620,6 +637,7 @@ import { useI18n } from 'vue-i18n'
 import { chatWithReport, getReport, getAgentLog } from '../api/report'
 import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts } from '../api/simulation'
 import ActionExplorer from './ActionExplorer.vue'
+import SimulationCompare from './SimulationCompare.vue'
 import { detectContamination, sanitizeContent, validateChatHistory } from '../utils/payloadValidator'
 
 const { t } = useI18n()
@@ -1343,6 +1361,8 @@ const selectDashboardTab = (tab) => {
     activeTab.value = 'survey'
     showAgentDropdown.value = false
   } else if (tab === 'explore') {
+    showAgentDropdown.value = false
+  } else if (tab === 'compare') {
     showAgentDropdown.value = false
   }
 }
@@ -2595,6 +2615,13 @@ watch(() => props.simulationId, (newId) => {
 
 /* Survey Container */
 .explore-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.compare-container {
   flex: 1;
   display: flex;
   flex-direction: column;
