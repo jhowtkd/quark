@@ -1,5 +1,19 @@
 <template>
-  <div class="report-panel">
+  <div class="report-panel" :class="{ 'focus-mode--active': focusMode }">
+    <!-- Error Banner -->
+    <div v-if="reportError" class="report-error-banner" role="alert">
+      <div class="error-content">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="error-message">{{ reportError }}</span>
+      </div>
+      <button v-if="reportErrorRetryable" class="retry-btn" @click="loadReportData">
+        {{ $t('common.retry') }}
+      </button>
+    </div>
     <!-- Main Split Layout -->
     <div class="main-split-layout">
       <!-- LEFT PANEL: Report Style -->
@@ -10,11 +24,42 @@
             <div class="report-meta">
               <span class="report-tag">Relatório de Predição</span>
               <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
+              <button
+                class="focus-mode-toggle"
+                :title="focusMode ? $t('step4.focusMode.exit') + ' ' + $t('step4.focusMode.shortcut') : $t('step4.focusMode.enter') + ' ' + $t('step4.focusMode.shortcut')"
+                @click="toggleFocusMode"
+              >
+                <svg v-if="!focusMode" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+                <span>{{ focusMode ? $t('step4.focusMode.exit') : $t('step4.focusMode.enter') }}</span>
+              </button>
             </div>
             <h1 class="main-title">{{ reportOutline.title }}</h1>
             <p class="sub-title">{{ reportOutline.summary }}</p>
             <div class="header-divider"></div>
           </div>
+
+          <!-- Focus Mode Section Nav -->
+          <nav v-if="focusMode && reportOutline" class="report-section-nav">
+            <span class="nav-title">{{ $t('step4.sectionNav.title') }}</span>
+            <ul class="nav-list">
+              <li
+                v-for="(section, idx) in reportOutline.sections"
+                :key="idx"
+                :class="['nav-item', { active: activeSectionNavId === `section-${idx}` }]"
+              >
+                <a @click.prevent="scrollToSection(idx)">
+                  {{ String(idx + 1).padStart(2, '0') }}. {{ section.title }}
+                </a>
+              </li>
+            </ul>
+          </nav>
 
           <!-- Sections List -->
           <div class="sections-list">
@@ -106,7 +151,7 @@
       </div>
 
       <!-- RIGHT PANEL: Workflow Timeline -->
-      <div class="right-panel" ref="rightPanel">
+      <div v-show="!focusMode" class="right-panel" ref="rightPanel">
         <div class="panel-header" :class="`panel-header--${activeStep.status}`" v-if="!isComplete">
           <span class="header-dot" v-if="activeStep.status === 'active'"></span>
           <span class="header-index mono">{{ activeStep.noLabel }}</span>
@@ -404,7 +449,7 @@
     </div>
 
     <!-- Bottom Console Logs -->
-    <div class="console-logs">
+    <div v-show="!focusMode" class="console-logs">
       <div class="log-header">
         <span class="log-title">{{ $t('step4.consoleOutput') }}</span>
         <span class="log-id">{{ reportId || $t('step4.noReport') }}</span>
@@ -460,10 +505,30 @@ const leftPanel = ref(null)
 const rightPanel = ref(null)
 const logContent = ref(null)
 const showRawResult = reactive({})
+const reportError = ref(null)
+const reportErrorRetryable = ref(false)
+
+// Focus mode state
+const focusMode = ref(false)
+const activeSectionNavId = ref('')
 
 // Contamination tracking state
 const contaminatedSections = ref(new Set()) // Set of section indices that are contaminated
 const sectionWarnings = reactive({}) // { [sectionIndex]: { reason: string, severity: string } }
+
+// Focus mode toggle
+const toggleFocusMode = () => {
+  focusMode.value = !focusMode.value
+  localStorage.setItem('futuria-report-focus-mode', focusMode.value ? 'true' : 'false')
+}
+
+const scrollToSection = (idx) => {
+  const el = document.getElementById(`section-${idx}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    activeSectionNavId.value = `section-${idx}`
+  }
+}
 
 // Toggle functions
 const toggleRawResult = (timestamp, event) => {
@@ -2239,64 +2304,59 @@ let consoleLogTimer = null
 const fetchAgentLog = async () => {
   if (!props.reportId) return
   
-  try {
-    const res = await getAgentLog(props.reportId, agentLogLine.value)
+  const res = await getAgentLog(props.reportId, agentLogLine.value)
+  
+  if (res.success && res.data) {
+    const newLogs = res.data.logs || []
     
-    if (res.success && res.data) {
-      const newLogs = res.data.logs || []
-      
-      if (newLogs.length > 0) {
-        newLogs.forEach(log => {
-          agentLogs.value.push(log)
-          
-          if (log.action === 'planning_complete' && log.details?.outline) {
-            reportOutline.value = log.details.outline
-          }
-          
-          if (log.action === 'section_start') {
-            currentSectionIndex.value = log.section_index
-          }
+    if (newLogs.length > 0) {
+      newLogs.forEach(log => {
+        agentLogs.value.push(log)
+        
+        if (log.action === 'planning_complete' && log.details?.outline) {
+          reportOutline.value = log.details.outline
+        }
+        
+        if (log.action === 'section_start') {
+          currentSectionIndex.value = log.section_index
+        }
 
-          // section_complete - State Updates View Render Variables Formats Maps Target Handling Mapping Value Returns Function Properties Component Prop Call Results Methods Action Displays Object Event Components Array Props Setup Displays Objects Returns Logic Fetch Run Loop Flow Values Mapping Returns Results Mapping Function Flow Logic Action Event Component Map State Results Response Mapping Scope Loop Object Handling State Map Display Rendering Scope Data Objects Layout Execution Execute Formatting Components Layout Execute Render View Component Values Output Return Rendering Outputs Results Execution Output Props Execute Function Setup Loop Map Methods Displays Fetch Event Object Props Maps Arrays Data Flow Action Values Target Returns Event Displays Logic Regex Handling Return Layout Handling Props Pattern View Action Data State Handling Loop Handling Action Displays Mapping Control Returns Mapping Mapping Control Logic Values View Exec Arrays Execution Formatting Method Values State Output Component Handling Map Function Components Mapping Components Properties Output Prop Flow Object Setup Mapping Map Array Output Functions Response Method Display Data Mapping Variables Control Arrays Flow Array Execution Variables Component Loop Array Method Logic Methods
-          if (log.action === 'section_complete') {
-            if (log.details?.content) {
-              generatedSections.value[log.section_index] = log.details.content
-              // Open Tab Docs Output Auto Expand Accordeon Div CSS Classes Watch Value Changed Hooks Appends Layout Recreate Transition View Logic
-              expandedContent.value.add(log.section_index - 1)
-              currentSectionIndex.value = null
-            }
+        // section_complete - State Updates View Render Variables Formats Maps Target Handling Mapping Value Returns Function Properties Component Prop Call Results Methods Action Displays Object Event Components Array Props Setup Displays Objects Returns Logic Fetch Run Loop Flow Values Mapping Returns Results Mapping Function Flow Logic Action Event Component Map State Results Response Mapping Scope Loop Object Handling State Map Display Rendering Scope Data Objects Layout Execution Execute Formatting Components Layout Execute Render View Component Values Output Return Rendering Outputs Results Execution Output Props Execute Function Setup Loop Map Methods Displays Fetch Event Object Props Maps Arrays Data Flow Action Values Target Returns Event Displays Logic Regex Handling Return Layout Handling Props Pattern View Action Data State Handling Loop Handling Action Displays Mapping Control Returns Mapping Mapping Control Logic Values View Exec Arrays Execution Formatting Method Values State Output Component Handling Map Function Components Mapping Components Properties Output Prop Flow Object Setup Mapping Map Array Output Functions Response Method Display Data Mapping Variables Control Arrays Flow Array Execution Variables Component Loop Array Method Logic Methods
+        if (log.action === 'section_complete') {
+          if (log.details?.content) {
+            generatedSections.value[log.section_index] = log.details.content
+            // Open Tab Docs Output Auto Expand Accordeon Div CSS Classes Watch Value Changed Hooks Appends Layout Recreate Transition View Logic
+            expandedContent.value.add(log.section_index - 1)
+            currentSectionIndex.value = null
           }
-          
-          if (log.action === 'report_complete') {
-            isComplete.value = true
-            currentSectionIndex.value = null  // Força clear spinners
-            emit('update-status', 'completed')
-            stopPolling()
-            // Component Control Object Setup Outputs Fetch Target Execute Event Component Array Control Execution Arrays Run Logic Handling Output Setup Components Variables Component Target Properties Render Map Outputs Logic Props Map Fetch Process Method Displays Map Functions Logic Formats Object Variables String Setup Variable Return Mapping Results Check Props Mapping Formats Return String Action Methods Variables Logic Process Mapping Setup Prop Pattern Response String Handling Variables Method Layout Action Results Objects Output Object Props Prop Output Arrays Execute Variable Components Array Displays Exec Arrays Return Results Array Mapping Outputs Component Flow Arrays Execute Run Methods Output Response Logic Variables View Map Value Formats Logic Regex Format Check Event Target Exec Object Results Call Handling Result Run Returns Execute Display Match Formatting Handle Data Formats Call Array Check Target Exec
-          }
-          
-          if (log.action === 'report_start') {
-            startTime.value = new Date(log.timestamp)
-          }
-        })
+        }
         
-        agentLogLine.value = res.data.from_line + newLogs.length
+        if (log.action === 'report_complete') {
+          isComplete.value = true
+          currentSectionIndex.value = null  // Força clear spinners
+          emit('update-status', 'completed')
+          stopPolling()
+          // Component Control Object Setup Outputs Fetch Target Execute Event Component Array Control Execution Arrays Run Logic Handling Output Setup Components Variables Component Target Properties Render Map Outputs Logic Props Map Fetch Process Method Displays Map Functions Logic Formats Object Variables String Setup Variable Return Mapping Results Check Props Mapping Formats Return String Action Methods Variables Logic Process Mapping Setup Prop Pattern Response String Handling Variables Method Layout Action Results Objects Output Object Props Prop Output Arrays Execute Variable Components Array Displays Exec Arrays Return Results Array Mapping Outputs Component Flow Arrays Execute Run Methods Output Response Logic Variables View Map Value Formats Logic Regex Format Check Event Target Exec Object Results Call Handling Result Run Returns Execute Display Match Formatting Handle Data Formats Call Array Check Target Exec
+        }
         
-        nextTick(() => {
-          if (rightPanel.value) {
-            // Top Scroll / If Valid Flow End Point Render Actions Control Window ScrollTo API UsedRodapé da leituraFlow Components Fetch Regex Method Exec Display Setup Setup Component Component App Component Fetch Layout Functions Method Methods Scope Prop Fetch Map String Display Execution String Code Outputs Setup Data Object Scope Result Display Return Formatting Target Outputs Execute Format Run Map Objects Prop Check Flow Objects Return Fetch Mapping Format Setup View Render Variables Displays Display Check Variable Method Process Handling Return Render Flow Maps Method Displays Result Event Mapping Action State Execution Map Run Execute String Result Fetch Pattern Target Mapping Exec Formats Response Event Arrays Objects Check String Variable Run Control Fetch Outputs Action Run Formats Call Object Flow Display Variables Result Object Returns Mapping Properties Return Handling Variables Setup Methods Variables Process Format Execution State Outputs Match
-            if (isComplete.value) {
-              rightPanel.value.scrollTop = 0
-            } else {
-              rightPanel.value.scrollTop = rightPanel.value.scrollHeight
-            }
+        if (log.action === 'report_start') {
+          startTime.value = new Date(log.timestamp)
+        }
+      })
+      
+      agentLogLine.value = res.data.from_line + newLogs.length
+      
+      nextTick(() => {
+        if (rightPanel.value) {
+          // Top Scroll / If Valid Flow End Point Render Actions Control Window ScrollTo API UsedRodapé da leituraFlow Components Fetch Regex Method Exec Display Setup Setup Component Component App Component Fetch Layout Functions Method Methods Scope Prop Fetch Map String Display Execution String Code Outputs Setup Data Object Scope Result Display Return Formatting Target Outputs Execute Format Run Map Objects Prop Check Flow Objects Return Fetch Mapping Format Setup View Render Variables Displays Display Check Variable Method Process Handling Return Render Flow Maps Method Displays Result Event Mapping Action State Execution Map Run Execute String Result Fetch Pattern Target Mapping Exec Formats Response Event Arrays Objects Check String Variable Run Control Fetch Outputs Action Run Formats Call Object Flow Display Variables Result Object Returns Mapping Properties Return Handling Variables Setup Methods Variables Process Format Execution State Outputs Match
+          if (isComplete.value) {
+            rightPanel.value.scrollTop = 0
+          } else {
+            rightPanel.value.scrollTop = rightPanel.value.scrollHeight
           }
-        })
-      }
+        }
+      })
     }
-  } catch (err) {
-    // DEBUG: Failed to fetch agent log
-    void err
   }
 }
 
@@ -2348,37 +2408,42 @@ const extractFinalContent = (response) => {
 const fetchConsoleLog = async () => {
   if (!props.reportId) return
   
-  try {
-    const res = await getConsoleLog(props.reportId, consoleLogLine.value)
+  const res = await getConsoleLog(props.reportId, consoleLogLine.value)
+  
+  if (res.success && res.data) {
+    const newLogs = res.data.logs || []
     
-    if (res.success && res.data) {
-      const newLogs = res.data.logs || []
+    if (newLogs.length > 0) {
+      consoleLogs.value.push(...newLogs)
+      consoleLogLine.value = res.data.from_line + newLogs.length
       
-      if (newLogs.length > 0) {
-        consoleLogs.value.push(...newLogs)
-        consoleLogLine.value = res.data.from_line + newLogs.length
-        
-        nextTick(() => {
-          if (logContent.value) {
-            logContent.value.scrollTop = logContent.value.scrollHeight
-          }
-        })
-      }
+      nextTick(() => {
+        if (logContent.value) {
+          logContent.value.scrollTop = logContent.value.scrollHeight
+        }
+      })
     }
+  }
+}
+
+const loadReportData = async () => {
+  try {
+    reportError.value = null
+    reportErrorRetryable.value = false
+    await fetchAgentLog()
+    await fetchConsoleLog()
+    startPolling()
   } catch (err) {
-    // DEBUG: Failed to fetch console log
-    void err
+    reportError.value = t('step4.reportLoadError', { error: err.message })
+    reportErrorRetryable.value = true
   }
 }
 
 const startPolling = () => {
   if (agentLogTimer || consoleLogTimer) return
   
-  fetchAgentLog()
-  fetchConsoleLog()
-  
-  agentLogTimer = setInterval(fetchAgentLog, 2000)
-  consoleLogTimer = setInterval(fetchConsoleLog, 1500)
+  agentLogTimer = setInterval(() => fetchAgentLog().catch(() => {}), 2000)
+  consoleLogTimer = setInterval(() => fetchConsoleLog().catch(() => {}), 1500)
 }
 
 const stopPolling = () => {
@@ -2437,8 +2502,57 @@ const initTableSorting = () => {
   })
 }
 
+// Focus mode keyboard handler and observer refs (for cleanup)
+let focusModeKeyHandler = null
+let sectionObserver = null
+let sectionNavUnwatch = null
+
+const initSectionObserver = () => {
+  if (sectionObserver) sectionObserver.disconnect()
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeSectionNavId.value = entry.target.id
+        }
+      })
+    },
+    { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+  )
+  document.querySelectorAll('.report-section-item').forEach((el, idx) => {
+    if (!el.id) el.id = `section-${idx}`
+    sectionObserver.observe(el)
+  })
+}
+
 // Lifecycle
 onMounted(() => {
+  // Initialize focus mode from localStorage
+  const savedFocus = localStorage.getItem('futuria-report-focus-mode')
+  if (savedFocus === 'true') {
+    focusMode.value = true
+  }
+
+  // Keyboard shortcut for focus mode
+  focusModeKeyHandler = (event) => {
+    if (event.key === 'f' || event.key === 'F') {
+      const tag = event.target.tagName
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && !event.target.isContentEditable) {
+        toggleFocusMode()
+      }
+    }
+  }
+  window.addEventListener('keydown', focusModeKeyHandler)
+
+  // Watch for report outline to init observer
+  sectionNavUnwatch = watch(() => reportOutline.value, (val) => {
+    if (val) {
+      nextTick(() => {
+        initSectionObserver()
+      })
+    }
+  })
+
   if (props.reportId) {
     addLog(`Report Agent initialized: ${props.reportId}`)
     startPolling()
@@ -2451,6 +2565,11 @@ watch(() => generatedSections.value, () => {
 
 onUnmounted(() => {
   stopPolling()
+  if (focusModeKeyHandler) {
+    window.removeEventListener('keydown', focusModeKeyHandler)
+  }
+  if (sectionObserver) sectionObserver.disconnect()
+  if (sectionNavUnwatch) sectionNavUnwatch()
 })
 
 watch(() => props.reportId, (newId) => {
@@ -2468,7 +2587,7 @@ watch(() => props.reportId, (newId) => {
     isComplete.value = false
     startTime.value = null
     
-    startPolling()
+    loadReportData()
   }
 }, { immediate: true })
 </script>
@@ -5654,6 +5773,140 @@ watch(() => props.reportId, (newId) => {
     transform: none;
   }
 }
+
+.report-error-banner {
+  padding: 16px 24px;
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-outline);
+}
+.error-content { display: flex; align-items: center; gap: 12px; }
+.retry-btn {
+  padding: 8px 16px;
+  background: var(--color-error);
+  color: var(--color-on-error);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ========== Focus Mode Styles ========== */
+.focus-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 4px 10px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-machine);
+}
+
+.focus-mode-toggle:hover {
+  border-color: var(--color-on-background);
+  color: var(--color-on-background);
+}
+
+.report-section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.report-section-nav .nav-title {
+  font-family: var(--font-machine);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-on-background);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.report-section-nav .nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.report-section-nav .nav-item a {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.report-section-nav .nav-item a:hover {
+  border-color: var(--color-on-background);
+  color: var(--color-on-background);
+}
+
+.report-section-nav .nav-item.active a {
+  background: var(--color-on-background);
+  color: var(--color-surface);
+  border-color: var(--color-on-background);
+}
+
+/* Focus mode layout transitions */
+.report-panel,
+.left-panel,
+.right-panel,
+.console-logs {
+  transition: width 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
+}
+
+.report-panel.focus-mode--active .main-split-layout {
+  gap: 0;
+}
+
+.report-panel.focus-mode--active .left-panel {
+  width: 100%;
+  flex: 1 1 100%;
+  border-right: none;
+}
+
+.report-panel.focus-mode--active .right-panel {
+  width: 0;
+  opacity: 0;
+  flex: 0 0 0;
+  overflow: hidden;
+}
+
+.report-panel.focus-mode--active .console-logs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .report-section-nav .nav-list {
+    flex-direction: column;
+  }
+}
 </style>
 
 <style>
@@ -5662,6 +5915,3 @@ html[lang="en"] .report-header-block .main-title {
   font-size: 28px;
 }
 </style>
-e>
-
-e>
