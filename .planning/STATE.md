@@ -2,59 +2,55 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: Milestone v2.0 — Phases 22-35 complete, ready for Phase 36
-stopped_at: Phase 35 complete — Phase 36 ready
-last_updated: "2026-05-02T16:30:00.000Z"
-last_activity: 2026-05-02 — Phase 35 completed (3/3 plans)
+status: Milestone v2.0 — Phases 22-36 complete, ready for Phase 37
+stopped_at: Phase 36 complete — Phase 37 ready
+last_updated: "2026-05-02T18:05:00.000Z"
+last_activity: 2026-05-02 — Phase 36 completed (3/3 plans)
 progress:
   total_phases: 19
-  completed_phases: 13
-  total_plans: 50
-  completed_plans: 35
-  percent: 70
+  completed_phases: 14
+  total_plans: 53
+  completed_plans: 38
+  percent: 72
 ---
 
 ## Current Position
 
-Phase: 36
-Plan: 36-01
-Status: Milestone v2.0 — Phases 22-35 complete, executing Phase 36
-Last activity: 2026-05-02 — Phase 35 completed (3/3 plans)
+Phase: 37
+Plan: 37-01
+Status: Milestone v2.0 — Phases 22-36 complete, executing Phase 37
+Last activity: 2026-05-02 — Phase 36 completed (3/3 plans)
 
-## Phase 35 Summary — Dashboard de Inspeção
+## Phase 36 Summary — Fidelidade do Grafo e Agentes
 
-### 35-01: Step5 como Dashboard ✅ COMPLETE
-- Added `dashboardTab` with tabs: Visão Geral, Chat, Pesquisa (and later Explorar, Comparar)
-- Macro cards grid with 6 metrics: Agentes, Rounds, Ações, Posts, Likes, Quotes
-- Timeline visualization with stacked bars per round (Twitter/Reddit)
-- Top 5 agents table with ranking and platform breakdown
-- Skeleton loading and empty states
-- i18n strings added to `locales/pt.json`
-- Tests: `Step5Interaction.spec.js` (5 tests passing)
+### 36-01: Reduzir entidades Unknown ✅ COMPLETE
+- Created `entity_taxonomy.py` with expanded catalog (20+ types, 8+ keywords each), aliases, and inference functions
+- Updated `zep_entity_reader` with second-pass inference and rejection of generic types
+- Added `ValueError` in config generator for unresolved types (no more silent fallback)
+- Added quality metrics to `SimulationState` (unknown_entity_count, resolved_entity_count, entity_type_distribution, quality_flags)
+- Exposed metrics via API status endpoint
+- Tests: 14 passing
 
-### 35-02: Tabela Exploratoria ✅ COMPLETE
-- Created `ActionExplorer.vue` with datagrid for simulation actions
-- Filters by agent, platform, action type, round, and success
-- Text search with debounce in posts/comments content
-- Column sorting with asc/desc indicators
-- Client-side pagination with page size selector
-- i18n strings added to `locales/pt.json`
-- Tests: `ActionExplorer.spec.js` (8 tests passing)
+### 36-02: Bloquear conceitos abstratos como agentes ✅ COMPLETE
+- Added `ACTOR_ENTITY_TYPES` and `NON_ACTOR_ENTITY_TYPES` to `entity_taxonomy.py`
+- Added `classify_actor_status()` function
+- Added `actor_only` filter to `ZepEntityReader.filter_defined_entities()`
+- Updated ontology prompt with prohibited list and negative examples
+- Added `/api/graph/{id}/fidelity` endpoint exposing fidelity_score
+- Tests: 21 passing
 
-### 35-03: Comparação entre Simulações ✅ COMPLETE
-- Created `SimulationCompare.vue` with side-by-side comparison
-- Simulation selectors with history dropdown and swap button
-- Metrics comparison cards with delta indicators
-- Temporal distribution comparison timeline
-- Top agents comparison with common/unique agents analysis
-- Loading, error, and empty states
-- i18n strings added to `locales/pt.json`
-- Tests: `SimulationCompare.spec.js` (11 tests passing)
+### 36-03: Validação input-output ✅ COMPLETE
+- Created `SimulationInputOutputValidator` comparing expected vs active agents
+- Persist `validation_io.json` after each simulation
+- Mark simulation as "degraded" if validation fails
+- Added "Fidelidade de Agentes" card to Step5 dashboard with coverage badge and missing/spurious lists
+- Added quality gate blocking if coverage < 0.80
+- Tests: 13 backend + 6 frontend passing
 
 ## Test Summary
 
-- **Backend suite**: 414 passed, 0 failed
-- **Frontend suite**: 173 passed, 0 failed
+- **Backend suite**: 467 passed, 0 failed
+- **Frontend suite**: 179 passed, 0 failed
 - **Preflight**: `check:language-backend` passes (0 policy breaches)
 
 ## Progress
@@ -74,23 +70,24 @@ Last activity: 2026-05-02 — Phase 35 completed (3/3 plans)
 | 3 | 33 | 2/2 | Complete |
 | 3 | 34 | 2/2 | Complete |
 | 4 | 35 | 3/3 | Complete |
-| 4 | 36-37 | 6/6 | Planned |
+| 4 | 36 | 3/3 | Complete |
+| 4 | 37 | 3/3 | Planned |
 | 5 | 38-40 | 8/8 | Planned |
-| **Total** | **19** | **50/50** | **13 complete, 6 planned** |
+| **Total** | **19** | **53/53** | **14 complete, 5 planned** |
 
 ## Session Continuity
 
-Last session: 2026-05-02T16:30:00.000Z
-Stopped at: Phase 35 complete — 414 backend + 173 frontend tests passing, ready for Phase 36
+Last session: 2026-05-02T18:05:00.000Z
+Stopped at: Phase 36 complete — 467 backend + 179 frontend tests passing, ready for Phase 37
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-01)
 See: docs/plans/2026-05-01-futuria-roadmap-fases-epicos.md (source roadmap)
-See: .planning/ROADMAP.md (24 phases total, 13-17 complete, 22-35 complete)
+See: .planning/ROADMAP.md (24 phases total, 13-17 complete, 22-36 complete)
 
 **Core value:** Execute and manage simulations with an intuitive, reliable user interface.
-**Current focus:** Phase 36 (next phase)
+**Current focus:** Phase 37 (next phase)
 
 ## Execution Readiness
 
@@ -110,4 +107,4 @@ All plans include:
 4. Phase 38-40 (Beta) only after all regression scenarios pass
 
 ---
-*Last updated: 2026-05-02 — Phase 35 complete, Phase 36 ready*
+*Last updated: 2026-05-02 — Phase 36 complete, Phase 37 ready*
