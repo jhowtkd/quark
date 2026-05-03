@@ -63,7 +63,7 @@ When `LANGFUSE_ENABLED=true`, the following become required and will cause start
 | `LANGFUSE_ENV` | No | `development` | Environment label sent to Langfuse |
 | `LANGFUSE_RELEASE` | No | `local` | Release label sent to Langfuse |
 | `LANGFUSE_DEBUG` | No | `false` | Enables Langfuse SDK debug logging |
-| `LANGFUSE_SAMPLE_RATE` | No | `1.0` | Sampling rate for traces (0.0–1.0) |
+| `LANGFUSE_SAMPLE_RATE` | No | `0.1` | Sampling rate for traces (0.0–1.0). Default reduced to 0.1 to limit data volume. |
 
 ### Research connector API keys (optional)
 
@@ -123,7 +123,7 @@ All optional variables have the following defaults:
 - `LANGFUSE_ENV` → `development`
 - `LANGFUSE_RELEASE` → `local`
 - `LANGFUSE_DEBUG` → `false`
-- `LANGFUSE_SAMPLE_RATE` → `1.0`
+- `LANGFUSE_SAMPLE_RATE` → `0.1`
 - `OASIS_DEFAULT_MAX_ROUNDS` → `10`
 - `REPORT_AGENT_MAX_TOOL_CALLS` → `5`
 - `REPORT_AGENT_MAX_REFLECTION_ROUNDS` → `2`
@@ -182,4 +182,5 @@ These are **not** driven by environment variables. To change them, edit `vite.co
 - Set `FLASK_DEBUG=false`
 - Set `SECRET_KEY` to a cryptographically random value
 - Set `LANGFUSE_ENV=production` and `LANGFUSE_RELEASE` to a version tag if using Langfuse
+- In beta environments (`LANGFUSE_ENV` contains `beta`), `LANGFUSE_SAMPLE_RATE` is restricted to `<= 0.2`. Configuring a higher value causes validation failure at startup.
 - `VITE_API_BASE_URL` should point to the production backend origin if frontend and backend are served from different hosts

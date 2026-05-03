@@ -18,9 +18,29 @@ package-lock.json
 
 # Uploads and temp
 backend/uploads/
+backend/uploads/simulations/
+backend/uploads/research/
+backend/uploads/reports/
 backend/uploads.bak/
 backend/logs/
+backend/logs/**
 *.log
+
+# Secrets and certificates
+*.key
+*.pem
+*.p12
+
+# Beta environment
+.env.beta
+
+# Frontend build artifacts
+frontend/dist/
+frontend/.vite/
+
+# Archives
+*.tar.gz
+*.zip
 
 # IDE
 .vscode/

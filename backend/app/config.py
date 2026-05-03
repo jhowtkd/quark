@@ -31,9 +31,19 @@ class Config:
     LLM_API_KEY = _env('LLM_API_KEY')
     LLM_BASE_URL = _env('LLM_BASE_URL', 'https://api.openai.com/v1')
     LLM_MODEL_NAME = _env('LLM_MODEL_NAME', 'gpt-4o-mini')
+    LLM_TIMEOUT_SECONDS = float(_env('LLM_TIMEOUT_SECONDS', '120.0'))
+
+    # LLM fallback configuration
+    LLM_FALLBACK_API_KEY = _env('LLM_FALLBACK_API_KEY')
+    LLM_FALLBACK_BASE_URL = _env('LLM_FALLBACK_BASE_URL', 'https://api.openai.com/v1')
+    LLM_FALLBACK_MODEL_NAME = _env('LLM_FALLBACK_MODEL_NAME', 'gpt-4o-mini')
+    LLM_FALLBACK_ENABLED = str(_env('LLM_FALLBACK_ENABLED', 'true')).lower() == 'true'
+    LLM_CIRCUIT_BREAKER_FAILURE_THRESHOLD = int(_env('LLM_CIRCUIT_BREAKER_FAILURE_THRESHOLD', '5'))
+    LLM_CIRCUIT_BREAKER_RECOVERY_TIMEOUT = int(_env('LLM_CIRCUIT_BREAKER_RECOVERY_TIMEOUT', '60'))
 
     # Zep configuration
     ZEP_API_KEY = _env('ZEP_API_KEY')
+    ZEP_FALLBACK_ENABLED = str(_env('ZEP_FALLBACK_ENABLED', 'true')).lower() == 'true'
 
     # File upload configuration
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
@@ -63,6 +73,11 @@ class Config:
     REPORT_AGENT_MAX_REFLECTION_ROUNDS = int(_env('REPORT_AGENT_MAX_REFLECTION_ROUNDS', '2'))
     REPORT_AGENT_TEMPERATURE = float(_env('REPORT_AGENT_TEMPERATURE', '0.5'))
 
+    # Concurrency limits
+    MAX_PARALLEL_LLM_CALLS = int(_env('MAX_PARALLEL_LLM_CALLS', '10'))
+    MAX_PARALLEL_INTERVIEWS = int(_env('MAX_PARALLEL_INTERVIEWS', '5'))
+    MAX_INTERVIEWS_PER_BATCH = int(_env('MAX_INTERVIEWS_PER_BATCH', '20'))
+
     # Langfuse observability configuration (self-hosted)
     LANGFUSE_ENABLED = str(_env('LANGFUSE_ENABLED', 'false')).lower() == 'true'
     LANGFUSE_HOST = _env('LANGFUSE_HOST')
@@ -71,7 +86,7 @@ class Config:
     LANGFUSE_ENV = _env('LANGFUSE_ENV', 'development')
     LANGFUSE_RELEASE = _env('LANGFUSE_RELEASE', 'local')
     LANGFUSE_DEBUG = str(_env('LANGFUSE_DEBUG', 'false')).lower() == 'true'
-    LANGFUSE_SAMPLE_RATE = float(_env('LANGFUSE_SAMPLE_RATE', '1.0'))
+    LANGFUSE_SAMPLE_RATE = float(_env('LANGFUSE_SAMPLE_RATE', '0.1'))
 
     # Deep research connector API keys
     BRAVE_SEARCH_API_KEY: Optional[str] = _env('BRAVE_SEARCH_API_KEY')
@@ -102,4 +117,12 @@ class Config:
                 errors.append('LANGFUSE_PUBLIC_KEY not configured')
             if not lookup('LANGFUSE_SECRET_KEY'):
                 errors.append('LANGFUSE_SECRET_KEY not configured')
+
+            env_label = lookup('LANGFUSE_ENV') or 'development'
+            is_beta_env = 'beta' in env_label.lower()
+            if is_beta_env and cls.LANGFUSE_SAMPLE_RATE > 0.2:
+                errors.append(
+                    f'LANGFUSE_SAMPLE_RATE must be <= 0.2 in beta environment '
+                    f'(got {cls.LANGFUSE_SAMPLE_RATE})'
+                )
         return errors
