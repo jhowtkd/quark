@@ -1,5 +1,19 @@
 <template>
-  <div class="report-panel">
+  <div class="report-panel" :class="{ 'focus-mode--active': focusMode }">
+    <!-- Error Banner -->
+    <div v-if="reportError" class="report-error-banner" role="alert">
+      <div class="error-content">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="error-message">{{ reportError }}</span>
+      </div>
+      <button v-if="reportErrorRetryable" class="retry-btn" @click="loadReportData">
+        {{ $t('common.retry') }}
+      </button>
+    </div>
     <!-- Main Split Layout -->
     <div class="main-split-layout">
       <!-- LEFT PANEL: Report Style -->
@@ -7,14 +21,128 @@
         <div v-if="reportOutline" class="report-content-wrapper">
           <!-- Report Header -->
           <div class="report-header-block">
+            <!-- Quality Indicator -->
+            <div class="report-quality-indicator">
+              <div class="quality-score">
+                <span class="quality-label">{{ $t('step4.qualityIndicator.title') }}</span>
+                <span class="quality-value">{{ qualityScore }}%</span>
+              </div>
+              <div class="quality-badges">
+                <span v-if="contaminatedSections.size > 0" class="badge badge--warning">
+                  {{ $t('step4.qualityIndicator.contaminated', { count: contaminatedSections.size }) }}
+                </span>
+                <span v-if="failedSections.size > 0" class="badge badge--error">
+                  {{ $t('step4.qualityIndicator.failed', { count: failedSections.size }) }}
+                </span>
+                <span class="badge badge--success">
+                  {{ $t('step4.qualityIndicator.filtered') }}
+                </span>
+                <span
+                  v-if="reliabilityScore !== null"
+                  class="badge reliability-badge"
+                  :class="reliabilityBadgeClass"
+                  :title="`Score: ${(reliabilityScore * 100).toFixed(0)}%`"
+                >
+                  {{ reliabilityBadgeText }}
+                </span>
+              </div>
+              <!-- Pillar Details Toggle -->
+              <div v-if="reliabilityReport" class="reliability-pillars">
+                <button
+                  class="pillars-toggle-btn"
+                  :aria-expanded="showPillarDetails"
+                  @click="showPillarDetails = !showPillarDetails"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  <span>Detalhes dos Pilares</span>
+                  <svg
+                    class="toggle-chevron"
+                    :class="{ 'is-open': showPillarDetails }"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <Transition name="section-expand">
+                  <div v-show="showPillarDetails" class="pillars-panel">
+                    <div
+                      v-for="(value, key) in reliabilityReport"
+                      :key="key"
+                      class="pillar-row"
+                    >
+                      <span class="pillar-name">{{ key }}</span>
+                      <span class="pillar-bar-wrap">
+                        <span class="pillar-bar" :style="{ width: `${(value * 100).toFixed(0)}%` }"></span>
+                      </span>
+                      <span class="pillar-value">{{ (value * 100).toFixed(0) }}%</span>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+              <!-- Beta Not Ready Warning -->
+              <div v-if="betaReady === false && reportWarnings.length > 0" class="beta-warning" role="alert">
+                <div class="beta-warning-header">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span>Relatório não está pronto para Beta</span>
+                </div>
+                <ul class="beta-warning-list">
+                  <li v-for="(warning, idx) in reportWarnings" :key="idx">{{ warning }}</li>
+                </ul>
+                <p class="beta-warning-help">Revise os avisos acima e considere ajustar os parâmetros da simulação antes de prosseguir.</p>
+              </div>
+            </div>
             <div class="report-meta">
               <span class="report-tag">Relatório de Predição</span>
               <span class="report-id">ID: {{ reportId || 'REF-2024-X92' }}</span>
+              <button
+                class="focus-mode-toggle"
+                :title="focusMode ? $t('step4.focusMode.exit') + ' ' + $t('step4.focusMode.shortcut') : $t('step4.focusMode.enter') + ' ' + $t('step4.focusMode.shortcut')"
+                @click="toggleFocusMode"
+              >
+                <svg v-if="!focusMode" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+                <span>{{ focusMode ? $t('step4.focusMode.exit') : $t('step4.focusMode.enter') }}</span>
+              </button>
             </div>
             <h1 class="main-title">{{ reportOutline.title }}</h1>
             <p class="sub-title">{{ reportOutline.summary }}</p>
             <div class="header-divider"></div>
           </div>
+
+          <!-- Focus Mode Section Nav -->
+          <nav v-if="focusMode && reportOutline" class="report-section-nav">
+            <span class="nav-title">{{ $t('step4.sectionNav.title') }}</span>
+            <ul class="nav-list">
+              <li
+                v-for="(section, idx) in reportOutline.sections"
+                :key="idx"
+                :class="['nav-item', { active: activeSectionNavId === `section-${idx}` }]"
+              >
+                <a @click.prevent="scrollToSection(idx)">
+                  {{ String(idx + 1).padStart(2, '0') }}. {{ section.title }}
+                </a>
+              </li>
+            </ul>
+          </nav>
 
           <!-- Sections List -->
           <div class="sections-list">
@@ -77,6 +205,29 @@
                     </div>
                     <span class="warning-text">{{ $t('contamination.contentRemoved') }}</span>
                   </div>
+
+                  <!-- Section Error State -->
+                  <div v-else-if="failedSections.has(idx + 1)" class="section-error-state">
+                    <div class="error-icon">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      </svg>
+                    </div>
+                    <div class="error-content">
+                      <p class="error-title">{{ $t('step4.sectionError.title') }}</p>
+                      <p class="error-detail">{{ failedSections.get(idx + 1)?.error }}</p>
+                    </div>
+                    <button
+                      class="retry-section-btn"
+                      :disabled="retryingSections.has(idx + 1)"
+                      @click.stop="handleRetrySection(idx + 1)"
+                    >
+                      <span v-if="retryingSections.has(idx + 1)" class="retry-spinner"></span>
+                      {{ retryingSections.has(idx + 1) ? $t('step4.sectionError.retrying') : $t('step4.sectionError.retryButton') }}
+                    </button>
+                  </div>
                   
                   <!-- Loading State -->
                   <div v-else-if="currentSectionIndex === idx + 1" class="loading-state">
@@ -94,8 +245,25 @@
           </div>
         </div>
 
+        <!-- Empty State: Report Not Found -->
+        <div v-if="reportNotFound" class="report-empty-state">
+          <div class="empty-state-icon">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="18"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h2 class="empty-state-title">{{ $t('step4.emptyState.title') }}</h2>
+          <p class="empty-state-description">{{ $t('step4.emptyState.description') }}</p>
+          <button class="empty-state-back-btn" @click="$router.push({ name: 'Main' })">
+            {{ $t('step4.emptyState.backButton') }}
+          </button>
+        </div>
+
         <!-- Waiting State -->
-        <div v-if="!reportOutline" class="waiting-placeholder">
+        <div v-if="!reportNotFound && !reportOutline" class="waiting-placeholder">
           <div class="waiting-animation">
             <div class="waiting-ring"></div>
             <div class="waiting-ring"></div>
@@ -106,7 +274,7 @@
       </div>
 
       <!-- RIGHT PANEL: Workflow Timeline -->
-      <div class="right-panel" ref="rightPanel">
+      <div v-show="!focusMode" class="right-panel" ref="rightPanel">
         <div class="panel-header" :class="`panel-header--${activeStep.status}`" v-if="!isComplete">
           <span class="header-dot" v-if="activeStep.status === 'active'"></span>
           <span class="header-index mono">{{ activeStep.noLabel }}</span>
@@ -404,7 +572,7 @@
     </div>
 
     <!-- Bottom Console Logs -->
-    <div class="console-logs">
+    <div v-show="!focusMode" class="console-logs">
       <div class="log-header">
         <span class="log-title">{{ $t('step4.consoleOutput') }}</span>
         <span class="log-id">{{ reportId || $t('step4.noReport') }}</span>
@@ -415,14 +583,16 @@
         </div>
       </div>
     </div>
+    <FeedbackWidget stage="report" :simulation-id="simulationId" :report-id="reportId" />
   </div>
 </template>
 
 <script setup>
+import FeedbackWidget from './FeedbackWidget.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getAgentLog, getConsoleLog } from '../api/report'
+import { getAgentLog, getConsoleLog, getReport, getReportProgress, retrySection } from '../api/report'
 import { detectContamination, sanitizeContent, validateAgentLog } from '../utils/payloadValidator'
 
 const router = useRouter()
@@ -460,10 +630,42 @@ const leftPanel = ref(null)
 const rightPanel = ref(null)
 const logContent = ref(null)
 const showRawResult = reactive({})
+const reportError = ref(null)
+const reportErrorRetryable = ref(false)
+
+// Reliability state
+const reliabilityScore = ref(null)
+const betaReady = ref(true)
+const reliabilityReport = ref(null)
+const reportWarnings = ref([])
+const showPillarDetails = ref(false)
+
+// Focus mode state
+const focusMode = ref(false)
+const activeSectionNavId = ref('')
 
 // Contamination tracking state
 const contaminatedSections = ref(new Set()) // Set of section indices that are contaminated
 const sectionWarnings = reactive({}) // { [sectionIndex]: { reason: string, severity: string } }
+
+// Empty / error state tracking
+const reportNotFound = ref(false)
+const failedSections = ref(new Map()) // key: sectionIndex, value: { error, retryCount }
+const retryingSections = ref(new Set()) // Set of section indices currently being retried
+
+// Focus mode toggle
+const toggleFocusMode = () => {
+  focusMode.value = !focusMode.value
+  localStorage.setItem('futuria-report-focus-mode', focusMode.value ? 'true' : 'false')
+}
+
+const scrollToSection = (idx) => {
+  const el = document.getElementById(`section-${idx}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    activeSectionNavId.value = `section-${idx}`
+  }
+}
 
 // Toggle functions
 const toggleRawResult = (timestamp, event) => {
@@ -1766,6 +1968,29 @@ const progressPercent = computed(() => {
   return Math.round((completedSections.value / totalSections.value) * 100)
 })
 
+const qualityScore = computed(() => {
+  if (totalSections.value === 0) return 0
+  return Math.round((completedSections.value / totalSections.value) * 100)
+})
+
+const reliabilityBadgeText = computed(() => {
+  const score = reliabilityScore.value
+  if (score === null || score === undefined) return ''
+  if (score >= 0.90) return 'Excelente'
+  if (score >= 0.75) return 'Beta OK'
+  if (score >= 0.60) return 'Atenção'
+  return 'Revisar'
+})
+
+const reliabilityBadgeClass = computed(() => {
+  const score = reliabilityScore.value
+  if (score === null || score === undefined) return ''
+  if (score >= 0.90) return 'reliability-badge--excellent'
+  if (score >= 0.75) return 'reliability-badge--beta-ok'
+  if (score >= 0.60) return 'reliability-badge--attention'
+  return 'reliability-badge--review'
+})
+
 const totalToolCalls = computed(() => {
   return agentLogs.value.filter(l => l.action === 'tool_call').length
 })
@@ -2239,64 +2464,59 @@ let consoleLogTimer = null
 const fetchAgentLog = async () => {
   if (!props.reportId) return
   
-  try {
-    const res = await getAgentLog(props.reportId, agentLogLine.value)
+  const res = await getAgentLog(props.reportId, agentLogLine.value)
+  
+  if (res.success && res.data) {
+    const newLogs = res.data.logs || []
     
-    if (res.success && res.data) {
-      const newLogs = res.data.logs || []
-      
-      if (newLogs.length > 0) {
-        newLogs.forEach(log => {
-          agentLogs.value.push(log)
-          
-          if (log.action === 'planning_complete' && log.details?.outline) {
-            reportOutline.value = log.details.outline
-          }
-          
-          if (log.action === 'section_start') {
-            currentSectionIndex.value = log.section_index
-          }
+    if (newLogs.length > 0) {
+      newLogs.forEach(log => {
+        agentLogs.value.push(log)
+        
+        if (log.action === 'planning_complete' && log.details?.outline) {
+          reportOutline.value = log.details.outline
+        }
+        
+        if (log.action === 'section_start') {
+          currentSectionIndex.value = log.section_index
+        }
 
-          // section_complete - State Updates View Render Variables Formats Maps Target Handling Mapping Value Returns Function Properties Component Prop Call Results Methods Action Displays Object Event Components Array Props Setup Displays Objects Returns Logic Fetch Run Loop Flow Values Mapping Returns Results Mapping Function Flow Logic Action Event Component Map State Results Response Mapping Scope Loop Object Handling State Map Display Rendering Scope Data Objects Layout Execution Execute Formatting Components Layout Execute Render View Component Values Output Return Rendering Outputs Results Execution Output Props Execute Function Setup Loop Map Methods Displays Fetch Event Object Props Maps Arrays Data Flow Action Values Target Returns Event Displays Logic Regex Handling Return Layout Handling Props Pattern View Action Data State Handling Loop Handling Action Displays Mapping Control Returns Mapping Mapping Control Logic Values View Exec Arrays Execution Formatting Method Values State Output Component Handling Map Function Components Mapping Components Properties Output Prop Flow Object Setup Mapping Map Array Output Functions Response Method Display Data Mapping Variables Control Arrays Flow Array Execution Variables Component Loop Array Method Logic Methods
-          if (log.action === 'section_complete') {
-            if (log.details?.content) {
-              generatedSections.value[log.section_index] = log.details.content
-              // Open Tab Docs Output Auto Expand Accordeon Div CSS Classes Watch Value Changed Hooks Appends Layout Recreate Transition View Logic
-              expandedContent.value.add(log.section_index - 1)
-              currentSectionIndex.value = null
-            }
+        // section_complete - State Updates View Render Variables Formats Maps Target Handling Mapping Value Returns Function Properties Component Prop Call Results Methods Action Displays Object Event Components Array Props Setup Displays Objects Returns Logic Fetch Run Loop Flow Values Mapping Returns Results Mapping Function Flow Logic Action Event Component Map State Results Response Mapping Scope Loop Object Handling State Map Display Rendering Scope Data Objects Layout Execution Execute Formatting Components Layout Execute Render View Component Values Output Return Rendering Outputs Results Execution Output Props Execute Function Setup Loop Map Methods Displays Fetch Event Object Props Maps Arrays Data Flow Action Values Target Returns Event Displays Logic Regex Handling Return Layout Handling Props Pattern View Action Data State Handling Loop Handling Action Displays Mapping Control Returns Mapping Mapping Control Logic Values View Exec Arrays Execution Formatting Method Values State Output Component Handling Map Function Components Mapping Components Properties Output Prop Flow Object Setup Mapping Map Array Output Functions Response Method Display Data Mapping Variables Control Arrays Flow Array Execution Variables Component Loop Array Method Logic Methods
+        if (log.action === 'section_complete') {
+          if (log.details?.content) {
+            generatedSections.value[log.section_index] = log.details.content
+            // Open Tab Docs Output Auto Expand Accordeon Div CSS Classes Watch Value Changed Hooks Appends Layout Recreate Transition View Logic
+            expandedContent.value.add(log.section_index - 1)
+            currentSectionIndex.value = null
           }
-          
-          if (log.action === 'report_complete') {
-            isComplete.value = true
-            currentSectionIndex.value = null  // Força clear spinners
-            emit('update-status', 'completed')
-            stopPolling()
-            // Component Control Object Setup Outputs Fetch Target Execute Event Component Array Control Execution Arrays Run Logic Handling Output Setup Components Variables Component Target Properties Render Map Outputs Logic Props Map Fetch Process Method Displays Map Functions Logic Formats Object Variables String Setup Variable Return Mapping Results Check Props Mapping Formats Return String Action Methods Variables Logic Process Mapping Setup Prop Pattern Response String Handling Variables Method Layout Action Results Objects Output Object Props Prop Output Arrays Execute Variable Components Array Displays Exec Arrays Return Results Array Mapping Outputs Component Flow Arrays Execute Run Methods Output Response Logic Variables View Map Value Formats Logic Regex Format Check Event Target Exec Object Results Call Handling Result Run Returns Execute Display Match Formatting Handle Data Formats Call Array Check Target Exec
-          }
-          
-          if (log.action === 'report_start') {
-            startTime.value = new Date(log.timestamp)
-          }
-        })
+        }
         
-        agentLogLine.value = res.data.from_line + newLogs.length
+        if (log.action === 'report_complete') {
+          isComplete.value = true
+          currentSectionIndex.value = null  // Força clear spinners
+          emit('update-status', 'completed')
+          stopPolling()
+          // Component Control Object Setup Outputs Fetch Target Execute Event Component Array Control Execution Arrays Run Logic Handling Output Setup Components Variables Component Target Properties Render Map Outputs Logic Props Map Fetch Process Method Displays Map Functions Logic Formats Object Variables String Setup Variable Return Mapping Results Check Props Mapping Formats Return String Action Methods Variables Logic Process Mapping Setup Prop Pattern Response String Handling Variables Method Layout Action Results Objects Output Object Props Prop Output Arrays Execute Variable Components Array Displays Exec Arrays Return Results Array Mapping Outputs Component Flow Arrays Execute Run Methods Output Response Logic Variables View Map Value Formats Logic Regex Format Check Event Target Exec Object Results Call Handling Result Run Returns Execute Display Match Formatting Handle Data Formats Call Array Check Target Exec
+        }
         
-        nextTick(() => {
-          if (rightPanel.value) {
-            // Top Scroll / If Valid Flow End Point Render Actions Control Window ScrollTo API UsedRodapé da leituraFlow Components Fetch Regex Method Exec Display Setup Setup Component Component App Component Fetch Layout Functions Method Methods Scope Prop Fetch Map String Display Execution String Code Outputs Setup Data Object Scope Result Display Return Formatting Target Outputs Execute Format Run Map Objects Prop Check Flow Objects Return Fetch Mapping Format Setup View Render Variables Displays Display Check Variable Method Process Handling Return Render Flow Maps Method Displays Result Event Mapping Action State Execution Map Run Execute String Result Fetch Pattern Target Mapping Exec Formats Response Event Arrays Objects Check String Variable Run Control Fetch Outputs Action Run Formats Call Object Flow Display Variables Result Object Returns Mapping Properties Return Handling Variables Setup Methods Variables Process Format Execution State Outputs Match
-            if (isComplete.value) {
-              rightPanel.value.scrollTop = 0
-            } else {
-              rightPanel.value.scrollTop = rightPanel.value.scrollHeight
-            }
+        if (log.action === 'report_start') {
+          startTime.value = new Date(log.timestamp)
+        }
+      })
+      
+      agentLogLine.value = res.data.from_line + newLogs.length
+      
+      nextTick(() => {
+        if (rightPanel.value) {
+          // Top Scroll / If Valid Flow End Point Render Actions Control Window ScrollTo API UsedRodapé da leituraFlow Components Fetch Regex Method Exec Display Setup Setup Component Component App Component Fetch Layout Functions Method Methods Scope Prop Fetch Map String Display Execution String Code Outputs Setup Data Object Scope Result Display Return Formatting Target Outputs Execute Format Run Map Objects Prop Check Flow Objects Return Fetch Mapping Format Setup View Render Variables Displays Display Check Variable Method Process Handling Return Render Flow Maps Method Displays Result Event Mapping Action State Execution Map Run Execute String Result Fetch Pattern Target Mapping Exec Formats Response Event Arrays Objects Check String Variable Run Control Fetch Outputs Action Run Formats Call Object Flow Display Variables Result Object Returns Mapping Properties Return Handling Variables Setup Methods Variables Process Format Execution State Outputs Match
+          if (isComplete.value) {
+            rightPanel.value.scrollTop = 0
+          } else {
+            rightPanel.value.scrollTop = rightPanel.value.scrollHeight
           }
-        })
-      }
+        }
+      })
     }
-  } catch (err) {
-    // DEBUG: Failed to fetch agent log
-    void err
   }
 }
 
@@ -2348,37 +2568,126 @@ const extractFinalContent = (response) => {
 const fetchConsoleLog = async () => {
   if (!props.reportId) return
   
-  try {
-    const res = await getConsoleLog(props.reportId, consoleLogLine.value)
+  const res = await getConsoleLog(props.reportId, consoleLogLine.value)
+  
+  if (res.success && res.data) {
+    const newLogs = res.data.logs || []
     
-    if (res.success && res.data) {
-      const newLogs = res.data.logs || []
+    if (newLogs.length > 0) {
+      consoleLogs.value.push(...newLogs)
+      consoleLogLine.value = res.data.from_line + newLogs.length
       
-      if (newLogs.length > 0) {
-        consoleLogs.value.push(...newLogs)
-        consoleLogLine.value = res.data.from_line + newLogs.length
-        
-        nextTick(() => {
-          if (logContent.value) {
-            logContent.value.scrollTop = logContent.value.scrollHeight
-          }
+      nextTick(() => {
+        if (logContent.value) {
+          logContent.value.scrollTop = logContent.value.scrollHeight
+        }
+      })
+    }
+  }
+}
+
+const loadReportData = async () => {
+  try {
+    reportError.value = null
+    reportErrorRetryable.value = false
+    reportNotFound.value = false
+    
+    // First check if report exists
+    const reportRes = await getReport(props.reportId)
+    if (!reportRes.success && reportRes.status === 404) {
+      reportNotFound.value = true
+      return
+    }
+    
+    // Capture reliability fields from report response
+    if (reportRes.success && reportRes.data) {
+      if (typeof reportRes.data.reliability_score === 'number') {
+        reliabilityScore.value = reportRes.data.reliability_score
+      }
+      if (typeof reportRes.data.beta_ready === 'boolean') {
+        betaReady.value = reportRes.data.beta_ready
+      }
+      if (reportRes.data.reliability_report) {
+        reliabilityReport.value = reportRes.data.reliability_report
+      }
+      if (Array.isArray(reportRes.data.warnings)) {
+        reportWarnings.value = reportRes.data.warnings
+      }
+    }
+    
+    // Fetch progress for failed sections
+    await fetchReportProgress()
+    
+    await fetchAgentLog()
+    await fetchConsoleLog()
+    startPolling()
+  } catch (err) {
+    reportError.value = t('step4.reportLoadError', { error: err.message })
+    reportErrorRetryable.value = true
+  }
+}
+
+const fetchReportProgress = async () => {
+  try {
+    const res = await getReportProgress(props.reportId)
+    if (res.success && res.data) {
+      const progress = res.data
+      if (progress.failed_sections && Array.isArray(progress.failed_sections)) {
+        progress.failed_sections.forEach((fs) => {
+          failedSections.value.set(fs.section_index, {
+            error: fs.error_message,
+            retryCount: 0
+          })
         })
       }
     }
   } catch (err) {
-    // DEBUG: Failed to fetch console log
-    void err
+    // Silently ignore - progress may not be available yet
+  }
+}
+
+const handleRetrySection = async (sectionIndex) => {
+  if (retryingSections.value.has(sectionIndex)) return
+  
+  retryingSections.value.add(sectionIndex)
+  try {
+    const res = await retrySection(props.reportId, sectionIndex)
+    if (res.success) {
+      // Remove from failed sections and wait for agent log to repopulate
+      failedSections.value.delete(sectionIndex)
+      // Poll for the section to be regenerated
+      const checkInterval = setInterval(async () => {
+        try {
+          await fetchAgentLog()
+          if (generatedSections.value[sectionIndex]) {
+            clearInterval(checkInterval)
+            retryingSections.value.delete(sectionIndex)
+          }
+        } catch (e) {
+          clearInterval(checkInterval)
+          retryingSections.value.delete(sectionIndex)
+        }
+      }, 3000)
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(checkInterval)
+        retryingSections.value.delete(sectionIndex)
+      }, 300000)
+    } else {
+      reportError.value = res.error || t('step4.sectionError.retryFailed')
+      retryingSections.value.delete(sectionIndex)
+    }
+  } catch (err) {
+    reportError.value = t('step4.sectionError.retryFailed')
+    retryingSections.value.delete(sectionIndex)
   }
 }
 
 const startPolling = () => {
   if (agentLogTimer || consoleLogTimer) return
   
-  fetchAgentLog()
-  fetchConsoleLog()
-  
-  agentLogTimer = setInterval(fetchAgentLog, 2000)
-  consoleLogTimer = setInterval(fetchConsoleLog, 1500)
+  agentLogTimer = setInterval(() => fetchAgentLog().catch(() => {}), 2000)
+  consoleLogTimer = setInterval(() => fetchConsoleLog().catch(() => {}), 1500)
 }
 
 const stopPolling = () => {
@@ -2437,8 +2746,57 @@ const initTableSorting = () => {
   })
 }
 
+// Focus mode keyboard handler and observer refs (for cleanup)
+let focusModeKeyHandler = null
+let sectionObserver = null
+let sectionNavUnwatch = null
+
+const initSectionObserver = () => {
+  if (sectionObserver) sectionObserver.disconnect()
+  sectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeSectionNavId.value = entry.target.id
+        }
+      })
+    },
+    { rootMargin: '-20% 0px -60% 0px', threshold: 0 }
+  )
+  document.querySelectorAll('.report-section-item').forEach((el, idx) => {
+    if (!el.id) el.id = `section-${idx}`
+    sectionObserver.observe(el)
+  })
+}
+
 // Lifecycle
 onMounted(() => {
+  // Initialize focus mode from localStorage
+  const savedFocus = localStorage.getItem('futuria-report-focus-mode')
+  if (savedFocus === 'true') {
+    focusMode.value = true
+  }
+
+  // Keyboard shortcut for focus mode
+  focusModeKeyHandler = (event) => {
+    if (event.key === 'f' || event.key === 'F') {
+      const tag = event.target.tagName
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT' && !event.target.isContentEditable) {
+        toggleFocusMode()
+      }
+    }
+  }
+  window.addEventListener('keydown', focusModeKeyHandler)
+
+  // Watch for report outline to init observer
+  sectionNavUnwatch = watch(() => reportOutline.value, (val) => {
+    if (val) {
+      nextTick(() => {
+        initSectionObserver()
+      })
+    }
+  })
+
   if (props.reportId) {
     addLog(`Report Agent initialized: ${props.reportId}`)
     startPolling()
@@ -2451,6 +2809,11 @@ watch(() => generatedSections.value, () => {
 
 onUnmounted(() => {
   stopPolling()
+  if (focusModeKeyHandler) {
+    window.removeEventListener('keydown', focusModeKeyHandler)
+  }
+  if (sectionObserver) sectionObserver.disconnect()
+  if (sectionNavUnwatch) sectionNavUnwatch()
 })
 
 watch(() => props.reportId, (newId) => {
@@ -2467,8 +2830,11 @@ watch(() => props.reportId, (newId) => {
     collapsedSections.value = new Set()
     isComplete.value = false
     startTime.value = null
+    reportNotFound.value = false
+    failedSections.value = new Map()
+    retryingSections.value = new Set()
     
-    startPolling()
+    loadReportData()
   }
 }, { immediate: true })
 </script>
@@ -5654,6 +6020,486 @@ watch(() => props.reportId, (newId) => {
     transform: none;
   }
 }
+
+.report-error-banner {
+  padding: 16px 24px;
+  background: var(--color-error-container);
+  color: var(--color-on-error-container);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-outline);
+}
+.error-content { display: flex; align-items: center; gap: 12px; }
+.retry-btn {
+  padding: 8px 16px;
+  background: var(--color-error);
+  color: var(--color-on-error);
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ========== Focus Mode Styles ========== */
+.focus-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 4px 10px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font-machine);
+}
+
+.focus-mode-toggle:hover {
+  border-color: var(--color-on-background);
+  color: var(--color-on-background);
+}
+
+.report-section-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.report-section-nav .nav-title {
+  font-family: var(--font-machine);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-on-background);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.report-section-nav .nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.report-section-nav .nav-item a {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  text-decoration: none;
+  padding: 4px 10px;
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.report-section-nav .nav-item a:hover {
+  border-color: var(--color-on-background);
+  color: var(--color-on-background);
+}
+
+.report-section-nav .nav-item.active a {
+  background: var(--color-on-background);
+  color: var(--color-surface);
+  border-color: var(--color-on-background);
+}
+
+/* Focus mode layout transitions */
+.report-panel,
+.left-panel,
+.right-panel,
+.console-logs {
+  transition: width 0.3s ease, opacity 0.3s ease, flex 0.3s ease;
+}
+
+.report-panel.focus-mode--active .main-split-layout {
+  gap: 0;
+}
+
+.report-panel.focus-mode--active .left-panel {
+  width: 100%;
+  flex: 1 1 100%;
+  border-right: none;
+}
+
+.report-panel.focus-mode--active .right-panel {
+  width: 0;
+  opacity: 0;
+  flex: 0 0 0;
+  overflow: hidden;
+}
+
+.report-panel.focus-mode--active .console-logs {
+  display: none;
+}
+
+/* Empty State */
+.report-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 16px;
+}
+
+.empty-state-icon {
+  color: var(--color-muted);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: var(--color-muted);
+  max-width: 400px;
+  margin: 0;
+}
+
+.empty-state-back-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--color-outline);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.empty-state-back-btn:hover {
+  border-color: var(--color-on-background);
+  background: var(--color-surface-container-high);
+}
+
+/* Quality Indicator */
+.report-quality-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.quality-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quality-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quality-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-on-background);
+}
+
+.quality-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quality-badges .badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.badge--warning {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.badge--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge--success {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.reliability-badge {
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.reliability-badge--excellent {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.reliability-badge--beta-ok {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.reliability-badge--attention {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.reliability-badge--review {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Reliability Pillars */
+.reliability-pillars {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.pillars-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.pillars-toggle-btn:hover {
+  color: var(--color-on-surface);
+}
+
+.toggle-chevron {
+  transition: transform 0.25s ease;
+  margin-left: 4px;
+}
+
+.toggle-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.pillars-panel {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pillar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pillar-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  text-transform: capitalize;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.pillar-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--color-surface-container);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pillar-bar {
+  display: block;
+  height: 100%;
+  background: var(--color-info);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.pillar-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Beta Warning */
+.beta-warning {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.beta-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.beta-warning-list {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--color-on-surface);
+  line-height: 1.6;
+}
+
+.beta-warning-help {
+  margin: 8px 0 0 0;
+  font-size: 11px;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+/* Section Error State */
+.section-error-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.section-error-state .error-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.section-error-state .error-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.section-error-state .error-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+  margin: 0 0 4px;
+}
+
+.section-error-state .error-detail {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin: 0;
+  word-break: break-word;
+}
+
+.retry-section-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  background: #fff;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.retry-section-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.retry-section-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.retry-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(239, 68, 68, 0.2);
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: retry-spin 0.8s linear infinite;
+}
+
+@keyframes retry-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .report-section-nav .nav-list {
+    flex-direction: column;
+  }
+  .report-quality-indicator {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .section-error-state {
+    flex-direction: column;
+  }
+}
 </style>
 
 <style>
@@ -5662,6 +6508,3 @@ html[lang="en"] .report-header-block .main-title {
   font-size: 28px;
 }
 </style>
-e>
-
-e>

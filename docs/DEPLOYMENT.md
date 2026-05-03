@@ -26,6 +26,43 @@ Compose behavior:
 - mounts `./backend/uploads` to `/app/backend/uploads` for file persistence
 - restarts with `unless-stopped`
 
+## Ambiente Beta
+
+A dedicated beta environment is available via `docker-compose.beta.yml`. It runs the backend and frontend as separate services with isolated volumes and a dedicated Docker network, avoiding port conflicts with the development stack.
+
+### Starting the beta environment
+
+1. Create the environment file:
+
+```bash
+cp .env.beta.example .env.beta
+# Edit .env.beta with real credentials
+```
+
+2. Start the services:
+
+```bash
+docker compose -f docker-compose.beta.yml up --build
+```
+
+Beta behavior:
+- `backend-beta` listens on host port `5002` (container port `5002`)
+- `frontend-beta` serves the production build on host port `4002` (container port `4002`)
+- `FLASK_DEBUG=false` is enforced for the beta backend
+- Uploads are persisted to the named volume `beta-uploads` (`/app/uploads/beta`)
+- Logs are persisted to the named volume `beta-logs` (`/app/logs/beta`)
+- Both services attach to the `futuria-beta-network` bridge network
+- Services restart with `unless-stopped`
+
+### Destroying beta data
+
+To remove the beta volumes and all associated data:
+
+```bash
+docker compose -f docker-compose.beta.yml down
+docker volume rm futuria-v2-refatorado_beta-uploads futuria-v2-refatorado_beta-logs
+```
+
 ### Manual non-Docker startup
 
 Backend:

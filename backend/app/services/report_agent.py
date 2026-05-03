@@ -21,8 +21,8 @@ from enum import Enum
 from ..config import Config
 from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
-from ..utils.locale import get_reporting_language_instruction, t
-from ..utils.language_integrity import assess_text_integrity, enforce_controlled_output, extract_entity_candidates
+from ..utils.locale import get_language_instruction, get_reporting_language_instruction, t
+from ..utils.language_integrity import assess_text_integrity, enforce_controlled_output, extract_entity_candidates, detect_any_language_contamination, detect_spanish_contamination, detect_language_switches
 from ..profiles import ProfileManager, UserProfile
 from .zep_tools import (
     ZepToolsService,
@@ -43,6 +43,7 @@ from .bias_audit import (
 from .quality_gates import (
     QualityGateService,
     QualityReport,
+    GateSeverity,
 )
 
 logger = get_logger('futuria.report_agent')
@@ -412,6 +413,7 @@ class ReportStatus(str, Enum):
     PLANNING = "planning"
     GENERATING = "generating"
     COMPLETED = "completed"
+    DEGRADED = "degraded"
     FAILED = "failed"
 
 
@@ -420,11 +422,18 @@ class ReportSection:
     """report section"""
     title: str
     content: str = ""
+    status: ReportStatus = ReportStatus.PENDING
+    retry_count: int = 0
+    error_message: Optional[str] = None
+    max_retries: int = 3
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.title,
-            "content": self.content
+            "content": self.content,
+            "status": self.status.value,
+            "retry_count": self.retry_count,
+            "error_message": self.error_message,
         }
 
     def to_markdown(self, level: int = 2) -> str:
@@ -686,6 +695,14 @@ REACT_TOOL_LIMIT_MSG = (
     "Produce the chapter immediately, starting with Final Answer:, using only the evidence already gathered."
 )
 
+THINKING_PATTERNS = [
+    re.compile(r"^\s*(?:Thinking|Thought|My thought process|My reasoning)[:\s].*", re.IGNORECASE | re.MULTILINE),
+    re.compile(r"^\s*(?:I have gathered|I will now|Let me analyze|Based on my analysis|I need to|First, I|Next, I|Finally, I|To answer this|I should|I will|I can|I'll|I've|I am going to)[:\s].*", re.IGNORECASE | re.MULTILINE),
+    re.compile(r"^\s*(?:The user asked|The question is|This section requires|Here is what I found|I will start by|Let me begin|I will proceed)[:\s].*", re.IGNORECASE | re.MULTILINE),
+    re.compile(r"<think>.*?</think>", re.IGNORECASE | re.DOTALL),
+    re.compile(r"\[Thinking\].*?\[/Thinking\]", re.IGNORECASE | re.DOTALL),
+]
+
 REACT_UNUSED_TOOLS_HINT = (
     "\nYou have not used these tools yet: {unused_list}. "
     "Use different tools if the chapter still lacks multiple perspectives."
@@ -746,6 +763,11 @@ CHAT_OBSERVATION_SUFFIX = "\n\nResponda de forma concisa em português brasileir
 # ═══════════════════════════════════════════════════════════════
 
 
+class SectionGenerationError(Exception):
+    """Raised when a section fails after all retry attempts."""
+    pass
+
+
 class ReportAgent:
     """
     Report Agent - simulationreportAgent
@@ -774,6 +796,7 @@ class ReportAgent:
         zep_tools: Optional[ZepToolsService] = None,
         observability_client: Optional[Any] = None,
         profile: str = "generico",
+        debug_mode: bool = False,
     ):
         """
         initializeReport Agent
@@ -798,6 +821,7 @@ class ReportAgent:
         # Profile configuration
         self.profile_name = profile or "generico"
         self.profile_manager = ProfileManager()
+        self.debug_mode = debug_mode
         self._apply_profile_config(self.profile_name)
 
         # tool definition
@@ -832,6 +856,18 @@ class ReportAgent:
             self.entity_type_weights = {}
             self.profile_type = "generico"
 
+    @staticmethod
+    def _sanitize_final_output(text: str) -> str:
+        """Remove padroes conhecidos de thinking process do texto final.
+
+        Preserva o conteudo se nenhum padrao for encontrado.
+        """
+        cleaned = text
+        for pattern in THINKING_PATTERNS:
+            cleaned = pattern.sub("", cleaned)
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        return cleaned.strip()
+
     def _get_profile_section_prompt(self, section_title: str) -> str:
         """Retorna o section_prompt especifico do perfil, se configurado."""
         section_prompt = getattr(self, 'section_prompt', None)
@@ -840,8 +876,8 @@ class ReportAgent:
             if "{section_title}" in section_prompt:
                 try:
                     section_prompt = section_prompt.format(section_title=section_title)
-                except Exception:
-                    pass
+                except (KeyError, IndexError, ValueError) as e:
+                    logger.warning(f"Falha ao formatar section_prompt para '{section_title}': {e}")
             return f"\n\n[Profile-Specific Section Guidance]\n{section_prompt}\n"
         return ""
 
@@ -1028,26 +1064,24 @@ class ReportAgent:
         messages: List[Dict[str, str]],
         temperature: float = 0.5,
         max_tokens: int = 4096,
-        max_retries: int = 2,
+        max_retries: int = 3,
         json_mode: bool = False,
         observation: Optional[Any] = None,
         generation_name: Optional[str] = None,
     ) -> Optional[str]:
         """
         Chama o LLM com proteção contra alucinação de idioma.
-        Se detectar chinês/japonês/coreano/cirílico, faz retry com correção.
+        Se detectar chinês/japonês/coreano/cirílico/espanhol/english-switch, faz retry com correção.
         """
-        lang_enforcement = (
-            "\n\nCORREÇÃO IMEDIATA - IDIOMA\n"
-            "Your previous response contained forbidden script characters. "
-            "This is strictly forbidden. Rewrite everything in English. "
-            "Do not use non-Latin scripts or mixed-language output."
+        base_correction = (
+            "\n\nCORRECAO IMEDIATA - IDIOMA\n"
+            "Sua resposta anterior continha caracteres de script proibido ou idioma estrangeiro.\n"
+            "Reescreva TUDO em portugues brasileiro (pt-BR).\n"
+            "Nao use scripts nao-latinos, espanhol ou troca de idioma para ingles."
         )
 
         for attempt in range(max_retries + 1):
             if json_mode:
-                # plan_outline usa chat_json; não podemos interceptar a string bruta,
-                # então aplicamos guarda no nível das mensagens e validamos o JSON serializado
                 import json as _json
                 response = self.llm.chat_json(
                     messages=messages,
@@ -1057,9 +1091,10 @@ class ReportAgent:
                     generation_name=generation_name,
                 )
                 raw_text = _json.dumps(response, ensure_ascii=False)
-                if not _contains_forbidden_language(raw_text):
-                    return raw_text  # retorna string para compatibilidade; quem chama faz parse
-                logger.warning(f"[LanguageGuard] JSON com idioma proibido detectado (tentativa {attempt + 1})")
+                contamination = detect_any_language_contamination(raw_text)
+                if contamination["ok"]:
+                    return raw_text
+                logger.warning(f"[LanguageGuard] JSON contaminado (tentativa {attempt + 1}): {contamination}")
             else:
                 response = self.llm.chat(
                     messages=messages,
@@ -1070,17 +1105,50 @@ class ReportAgent:
                 )
                 if response is None:
                     return None
-                if not _contains_forbidden_language(response):
+                contamination = detect_any_language_contamination(response)
+                if contamination["ok"]:
                     return response
-                logger.warning(f"[LanguageGuard] Texto com idioma proibido detectado (tentativa {attempt + 1})")
+                logger.warning(f"[LanguageGuard] Texto contaminado (tentativa {attempt + 1}): {contamination}")
 
-            # Retry: adiciona mensagem de correção
+            # Retry: adiciona mensagem de correção específica
             if attempt < max_retries:
                 messages.append({"role": "assistant", "content": response if not json_mode else raw_text})
-                messages.append({"role": "user", "content": lang_enforcement})
+                specific_msg = base_correction
+                if contamination.get("forbidden_scripts"):
+                    specific_msg += "\n- Script proibido detectado."
+                if contamination.get("spanish"):
+                    specific_msg += "\n- Espanhol detectado. Evite palavras como 'el', 'la', 'muy', 'porque'."
+                if contamination.get("english_switch"):
+                    specific_msg += "\n- Paragrafo em ingles detectado. Mantenha o texto inteiramente em portugues brasileiro."
+                messages.append({"role": "user", "content": specific_msg})
 
-        # Última tentativa falhou, retorna mesmo assim (fallback)
-        return response if not json_mode else raw_text
+        # Última tentativa falhou — retorna None para sinalizar falha ao caller
+        logger.error("[LanguageGuard] Todas as tentativas falharam. Retornando None.")
+        return None
+
+    def _run_final_language_gate(self, outline, report_id: str) -> bool:
+        """Gate final de rejeicao linguistica antes da entrega do relatorio.
+
+        Itera secoes do outline e bloqueia qualquer uma com contaminacao.
+        Retorna True se houve pelo menos uma secao bloqueada.
+        """
+        from ..utils.language_integrity import detect_any_language_contamination
+        blocked_any = False
+        for section in outline.sections:
+            contamination = detect_any_language_contamination(section.content)
+            if not contamination["ok"]:
+                types = [k for k, v in contamination.items() if k != "ok" and v]
+                logger.error(
+                    f"[LanguageGate] Secao bloqueada: report_id={report_id} "
+                    f"section={section.title} types={types}"
+                )
+                section.content = (
+                    f"[Secao \"{section.title}\" bloqueada: conteudo em idioma proibido "
+                    f"detectado apos 3 tentativas. Regenere o relatorio.]"
+                )
+                section.status = ReportStatus.DEGRADED
+                blocked_any = True
+        return blocked_any
 
     def _define_tools(self) -> Dict[str, Dict[str, Any]]:
         """available tools"""
@@ -1273,7 +1341,8 @@ class ReportAgent:
                     return
                 params = data.get("parameters") or data.get("params") or {}
                 key = (str(tool_name), json.dumps(params, sort_keys=True))
-            except Exception:
+            except (TypeError, ValueError) as e:
+                logger.warning(f"Falha ao extrair tool call: {e}")
                 return
             if key not in seen and self._is_valid_tool_call(data):
                 seen.add(key)
@@ -1423,137 +1492,23 @@ class ReportAgent:
         progress_callback: Optional[Callable] = None,
         observability_client: Optional[Any] = None,
     ) -> ReportOutline:
-        """
-        plan report outline
-
-        useLLManalyze simulation requirementplan report directory structure
-
-        Args:
-            progress_callback: progress callback
-            observability_client: Langfuse observation to use for planning span (optional).
-
-        Returns:
-            ReportOutline: report
-        """
-        logger.info(t('report.startPlanningOutline'))
-
-        if progress_callback:
-            progress_callback("planning", 0, t('progress.analyzingRequirements'))
-
-        # getsimulation
-        context = self.zep_tools.get_simulation_context(
+        """Plan report outline — delegates to ReportPlanner."""
+        from .report_planner import ReportPlanner
+        planner = ReportPlanner(
+            self.zep_tools,
+            self.llm,
+            profile_system_prompt=getattr(self, 'system_prompt', None),
+            outline_system_prompt=getattr(self, 'outline_system_prompt', None),
+        )
+        return planner.plan(
             graph_id=self.graph_id,
-            simulation_requirement=self.simulation_requirement
-        )
-
-        if progress_callback:
-            progress_callback("planning", 30, t('progress.generatingOutline'))
-
-        system_prompt = f"{PLAN_SYSTEM_PROMPT}\n\n{get_reporting_language_instruction()}"
-        # Apply profile-specific system prompt if configured
-        profile_system = getattr(self, 'system_prompt', None)
-        if profile_system:
-            system_prompt = f"{profile_system}\n\n{system_prompt}"
-        # Apply profile-specific outline prompt if configured (Phase 10)
-        outline_prompt = getattr(self, 'outline_system_prompt', None)
-        if outline_prompt:
-            system_prompt = f"{outline_prompt}\n\n{system_prompt}"
-
-        user_prompt = PLAN_USER_PROMPT_TEMPLATE.format(
             simulation_requirement=self.simulation_requirement,
-            total_nodes=context.get('graph_statistics', {}).get('total_nodes', 0),
-            total_edges=context.get('graph_statistics', {}).get('total_edges', 0),
-            entity_types=list(context.get('graph_statistics', {}).get('entity_types', {}).keys()),
-            total_entities=context.get('total_entities', 0),
-            related_facts_json=json.dumps(context.get('related_facts', [])[:10], ensure_ascii=False, indent=2),
+            progress_callback=progress_callback,
+            observability_client=observability_client,
         )
 
-        # Wrap planning LLM call in an observability span
-        planning_obs = observability_client or self.observability_client
-        planning_span = None
-        if planning_obs is not None:
-            planning_span = planning_obs.start_span(
-                name="report_planning",
-                metadata={
-                    "graph_id": self.graph_id,
-                    "simulation_id": self.simulation_id,
-                },
-            )
 
-        try:
-            raw_response = self._generate_with_language_guard(
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.3,
-                json_mode=True,
-                observation=planning_span,
-                generation_name="outline_planning",
-            )
-
-            import json as _json
-            response = _json.loads(raw_response) if isinstance(raw_response, str) else raw_response
-
-            if progress_callback:
-                progress_callback("planning", 80, t('progress.parsingOutline'))
-
-            # parse outline
-            sections = []
-            for section_data in response.get("sections", []):
-                sections.append(ReportSection(
-                    title=section_data.get("title", ""),
-                    content=""
-                ))
-
-            outline = ReportOutline(
-                title=response.get("title", "Simulation Analysis Report"),
-                summary=response.get("summary", ""),
-                sections=sections
-            )
-
-            if progress_callback:
-                progress_callback("planning", 100, t('progress.outlinePlanComplete'))
-
-            logger.info(t('report.outlinePlanDone', count=len(sections)))
-
-            if planning_span is not None:
-                planning_span.update(output={"title": outline.title, "sections": [s.title for s in outline.sections]})
-                planning_span.end()
-
-            return outline
-
-        except Exception as e:
-            logger.error(t('report.outlinePlanFailed', error=str(e)))
-
-            if planning_span is not None:
-                planning_span.update(status_message=f"error: {str(e)}", output="")
-                planning_span.end()
-            # Fallback outline: usar estrutura due-diligence se o perfil exigir
-            if getattr(self, 'outline_system_prompt', None):
-                return ReportOutline(
-                    title="Análise de Due Diligence",
-                    summary="Avaliação estruturada do cenário econômico simulado",
-                    sections=[
-                        ReportSection(title="Tese Principal"),
-                        ReportSection(title="Evidências Verificadas"),
-                        ReportSection(title="Fragilidades e Riscos"),
-                        ReportSection(title="Premissas Explícitas"),
-                        ReportSection(title="Cenários (Bear / Base / Bull)")
-                    ]
-                )
-            # Fallback generico
-            return ReportOutline(
-                title="Relatório de Predição Futura",
-                summary="Análise de tendências futuras e riscos com base na simulação",
-                sections=[
-                    ReportSection(title="Cenários de Predição e Principais Achados"),
-                    ReportSection(title="Análise de Comportamento Coletivo"),
-                    ReportSection(title="Perspectivas de Tendência e Alertas de Risco")
-                ]
-            )
-
-    def _generate_section_react(
+    def _generate_section_with_retry(
         self,
         section: ReportSection,
         outline: ReportOutline,
@@ -1562,437 +1517,76 @@ class ReportAgent:
         section_index: int = 0,
         observation: Optional[Any] = None,
     ) -> str:
-        """
-        useReACTcountsection
+        """Generate a section with retry, delegating ReACT to SectionGenerator."""
+        max_retries = section.max_retries
+        base_delay = 1.0
 
-        ReACTloop
-        1. Thoughtthought- analyze what info needed
-        2. Actionaction- callgetinfo
-        3. Observationobservation- result
-        4. repeat until info sufficient or max reached
-        5. Final Answerfinal answer- section
-
-        Args:
-            section: section to generate
-            outline: complete outline
-            previous_sections: previous sections contentused to maintain coherence
-            progress_callback: progress callback
-            section_index: sectionlogrecord
-            observation: Langfuse span to use for this section's generation (optional).
-
-        Returns:
-            sectionMarkdownformat
-        """
-        logger.info(t('report.reactGenerateSection', title=section.title))
-
-        # recordsectionstartlog
-        if self.report_logger:
-            self.report_logger.log_section_start(section.title, section_index)
-
-        system_prompt = SECTION_SYSTEM_PROMPT_TEMPLATE.format(
-            report_title=outline.title,
-            report_summary=outline.summary,
+        from .section_generator import SectionGenerator
+        section_gen = SectionGenerator(
+            zep_tools=self.zep_tools,
+            llm_client=self.llm,
+            report_logger=self.report_logger,
+            validation_report=getattr(self, 'validation_report', None),
             simulation_requirement=self.simulation_requirement,
-            section_title=section.title,
-            tools_description=self._get_tools_description(),
-        )
-        # Add profile-specific section guidance
-        system_prompt += self._get_profile_section_prompt(section.title)
-
-        # Inject validation context (Phase 9)
-        if getattr(self, 'validation_report', None):
-            validation_context = (
-                "\n\n[Contexto de Validacao de Dados]\n"
-                f"{self.validation_report.summary_text}\n"
-                "\nRegras de narrativa baseadas na validacao:\n"
-                "- Use a confianca indicada ao descrever cada metrica (alta=afirmativa, media=condicional, baixa=especulativa).\n"
-                "- Se houver discrepancias de BLOQUEIO, nao apresente o dado como fato consolidado.\n"
-                "- Se houver notas GAAP/non-GAAP, distingua explicitamente no texto.\n"
-            )
-            system_prompt += validation_context
-
-        system_prompt = f"{system_prompt}\n\n{get_reporting_language_instruction()}"
-
-        # Determine temperature: profile override or default
-        generation_temp = getattr(self, 'temperature', 0.5)
-        max_reflection = getattr(self, 'max_reflection_rounds', 3)
-
-        # Check graph health before starting ReACT loop
-        graph_health = self.zep_tools.check_graph_health(self.graph_id)
-        health_status = graph_health.get("status", "unknown")
-        if health_status in ("empty", "no_facts", "sparse"):
-            logger.warning(f"[ReportAgent] Graph health '{health_status}' for section '{section.title}'. Pre-loading fallback sources.")
-            fallback_preload = self._trigger_fallback_search(
-                query=f"{section.title} {self.simulation_requirement}",
-                section_title=section.title,
-                section_index=section_index,
-            )
-            if fallback_preload:
-                # Inject fallback sources as system context
-                system_prompt += f"\n\n[Contexto Pre-carregado - Grafo {health_status}]\n{fallback_preload}\n"
-
-        # prompt - countsection4000
-        if previous_sections:
-            previous_parts = []
-            for sec in previous_sections:
-                # countsection4000
-                truncated = sec[:4000] + "..." if len(sec) > 4000 else sec
-                previous_parts.append(truncated)
-            previous_content = "\n\n---\n\n".join(previous_parts)
-        else:
-            previous_content = "(this is the first section)"
-
-        user_prompt = SECTION_USER_PROMPT_TEMPLATE.format(
-            previous_content=previous_content,
-            section_title=section.title,
+            graph_id=self.graph_id,
+            simulation_id=self.simulation_id,
+            temperature=getattr(self, 'temperature', 0.5),
+            max_reflection_rounds=getattr(self, 'max_reflection_rounds', 3),
+            system_prompt=getattr(self, 'system_prompt', None),
+            section_prompt=getattr(self, 'section_prompt', None),
         )
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-
-        # ReACT loop
-        tool_calls_count = 0
-        max_iterations = 8  # max iteration rounds
-        min_tool_calls = 3  # call
-        conflict_retries = 0  # tool call andFinal Answerconsecutive conflicts at same time
-        used_tools = set()  # recordcall
-        all_tools = {"insight_forge", "panorama_search", "quick_search", "interview_agents"}
-
-        # reportInsightForgesub-question generation
-        report_context = f"section title: {section.title}\nsimulation: {self.simulation_requirement}"
-
-        for iteration in range(max_iterations):
-            if progress_callback:
-                progress_callback(
-                    "generating",
-                    int((iteration / max_iterations) * 100),
-                    t('progress.deepSearchAndWrite', current=tool_calls_count, max=self.MAX_TOOL_CALLS_PER_SECTION)
+        for attempt in range(max_retries + 1):
+            try:
+                section_content = section_gen.generate(
+                    section=section,
+                    outline=outline,
+                    previous_sections=previous_sections,
+                    progress_callback=progress_callback,
+                    section_index=section_index,
+                    observation=observation,
                 )
 
-            # callLLM (com proteção de idioma)
-            response = self._generate_with_language_guard(
-                messages=messages,
-                temperature=generation_temp,
-                max_tokens=4096,
-                observation=observation,
-                generation_name=f"section_{section.title[:30]}",
-            )
+                if not section_content or not section_content.strip():
+                    raise ValueError("Secao retornou conteudo vazio")
 
-            # check LLM return if NoneAPI is empty
-            if response is None:
-                logger.warning(t('report.sectionIterNone', title=section.title, iteration=iteration + 1))
-                # if still have iterationsadd message and retry
-                if iteration < max_iterations - 1:
-                    messages.append({"role": "assistant", "content": "(response is empty)"})
-                    messages.append({"role": "user", "content": "Please continue generating content."})
-                    continue
-                # last iteration also returns Noneloop
-                break
+                section_content = self._validate_persisted_output(
+                    section_content,
+                    allowed_entity_source="\n\n".join(previous_sections),
+                    context_label=f"section_{section_index:02d}",
+                )
 
-            logger.debug(f"LLM: {response[:200]}...")
+                return section_content
 
-            # parse onceresult
-            tool_calls = self._parse_tool_calls(response)
-            has_tool_calls = bool(tool_calls)
-            has_final_answer = "Final Answer:" in response
-
-            # ── conflict handlingLLM outputcalland Final Answer ──
-            if has_tool_calls and has_final_answer:
-                conflict_retries += 1
+            except Exception as e:
+                section.retry_count += 1
                 logger.warning(
-                    t('report.sectionConflict', title=section.title, iteration=iteration+1, conflictCount=conflict_retries)
+                    f"[ReportAgent] Secao '{section.title}' falhou na tentativa "
+                    f"{attempt + 1}/{max_retries + 1}: {e}"
                 )
 
-                if conflict_retries <= 2:
-                    # discard this responserequire LLM reply again
-                    messages.append({"role": "assistant", "content": response})
-                    messages.append({
-                        "role": "user",
-                        "content": (
-                            "format errorinreplycalland Final Answer\n"
-                            "each reply can only do one of two things\n"
-                            "- output one <tool_call> JSON block with no other content\n"
-                            "- output final content starting with 'Final Answer:' with no <tool_call>\n"
-                            "please reply againonly do one thing"
-                        ),
-                    })
-                    continue
+                if attempt < max_retries:
+                    delay = min(base_delay * (2 ** attempt), 8.0)
+                    time.sleep(delay)
                 else:
-                    # third timedegrade handlingtruncate to first tool call
-                    logger.warning(
-                        t('report.sectionConflictDowngrade', title=section.title, conflictCount=conflict_retries)
+                    raise SectionGenerationError(
+                        f"Falha ao gerar secao '{section.title}' apos "
+                        f"{max_retries + 1} tentativas. Ultimo erro: {e}"
                     )
-                    first_tool_end = response.find('</tool_call>')
-                    if first_tool_end != -1:
-                        response = response[:first_tool_end + len('</tool_call>')]
-                        tool_calls = self._parse_tool_calls(response)
-                        has_tool_calls = bool(tool_calls)
-                    has_final_answer = False
-                    conflict_retries = 0
-
-            # record LLM response log
-            if self.report_logger:
-                self.report_logger.log_llm_response(
-                    section_title=section.title,
-                    section_index=section_index,
-                    response=response,
-                    iteration=iteration + 1,
-                    has_tool_calls=has_tool_calls,
-                    has_final_answer=has_final_answer
-                )
-
-            # ── situation1LLM output Final Answer ──
-            if has_final_answer:
-                # callrequire
-                if tool_calls_count < min_tool_calls:
-                    messages.append({"role": "assistant", "content": response})
-                    unused_tools = all_tools - used_tools
-                    unused_hint = f"userecommend using them: {', '.join(unused_tools)}" if unused_tools else ""
-                    messages.append({
-                        "role": "user",
-                        "content": REACT_INSUFFICIENT_TOOLS_MSG.format(
-                            tool_calls_count=tool_calls_count,
-                            min_tool_calls=min_tool_calls,
-                            unused_hint=unused_hint,
-                        ),
-                    })
-                    continue
-
-                # normal end
-                final_answer = response.split("Final Answer:")[-1].strip()
-                # Apply profile output validation
-                final_answer = self._validate_output_against_profile(final_answer, context_label=f"section_{section_index}_final")
-                logger.info(t('report.sectionGenDone', title=section.title, count=tool_calls_count))
-
-                if self.report_logger:
-                    self.report_logger.log_section_content(
-                        section_title=section.title,
-                        section_index=section_index,
-                        content=final_answer,
-                        tool_calls_count=tool_calls_count
-                    )
-                return final_answer
-
-            # ── situation2LLM call ──
-            if has_tool_calls:
-                # tool quota exhausted → explicitly informrequired output Final Answer
-                if tool_calls_count >= self.MAX_TOOL_CALLS_PER_SECTION:
-                    messages.append({"role": "assistant", "content": response})
-                    messages.append({
-                        "role": "user",
-                        "content": REACT_TOOL_LIMIT_MSG.format(
-                            tool_calls_count=tool_calls_count,
-                            max_tool_calls=self.MAX_TOOL_CALLS_PER_SECTION,
-                        ),
-                    })
-                    continue
-
-                # sectioncountcall
-                call = tool_calls[0]
-                if len(tool_calls) > 1:
-                    logger.info(t('report.multiToolOnlyFirst', total=len(tool_calls), toolName=call['name']))
-
-                # Determine provenance tag based on tool
-                if call["name"] == "interview_agents":
-                    _provenance_tag = "📊 Fato — entrevista com agentes"
-                else:
-                    _provenance_tag = "📊 Fato — extraído da base de conhecimento"
-
-                if self.report_logger:
-                    self.report_logger.log_tool_call(
-                        section_title=section.title,
-                        section_index=section_index,
-                        tool_name=call["name"],
-                        parameters=call.get("parameters", {}),
-                        iteration=iteration + 1,
-                        provenance_tag=_provenance_tag
-                    )
-
-                # Wrap tool execution in an observability span
-                tool_span = None
-                if observation is not None:
-                    tool_span = observation.start_span(
-                        name=f"tool_{call['name']}",
-                        metadata={
-                            "section_title": section.title,
-                            "section_index": section_index,
-                            "tool_name": call["name"],
-                            "iteration": iteration + 1,
-                        },
-                    )
-                    tool_span.update(
-                        input={
-                            "tool_name": call["name"],
-                            "parameters": call.get("parameters", {}),
-                        }
-                    )
-
-                try:
-                    result = self._execute_tool(
-                        call["name"],
-                        call.get("parameters", {}),
-                        report_context=report_context,
-                        observation=observation,
-                    )
-                finally:
-                    if tool_span is not None:
-                        tool_span.update(output={"result_length": len(result)})
-                        tool_span.end()
-
-                if self.report_logger:
-                    self.report_logger.log_tool_result(
-                        section_title=section.title,
-                        section_index=section_index,
-                        tool_name=call["name"],
-                        result=result,
-                        iteration=iteration + 1,
-                        provenance_tag=_provenance_tag
-                    )
-
-                # ── Fallback detection: if graph returns empty, trigger external search ──
-                # Detect empty graph results (0 facts, 0 entities mentioned)
-                is_empty_result = (
-                    "0 related items" in result
-                    or "Found 0" in result
-                    or "no facts" in result.lower()
-                    or ("total_facts: 0" in result.lower())
-                    or (len(result.strip()) < 100 and "0" in result and "related" in result.lower())
-                )
-                if is_empty_result and call["name"] in {"insight_forge", "panorama_search", "quick_search"}:
-                    query_for_fallback = call.get("parameters", {}).get("query", section.title)
-                    fallback_text = self._trigger_fallback_search(
-                        query=query_for_fallback,
-                        section_title=section.title,
-                        section_index=section_index,
-                    )
-                    if fallback_text:
-                        result += f"\n\n{fallback_text}"
-                        logger.info(f"[ReportAgent] Appended fallback sources to tool result for section '{section.title}'")
-
-                tool_calls_count += 1
-                used_tools.add(call['name'])
-
-                # use
-                unused_tools = all_tools - used_tools
-                unused_hint = ""
-                if unused_tools and tool_calls_count < self.MAX_TOOL_CALLS_PER_SECTION:
-                    unused_hint = REACT_UNUSED_TOOLS_HINT.format(unused_list="".join(unused_tools))
-
-                messages.append({"role": "assistant", "content": response})
-                messages.append({
-                    "role": "user",
-                    "content": REACT_OBSERVATION_TEMPLATE.format(
-                        tool_name=call["name"],
-                        result=result,
-                        tool_calls_count=tool_calls_count,
-                        max_tool_calls=self.MAX_TOOL_CALLS_PER_SECTION,
-                        used_tools_str=", ".join(used_tools),
-                        unused_hint=unused_hint,
-                    ),
-                })
-                continue
-
-            # ── situation3callalso not Final Answer ──
-            messages.append({"role": "assistant", "content": response})
-            logger.warning(
-                f"[ReportAgent] Section '{section.title}' iteration {iteration+1}: "
-                f"response has no tool_call and no Final Answer (len={len(response)}). "
-                f"Preview: {response[:150]!r}"
-            )
-
-            if tool_calls_count < min_tool_calls:
-                # callrecommend unused tools
-                unused_tools = all_tools - used_tools
-                unused_hint = f"userecommend using them: {', '.join(unused_tools)}" if unused_tools else ""
-
-                messages.append({
-                    "role": "user",
-                    "content": REACT_INSUFFICIENT_TOOLS_MSG_ALT.format(
-                        tool_calls_count=tool_calls_count,
-                        min_tool_calls=min_tool_calls,
-                        unused_hint=unused_hint,
-                    ),
-                })
-                continue
-
-            # callLLM output "Final Answer:" prefix
-            # directly use this content as final answerno longer idle
-            logger.info(t('report.sectionNoPrefix', title=section.title, count=tool_calls_count))
-            final_answer = response.strip()
-
-            if self.report_logger:
-                self.report_logger.log_section_content(
-                    section_title=section.title,
-                    section_index=section_index,
-                    content=final_answer,
-                    tool_calls_count=tool_calls_count
-                )
-            return final_answer
-
-        # max iterations reachedforce generate content
-        logger.warning(t('report.sectionMaxIter', title=section.title))
-        messages.append({"role": "user", "content": REACT_FORCE_FINAL_MSG})
-
-        response = self._generate_with_language_guard(
-            messages=messages,
-            temperature=generation_temp,
-            max_tokens=4096
-        )
-
-        # check LLM return if None
-        if response is None:
-            logger.error(t('report.sectionForceFailed', title=section.title))
-            final_answer = t('report.sectionGenFailedContent')
-        elif "Final Answer:" in response:
-            final_answer = response.split("Final Answer:")[-1].strip()
-        else:
-            final_answer = response
-
-        # Apply profile output validation
-        final_answer = self._validate_output_against_profile(final_answer, context_label=f"section_{section_index}_forced")
-
-        # recordsectionlog
-        if self.report_logger:
-            self.report_logger.log_section_content(
-                section_title=section.title,
-                section_index=section_index,
-                content=final_answer,
-                tool_calls_count=tool_calls_count
-            )
-
-        return final_answer
 
     def generate_report(
         self,
         progress_callback: Optional[Callable[[str, int, str], None]] = None,
         report_id: Optional[str] = None
     ) -> Report:
-        """
-        generate full reportsection
-
-        save each section immediately after generationetccountreport
-        file structure
-        reports/{report_id}/
-            meta.json       - report metadata
-            outline.json    - report
-            progress.json   - generation progress
-            section_01.md   - section1section
-            section_02.md   - section2section
-            ...
-            full_report.md  - report
-
-        Args:
-            progress_callback: progress callback (stage, progress, message)
-            report_id: reportIDsuch asauto generate
-
-        Returns:
-            Report: report
-        """
+        """Generate full report — orchestrates planning, generation and assembly."""
         import uuid
+        from .report_planner import ReportPlanner
+        from .section_generator import SectionGenerator
+        from .report_assembler import ReportAssembler
+        from .quality_gates import QualityGateService
+        from .bias_audit import BiasAuditService
 
-        # such as report_idauto generate
         if not report_id:
             report_id = f"report_{uuid.uuid4().hex[:12]}"
         start_time = datetime.now()
@@ -2005,176 +1599,198 @@ class ReportAgent:
             status=ReportStatus.PENDING,
             created_at=datetime.now().isoformat()
         )
-
-        # section titleused for progress tracking
-        completed_section_titles = []
+        completed_section_titles: List[str] = []
 
         try:
-            # initializecreate report folder and save initial state
-            ReportManager._ensure_report_folder(report_id)
+            self._init_report_generation(report_id, report)
+            root_trace = self._start_observability_trace(report_id)
 
-            # Defensive: ensure we don't generate partial-provenance reports
-            # Old in-flight reports use old code and finish without provenance (displayed as-is)
-            # New reports always run provenance when profile.require_provenance is True
-            if getattr(self, 'require_provenance', False) and not hasattr(self, 'provenance_version'):
-                raise RuntimeError("Provenance support incomplete: agent missing provenance_version")
-
-            # Data Validation Pipeline (Phase 9)
-            # Executa apos o planejamento e antes da geracao das secoes
-            self.validation_report: Optional[ValidationReport] = None
-            if getattr(self, 'require_validation', False):
-                try:
-                    validation_svc = DataValidationService(
-                        thresholds=getattr(self, 'validation_thresholds', None)
-                    )
-                    # Reutiliza o contexto da simulacao ja obtido durante o planejamento
-                    sim_context = self.zep_tools.get_simulation_context(
-                        graph_id=self.graph_id,
-                        simulation_requirement=self.simulation_requirement
-                    )
-                    self.validation_report = validation_svc.validate(
-                        simulation_requirement=self.simulation_requirement,
-                        context=sim_context,
-                    )
-                    logger.info(
-                        f"[ReportAgent] Validacao concluida: "
-                        f"{len(self.validation_report.metrics)} metricas, "
-                        f"confianca={self.validation_report.confidence_level.value}"
-                    )
-                except Exception as e:
-                    logger.warning(f"[ReportAgent] Validacao de dados falhou (continuando): {e}")
-                    self.validation_report = None
-
-            # initializeloggerstructured log agent_log.jsonl
-            self.report_logger = ReportLogger(report_id)
-            self.report_logger.log_start(
-                simulation_id=self.simulation_id,
-                graph_id=self.graph_id,
-                simulation_requirement=self.simulation_requirement
-            )
-
-            # initializeconsole loggerconsole_log.txt
-            self.console_logger = ReportConsoleLogger(report_id)
-
-            ReportManager.update_progress(
-                report_id, "pending", 0, t('progress.initReport'),
-                completed_sections=[]
-            )
-            ReportManager.save_report(report)
-
-            # phase1: planning outline
-            report.status = ReportStatus.PLANNING
-            ReportManager.update_progress(
-                report_id, "planning", 5, t('progress.startPlanningOutline'),
-                completed_sections=[]
-            )
-
-            # recordstartlog
-            self.report_logger.log_planning_start()
-
-            # Log do resultado da validacao
-            if self.report_logger and self.validation_report:
-                self.report_logger.log(
-                    action="data_validation",
-                    stage="planning",
-                    details={
-                        "metrics_count": len(self.validation_report.metrics),
-                        "discrepancies_count": len(self.validation_report.discrepancies),
-                        "confidence_level": self.validation_report.confidence_level.value,
-                        "is_valid": self.validation_report.is_valid,
-                        "requires_override": self.validation_report.requires_override,
-                        "gaap_notes": self.validation_report.gaap_non_gaap_notes,
-                        "metrics": [m.to_dict() for m in self.validation_report.metrics],
-                        "discrepancies": [d.to_dict() for d in self.validation_report.discrepancies],
-                    }
-                )
-
-            if progress_callback:
-                progress_callback("planning", 0, t('progress.startPlanningOutline'))
-
-            # Create root Langfuse trace for this report generation
-            root_trace = None
-            if self.observability_client is not None:
-                root_trace = self.observability_client.start_report_trace(
-                    name="report_generation",
-                    session_id=report_id,
-                    metadata={
-                        "report_id": report_id,
-                        "graph_id": self.graph_id,
-                        "simulation_id": self.simulation_id,
-                        "simulation_requirement": self.simulation_requirement,
-                    },
-                )
-                root_trace.update(
-                    input={
-                        "report_id": report_id,
-                        "simulation_id": self.simulation_id,
-                        "graph_id": self.graph_id,
-                    }
-                )
-
-            outline = self.plan_outline(
-                progress_callback=lambda stage, prog, msg:
-                    progress_callback(stage, prog // 5, msg) if progress_callback else None,
-                observability_client=root_trace,
-            )
+            outline = self._plan_report_outline(root_trace, progress_callback)
             report.outline = outline
 
-            # recordlog
-            self.report_logger.log_planning_complete(outline.to_dict())
-
-            # save outline to file
-            ReportManager.save_outline(report_id, outline)
-            ReportManager.update_progress(
-                report_id, "planning", 15, t('progress.outlineDone', count=len(outline.sections)),
-                completed_sections=[]
+            section_gen = SectionGenerator(
+                zep_tools=self.zep_tools,
+                llm_client=self.llm,
+                report_logger=self.report_logger,
+                validation_report=getattr(self, 'validation_report', None),
+                simulation_requirement=self.simulation_requirement,
+                graph_id=self.graph_id,
+                simulation_id=self.simulation_id,
+                temperature=getattr(self, 'temperature', 0.5),
+                max_reflection_rounds=getattr(self, 'max_reflection_rounds', 3),
+                system_prompt=getattr(self, 'system_prompt', None),
+                section_prompt=getattr(self, 'section_prompt', None),
             )
-            ReportManager.save_report(report)
 
-            logger.info(t('report.outlineSavedToFile', reportId=report_id))
+            generated_sections, completed_section_titles = self._generate_all_sections(
+                outline, report_id, progress_callback, root_trace, section_gen
+            )
 
-            # phase2: sectionsection
-            report.status = ReportStatus.GENERATING
+            self._finalize_report(
+                report, report_id, outline, generated_sections,
+                progress_callback, root_trace, start_time, completed_section_titles
+            )
 
-            total_sections = len(outline.sections)
-            generated_sections = []  #
+            return report
 
-            for i, section in enumerate(outline.sections):
-                section_num = i + 1
-                base_progress = 20 + int((i / total_sections) * 70)
+        except Exception as e:
+            return self._handle_report_error(report, report_id, e, completed_section_titles, root_trace)
 
-                # update progress
-                ReportManager.update_progress(
-                    report_id, "generating", base_progress,
-                    t('progress.generatingSection', title=section.title, current=section_num, total=total_sections),
-                    current_section=section.title,
-                    completed_sections=completed_section_titles
+    def _init_report_generation(self, report_id: str, report: Report) -> None:
+        """Initialize loggers, validation and save initial report state."""
+        ReportManager._ensure_report_folder(report_id)
+
+        if getattr(self, 'require_provenance', False) and not hasattr(self, 'provenance_version'):
+            raise RuntimeError("Provenance support incomplete: agent missing provenance_version")
+
+        self.validation_report = None
+        if getattr(self, 'require_validation', False):
+            try:
+                from .data_validation import DataValidationService
+                validation_svc = DataValidationService(
+                    thresholds=getattr(self, 'validation_thresholds', None)
+                )
+                sim_context = self.zep_tools.get_simulation_context(
+                    graph_id=self.graph_id,
+                    simulation_requirement=self.simulation_requirement
+                )
+                self.validation_report = validation_svc.validate(
+                    simulation_requirement=self.simulation_requirement,
+                    context=sim_context,
+                )
+                logger.info(
+                    f"[ReportAgent] Validacao concluida: "
+                    f"{len(self.validation_report.metrics)} metricas, "
+                    f"confianca={self.validation_report.confidence_level.value}"
+                )
+            except Exception as e:
+                logger.warning(f"[ReportAgent] Validacao de dados falhou (continuando): {e}")
+                self.validation_report = None
+
+        self.report_logger = ReportLogger(report_id)
+        self.report_logger.log_start(
+            simulation_id=self.simulation_id,
+            graph_id=self.graph_id,
+            simulation_requirement=self.simulation_requirement
+        )
+        self.console_logger = ReportConsoleLogger(report_id)
+
+        if self.report_logger and self.validation_report:
+            self.report_logger.log(
+                action="data_validation",
+                stage="planning",
+                details={
+                    "metrics_count": len(self.validation_report.metrics),
+                    "discrepancies_count": len(self.validation_report.discrepancies),
+                    "confidence_level": self.validation_report.confidence_level.value,
+                    "is_valid": self.validation_report.is_valid,
+                    "requires_override": self.validation_report.requires_override,
+                    "gaap_notes": self.validation_report.gaap_non_gaap_notes,
+                    "metrics": [m.to_dict() for m in self.validation_report.metrics],
+                    "discrepancies": [d.to_dict() for d in self.validation_report.discrepancies],
+                }
+            )
+
+        ReportManager.update_progress(
+            report_id, "pending", 0, t('progress.initReport'),
+            completed_sections=[]
+        )
+        ReportManager.save_report(report)
+
+    def _start_observability_trace(self, report_id: str):
+        """Start Langfuse root trace for report generation."""
+        if self.observability_client is None:
+            return None
+        root_trace = self.observability_client.start_report_trace(
+            name="report_generation",
+            session_id=report_id,
+            metadata={
+                "report_id": report_id,
+                "graph_id": self.graph_id,
+                "simulation_id": self.simulation_id,
+                "simulation_requirement": self.simulation_requirement,
+            },
+        )
+        root_trace.update(
+            input={
+                "report_id": report_id,
+                "simulation_id": self.simulation_id,
+                "graph_id": self.graph_id,
+            }
+        )
+        return root_trace
+
+    def _plan_report_outline(self, root_trace, progress_callback):
+        """Plan report outline using ReportPlanner."""
+        report_id = self.report_logger.report_id if self.report_logger else ""
+        self.report_logger.log_planning_start()
+        if progress_callback:
+            progress_callback("planning", 0, t('progress.startPlanningOutline'))
+
+        outline = self.plan_outline(
+            progress_callback=lambda stage, prog, msg:
+                progress_callback(stage, prog // 5, msg) if progress_callback else None,
+            observability_client=root_trace,
+        )
+
+        self.report_logger.log_planning_complete(outline.to_dict())
+        ReportManager.save_outline(report_id, outline)
+        ReportManager.update_progress(
+            report_id, "planning", 15, t('progress.outlineDone', count=len(outline.sections)),
+            completed_sections=[]
+        )
+        ReportManager.save_report(Report(
+            report_id=report_id,
+            simulation_id=self.simulation_id,
+            graph_id=self.graph_id,
+            simulation_requirement=self.simulation_requirement,
+            status=ReportStatus.PLANNING,
+            outline=outline,
+            created_at=datetime.now().isoformat()
+        ))
+        logger.info(t('report.outlineSavedToFile', reportId=report_id))
+        return outline
+
+    def _generate_all_sections(
+        self, outline, report_id, progress_callback, root_trace, section_gen
+    ):
+        """Generate all sections and return generated section strings."""
+        total_sections = len(outline.sections)
+        generated_sections = []
+        completed_section_titles = []
+        failed_sections = []
+
+        for i, section in enumerate(outline.sections):
+            section_num = i + 1
+            base_progress = 20 + int((i / total_sections) * 70)
+
+            ReportManager.update_progress(
+                report_id, "generating", base_progress,
+                t('progress.generatingSection', title=section.title, current=section_num, total=total_sections),
+                current_section=section.title,
+                completed_sections=completed_section_titles,
+                failed_sections=failed_sections
+            )
+            if progress_callback:
+                progress_callback(
+                    "generating", base_progress,
+                    t('progress.generatingSection', title=section.title, current=section_num, total=total_sections)
                 )
 
-                if progress_callback:
-                    progress_callback(
-                        "generating",
-                        base_progress,
-                        t('progress.generatingSection', title=section.title, current=section_num, total=total_sections)
-                    )
+            section_span = None
+            if root_trace is not None:
+                section_span = root_trace.start_span(
+                    name=f"section_{section.title[:30]}",
+                    metadata={
+                        "section_num": section_num,
+                        "total_sections": total_sections,
+                        "graph_id": self.graph_id,
+                    },
+                )
+                section_span.update(input={"title": section.title, "section_num": section_num})
 
-                # Open a section span for observability
-                section_span = None
-                if root_trace is not None:
-                    section_span = root_trace.start_span(
-                        name=f"section_{section.title[:30]}",
-                        metadata={
-                            "section_num": section_num,
-                            "total_sections": total_sections,
-                            "graph_id": self.graph_id,
-                        },
-                    )
-                    section_span.update(
-                        input={"title": section.title, "section_num": section_num},
-                    )
-
-                # section
-                section_content = self._generate_section_react(
+            try:
+                section_content = self._generate_section_with_retry(
                     section=section,
                     outline=outline,
                     previous_sections=generated_sections,
@@ -2188,11 +1804,7 @@ class ReportAgent:
                     observation=section_span,
                 )
 
-                section_content = self._validate_persisted_output(
-                    section_content,
-                    allowed_entity_source="\n\n".join(generated_sections),
-                    context_label=f"section_{section_num:02d}",
-                )
+                section.status = ReportStatus.COMPLETED
                 section.content = section_content
                 generated_sections.append(f"## {section.title}\n\n{section_content}")
 
@@ -2200,13 +1812,10 @@ class ReportAgent:
                     section_span.update(output={"content_length": len(section_content)})
                     section_span.end()
 
-                # save section
                 ReportManager.save_section(report_id, section_num, section)
                 completed_section_titles.append(section.title)
 
-                # recordsectionlog
                 full_section_content = f"## {section.title}\n\n{section_content}"
-
                 if self.report_logger:
                     self.report_logger.log_section_full_complete(
                         section_title=section.title,
@@ -2215,211 +1824,216 @@ class ReportAgent:
                     )
 
                 logger.info(t('report.sectionSaved', reportId=report_id, sectionNum=f"{section_num:02d}"))
-
-                # update progress
                 ReportManager.update_progress(
                     report_id, "generating",
                     base_progress + int(70 / total_sections),
                     t('progress.sectionDone', title=section.title),
                     current_section=None,
-                    completed_sections=completed_section_titles
+                    completed_sections=completed_section_titles,
+                    failed_sections=failed_sections
                 )
 
-            # Bias Audit (Phase 11) — after sections, before assembly
-            self.bias_report: Optional[BiasReport] = None
-            if getattr(self, 'require_bias_audit', False):
-                try:
-                    audit_svc = BiasAuditService()
-                    self.bias_report = audit_svc.audit_sections(generated_sections)
-                    logger.info(
-                        f"[ReportAgent] Bias audit: score={self.bias_report.bias_score}, "
-                        f"balanced={self.bias_report.is_balanced}"
-                    )
-                    if self.report_logger:
-                        self.report_logger.log(
-                            action="bias_audit",
-                            stage="generating",
-                            details={
-                                "bias_score": self.bias_report.bias_score,
-                                "is_balanced": self.bias_report.is_balanced,
-                                "warnings_count": len(self.bias_report.warnings),
-                                "warnings": self.bias_report.warnings[:10],
-                                "dimensions": {
-                                    k: v.to_dict() for k, v in self.bias_report.dimensions.items()
-                                },
-                            }
-                        )
-                except Exception as e:
-                    logger.warning(f"[ReportAgent] Bias audit falhou (continuando): {e}")
-                    self.bias_report = None
+            except SectionGenerationError as e:
+                section.status = ReportStatus.FAILED
+                section.error_message = str(e)
+                section.content = f"<!-- SECAO INCOMPLETA: {str(e)} -->"
+                logger.error(f"[ReportAgent] Secao '{section.title}' esgotou todas as tentativas. Erro: {e}")
 
-            # phase3: assemble full report
-            if progress_callback:
-                progress_callback("generating", 95, t('progress.assemblingReport'))
+                failed_sections.append({
+                    "section_index": section_num,
+                    "section_title": section.title,
+                    "error_message": str(e),
+                    "failed_at": datetime.now().isoformat()
+                })
 
-            ReportManager.update_progress(
-                report_id, "generating", 95, t('progress.assemblingReport'),
-                completed_sections=completed_section_titles
-            )
+                if section_span is not None:
+                    section_span.update(status_message=f"error: {str(e)}", output="")
+                    section_span.end()
 
-            # useReportManagerassemble full report
-            report.markdown_content = ReportManager.assemble_full_report(report_id, outline)
+                continue
 
-            # Log provenance validation result via agent logger
-            _is_valid, _warnings = ReportManager._validate_provenance_tags(report.markdown_content)
-            if self.report_logger:
-                self.report_logger.log(
-                    action="provenance_validation",
-                    stage="generating",
-                    details={
-                        "is_valid": _is_valid,
-                        "warning_count": len(_warnings),
-                        "warnings": _warnings[:20]
-                    }
+        return generated_sections, completed_section_titles
+
+    def _finalize_report(
+        self, report, report_id, outline, generated_sections,
+        progress_callback, root_trace, start_time, completed_section_titles
+    ):
+        """Assemble final report, run gates and save."""
+        from .report_assembler import ReportAssembler
+        from .quality_gates import QualityGateService
+        from .bias_audit import BiasAuditService
+
+        if progress_callback:
+            progress_callback("generating", 95, t('progress.assemblingReport'))
+        ReportManager.update_progress(
+            report_id, "generating", 95, t('progress.assemblingReport'),
+            completed_sections=completed_section_titles
+        )
+
+        language_gate_blocked = self._run_final_language_gate(outline, report_id)
+        if language_gate_blocked:
+            report.status = ReportStatus.DEGRADED
+            if not hasattr(report, 'warnings') or report.warnings is None:
+                report.warnings = []
+            if isinstance(report.warnings, list):
+                report.warnings.append(
+                    "Relatorio entregue com secoes bloqueadas por contaminacao linguistica."
                 )
 
-            # Langfuse observability score for provenance coverage
-            coverage_score = 1.0 if _is_valid else max(0.0, 1.0 - (len(_warnings) / 20.0))
-            if hasattr(self, 'observability_client') and self.observability_client:
-                self.observability_client.score(
-                    trace_id=report_id,
-                    name="provenance_coverage",
-                    value=coverage_score,
-                    comment=f"{len(_warnings)} untagged claims" if _warnings else "All claims tagged"
+        assembler = ReportAssembler(
+            quality_gate=QualityGateService(),
+            bias_audit=BiasAuditService() if getattr(self, 'require_bias_audit', False) else None,
+        )
+        markdown, quality_report, bias_report = assembler.assemble(
+            report_id=report_id,
+            sections=generated_sections,
+            outline=outline,
+            validation_report=getattr(self, 'validation_report', None),
+            require_bias_audit=getattr(self, 'require_bias_audit', False),
+            require_quality_gates=getattr(self, 'require_quality_gates', False),
+        )
+        report.markdown_content = markdown
+        self.quality_report = quality_report
+        self.bias_report = bias_report
+
+        if not self.debug_mode:
+            report.markdown_content = self._sanitize_final_output(report.markdown_content)
+
+        _is_valid, _warnings = ReportManager._validate_provenance_tags(report.markdown_content)
+        if self.report_logger:
+            self.report_logger.log(
+                action="provenance_validation",
+                stage="generating",
+                details={
+                    "is_valid": _is_valid,
+                    "warning_count": len(_warnings),
+                    "warnings": _warnings[:20]
+                }
+            )
+
+        coverage_score = 1.0 if _is_valid else max(0.0, 1.0 - (len(_warnings) / 20.0))
+        if self.observability_client:
+            self.observability_client.score(
+                trace_id=report_id,
+                name="provenance_coverage",
+                value=coverage_score,
+                comment=f"{len(_warnings)} untagged claims" if _warnings else "All claims tagged"
+            )
+
+        full_report_allowed = (
+            f"# {outline.title}\n\n> {outline.summary}\n\n"
+            + "\n\n".join(generated_sections)
+        )
+        report.markdown_content = self._validate_persisted_output(
+            report.markdown_content,
+            allowed_entity_source=full_report_allowed,
+            context_label="full_report",
+        )
+        report.markdown_content = self._validate_output_against_profile(
+            report.markdown_content,
+            context_label="full_report",
+        )
+
+        structural_failed = False
+        if quality_report:
+            from .quality_gates import GateSeverity
+            blocking_failures = [
+                g for g in quality_report.gates
+                if not g.passed and g.severity == GateSeverity.BLOCKING
+            ]
+            if blocking_failures:
+                failure_msgs = "; ".join(
+                    f"{g.gate_name}: {', '.join(g.findings)}" for g in blocking_failures
                 )
+                report.status = ReportStatus.FAILED
+                report.error = f"Validacao estrutural falhou: {failure_msgs}"
+                logger.error(f"[ReportAgent] Relatorio {report_id} bloqueado por quality gates: {failure_msgs}")
+                structural_failed = True
+            else:
+                warning_gates = [g for g in quality_report.gates if not g.passed]
+                if warning_gates:
+                    warning_lines = ["> **Avisos de qualidade:**"]
+                    for g in warning_gates:
+                        warning_lines.append(f"> - {g.gate_name}: {'; '.join(g.findings)}")
+                    warning_block = "\n".join(warning_lines) + "\n\n"
+                    report.markdown_content = warning_block + report.markdown_content
 
-            # Full report entity_drift: include report title/summary in allowed_entity_source
-            # so section-crossing titles don't appear as drift
-            full_report_allowed = (
-                f"# {outline.title}\n\n> {outline.summary}\n\n"
-                + "\n\n".join(generated_sections)
-            )
-            report.markdown_content = self._validate_persisted_output(
-                report.markdown_content,
-                allowed_entity_source=full_report_allowed,
-                context_label="full_report",
-            )
-            # Apply profile validation to full report
-            report.markdown_content = self._validate_output_against_profile(
-                report.markdown_content,
-                context_label="full_report",
-            )
-
-            # Quality Gates (Phase 12) — after assembly, before completion
-            self.quality_report: Optional[QualityReport] = None
-            if getattr(self, 'require_quality_gates', False):
-                try:
-                    gate_svc = QualityGateService()
-                    self.quality_report = gate_svc.run_gates(
-                        report_content=report.markdown_content,
-                        validation_report=self.validation_report,
-                        bias_report=self.bias_report,
-                    )
-                    # Aplica modificacoes se houver (ex: adicao de Limitacoes Conhecidas)
-                    if self.quality_report.modified_content:
-                        report.markdown_content = self.quality_report.modified_content
-                        # Re-salva o full_report.md com o conteudo atualizado
-                        full_path = ReportManager._get_report_markdown_path(report_id)
-                        with open(full_path, 'w', encoding='utf-8') as f:
-                            f.write(report.markdown_content)
-                        logger.info(f"[ReportAgent] Quality gates modificaram o relatorio: {report_id}")
-
-                    if self.report_logger:
-                        self.report_logger.log(
-                            action="quality_gates",
-                            stage="generating",
-                            details={
-                                "overall_passed": self.quality_report.overall_passed,
-                                "gates": [g.to_dict() for g in self.quality_report.gates],
-                                "content_modified": self.quality_report.modified_content is not None,
-                            }
-                        )
-                    logger.info(
-                        f"[ReportAgent] Quality gates: passed={self.quality_report.overall_passed}, "
-                        f"gates={len(self.quality_report.gates)}"
-                    )
-                except Exception as e:
-                    logger.warning(f"[ReportAgent] Quality gates falharam (continuando): {e}")
-                    self.quality_report = None
-
+        if not structural_failed and report.status != ReportStatus.DEGRADED:
             report.status = ReportStatus.COMPLETED
-            report.completed_at = datetime.now().isoformat()
 
-            # calculate total time
-            total_time_seconds = (datetime.now() - start_time).total_seconds()
+        report.completed_at = datetime.now().isoformat()
+        total_time_seconds = (datetime.now() - start_time).total_seconds()
 
-            # recordreportlog
-            if self.report_logger:
-                self.report_logger.log_report_complete(
-                    total_sections=total_sections,
-                    total_time_seconds=total_time_seconds
-                )
-
-            # save final report
-            extra_meta = {
-                "provenance_version": "1.0",
-                "profile_type": getattr(self, 'profile_type', 'generico'),
-                "provenance_enabled": getattr(self, 'require_provenance', False),
-                "validation_enabled": getattr(self, 'require_validation', False),
-                "bias_audit_enabled": getattr(self, 'require_bias_audit', False),
-            }
-            if self.validation_report:
-                extra_meta["validation_report"] = self.validation_report.to_dict()
-            if self.bias_report:
-                extra_meta["bias_audit_report"] = self.bias_report.to_dict()
-            if self.quality_report:
-                extra_meta["quality_gates_report"] = self.quality_report.to_dict()
-            ReportManager.save_report(report, extra_meta=extra_meta)
-            ReportManager.update_progress(
-                report_id, "completed", 100, t('progress.reportComplete'),
-                completed_sections=completed_section_titles
+        if self.report_logger:
+            self.report_logger.log_report_complete(
+                total_sections=len(outline.sections),
+                total_time_seconds=total_time_seconds
             )
 
-            if progress_callback:
-                progress_callback("completed", 100, t('progress.reportComplete'))
+        extra_meta = {
+            "provenance_version": "1.0",
+            "profile_type": getattr(self, 'profile_type', 'generico'),
+            "provenance_enabled": getattr(self, 'require_provenance', False),
+            "validation_enabled": getattr(self, 'require_validation', False),
+            "bias_audit_enabled": getattr(self, 'require_bias_audit', False),
+        }
+        if self.validation_report:
+            extra_meta["validation_report"] = self.validation_report.to_dict()
+        if bias_report:
+            extra_meta["bias_audit_report"] = bias_report.to_dict()
+        if quality_report:
+            extra_meta["quality_gates_report"] = quality_report.to_dict()
+        ReportManager.save_report(report, extra_meta=extra_meta)
+        ReportManager.update_progress(
+            report_id, "completed", 100, t('progress.reportComplete'),
+            completed_sections=completed_section_titles
+        )
 
-            logger.info(t('report.reportGenDone', reportId=report_id))
+        if progress_callback:
+            progress_callback("completed", 100, t('progress.reportComplete'))
 
-            # console logger
-            if self.console_logger:
-                self.console_logger.close()
-                self.console_logger = None
+        logger.info(t('report.reportGenDone', reportId=report_id))
 
-            if root_trace is not None:
-                root_trace.update(output={"report_id": report_id, "status": report.status.value})
-                root_trace.end()
+        if self.console_logger:
+            self.console_logger.close()
+            self.console_logger = None
 
-            return report
+        if root_trace is not None:
+            root_trace.update(output={"report_id": report_id, "status": report.status.value})
+            root_trace.end()
 
-        except Exception as e:
-            logger.error(t('report.reportGenFailed', error=str(e)))
+    def _handle_report_error(self, report, report_id, error, completed_section_titles, root_trace):
+        """Handle report generation errors and save failure state."""
+        logger.error(t('report.reportGenFailed', error=str(error)))
+        if completed_section_titles:
+            report.status = ReportStatus.DEGRADED
+            final_status = "degraded"
+        else:
             report.status = ReportStatus.FAILED
-            report.error = str(e)
+            final_status = "failed"
+        report.error = str(error)
 
-            # log error
-            if self.report_logger:
-                self.report_logger.log_error(str(e), "failed")
+        if self.report_logger:
+            self.report_logger.log_error(str(error), final_status)
 
-            # save failure status
-            try:
-                ReportManager.save_report(report)
-                ReportManager.update_progress(
-                    report_id, "failed", -1, t('progress.reportFailed', error=str(e)),
-                    completed_sections=completed_section_titles
-                )
-            except Exception:
-                pass  # ignore save failure errors
+        try:
+            ReportManager.save_report(report)
+            ReportManager.update_progress(
+                report_id, final_status, -1, t('progress.reportFailed', error=str(error)),
+                completed_sections=completed_section_titles
+            )
+        except (OSError, IOError) as save_err:
+            logger.error(f"Falha critica ao salvar progresso do relatorio {report_id}: {save_err}")
 
-            # console logger
-            if self.console_logger:
-                self.console_logger.close()
-                self.console_logger = None
+        if self.console_logger:
+            self.console_logger.close()
+            self.console_logger = None
 
-            if root_trace is not None:
-                root_trace.update(status_message=f"error: {str(e)}", output="")
-                root_trace.end()
+        if root_trace is not None:
+            root_trace.update(status_message=f"error: {str(error)}", output="")
+            root_trace.end()
 
-            return report
+        return report
 
     def chat(
         self,
@@ -2520,6 +2134,7 @@ class ReportAgent:
                 clean_response = re.sub(r'<tool_call>.*?</tool_call>', '', response, flags=re.DOTALL)
                 clean_response = re.sub(r'\[TOOL_CALL\].*?\)', '', clean_response)
                 clean_response = self._sanitize_chat_response(clean_response.strip(), report_content)
+                clean_response = self._sanitize_final_output(clean_response)
 
                 if chat_span is not None:
                     integrity_result = assess_text_integrity(clean_response)
@@ -2572,6 +2187,7 @@ class ReportAgent:
         clean_response = re.sub(r'<tool_call>.*?</tool_call>', '', final_response, flags=re.DOTALL)
         clean_response = re.sub(r'\[TOOL_CALL\].*?\)', '', clean_response)
         clean_response = self._sanitize_chat_response(clean_response.strip(), report_content)
+        clean_response = self._sanitize_final_output(clean_response)
 
         if chat_span is not None:
             integrity_result = assess_text_integrity(clean_response)
@@ -2915,7 +2531,8 @@ class ReportManager:
         progress: int,
         message: str,
         current_section: str = None,
-        completed_sections: List[str] = None
+        completed_sections: List[str] = None,
+        failed_sections: Optional[List[Dict[str, Any]]] = None
     ) -> None:
         """
         reportgeneration progress
@@ -2930,6 +2547,7 @@ class ReportManager:
             "message": message,
             "current_section": current_section,
             "completed_sections": completed_sections or [],
+            "failed_sections": failed_sections or [],
             "updated_at": datetime.now().isoformat()
         }
 
@@ -2979,7 +2597,13 @@ class ReportManager:
         return sections
 
     @classmethod
-    def assemble_full_report(cls, report_id: str, outline: ReportOutline, save: bool = True) -> str:
+    def assemble_full_report(
+        cls,
+        report_id: str,
+        outline: ReportOutline,
+        save: bool = True,
+        failed_sections: Optional[List[ReportSection]] = None,
+    ) -> str:
         """
         assemble full report
 
@@ -2996,6 +2620,17 @@ class ReportManager:
         sections = cls.get_generated_sections(report_id)
         for section_info in sections:
             md_content += section_info["content"]
+
+        # Append error block for failed sections
+        if failed_sections:
+            md_content += "\n\n---\n\n"
+            md_content += "## Erros de Geracao\n\n"
+            md_content += "As seguintes secoes nao puderam ser geradas apos todas as tentativas:\n\n"
+            for s in failed_sections:
+                md_content += (
+                    f"- **{s.title}**: {s.error_message} "
+                    f"(tentativas: {s.retry_count})\n"
+                )
 
         # post-processcountreport
         md_content = cls._post_process_report(md_content, outline)

@@ -17,6 +17,23 @@ export const getReportStatus = (reportId) => {
 }
 
 /**
+ * Buscar progresso do relatório
+ * @param {string} reportId
+ */
+export const getReportProgress = (reportId) => {
+  return service.get(`/report/${reportId}/progress`)
+}
+
+/**
+ * Tentar novamente uma seção falha
+ * @param {string} reportId
+ * @param {number} sectionIndex
+ */
+export const retrySection = (reportId, sectionIndex) => {
+  return service.post(`/report/${reportId}/retry-section`, { section_index: sectionIndex })
+}
+
+/**
  * Log de agentes (incrementais）
  * @param {string} reportId
  * @param {number} fromLine - Linha primária de busca

@@ -4,14 +4,26 @@ Report API
 """
 
 import os
-import traceback
 import threading
+from datetime import datetime
 from flask import request, jsonify, send_file
+from pydantic import ValidationError as PydanticValidationError
+
+from ..schemas.report import (
+    ReportGenerateRequest,
+    ReportGenerateStatusRequest,
+    ReportChatRequest,
+    ReportSearchToolRequest,
+    ReportStatisticsToolRequest,
+)
+from ..utils.response import success_response, error_response, validation_error_response
 
 from . import report_bp
 from ..config import Config
 from ..services.report_agent import ReportAgent, ReportManager, ReportStatus
 from ..services.simulation_manager import SimulationManager
+from ..services.report_orchestrator import ReportOrchestratorService
+from ..services.reliability_scorer import ReliabilityScorer, ReliabilityReport
 from ..models.project import ProjectManager
 from ..models.task import TaskManager, TaskStatus
 from ..utils.logger import get_logger
@@ -25,98 +37,42 @@ logger = get_logger('futuria.api.report')
 
 @report_bp.route('/generate', methods=['POST'])
 def generate_report():
-    """
-    
-    
-    task_id
-     GET /api/report/generate/status 
-    
-    JSON
-        {
-            "simulation_id": "sim_xxxx",    // ID
-            "force_regenerate": false,       // 
-            "profile": "marketing"           // 可选，默认从 simulation 读取或 "generico"
-        }
-    
-    
-        {
-            "success": true,
-            "data": {
-                "simulation_id": "sim_xxxx",
-                "task_id": "task_xxxx",
-                "status": "generating",
-                "message": ""
-            }
-        }
-    """
+    """Generate a report for a simulation."""
     try:
         data = request.get_json() or {}
+        try:
+            req = ReportGenerateRequest.model_validate(data)
+        except PydanticValidationError as exc:
+            return validation_error_response(
+                [{"field": e["loc"][-1], "message": e["msg"]} for e in exc.errors()]
+            )
         
-        simulation_id = data.get('simulation_id')
+        simulation_id = req.simulation_id
         if not simulation_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireSimulationId')
-            }), 400
+            return error_response(t('api.requireSimulationId'), 400)
 
-        force_regenerate = data.get('force_regenerate', False)
-        
-        # 
-        manager = SimulationManager()
-        state = manager.get_simulation(simulation_id)
-        
-        if not state:
-            return jsonify({
-                "success": False,
-                "error": t('api.simulationNotFound', id=simulation_id)
-            }), 404
+        try:
+            ctx = ReportOrchestratorService.resolve_generation_context(simulation_id, data)
+        except ValueError as exc:
+            return error_response(str(exc), 404 if "Not found" in str(exc) else 400)
 
-        # 
-        if not force_regenerate:
-            existing_report = ReportManager.get_report_by_simulation(simulation_id)
-            if existing_report and existing_report.status == ReportStatus.COMPLETED:
-                return jsonify({
-                    "success": True,
-                    "data": {
-                        "simulation_id": simulation_id,
-                        "report_id": existing_report.report_id,
-                        "status": "completed",
-                        "message": t('api.reportAlreadyExists'),
-                        "already_generated": True
-                    }
-                })
-        
-        # 
-        project = ProjectManager.get_project(state.project_id)
-        if not project:
+        if ctx.get("already_generated"):
             return jsonify({
-                "success": False,
-                "error": t('api.projectNotFound', id=state.project_id)
-            }), 404
-        
-        graph_id = state.graph_id or project.graph_id
-        if not graph_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.missingGraphIdEnsure')
-            }), 400
-        
-        simulation_requirement = project.simulation_requirement
-        if not simulation_requirement:
-            return jsonify({
-                "success": False,
-                "error": t('api.missingSimRequirement')
-            }), 400
-        
-        # Profile: from request body, or simulation state, or default to "generico"
-        profile_name = data.get('profile') or getattr(state, 'profile', None) or 'generico'
-        profile = ProfileManager.get_profile_or_default(profile_name)
-        
-        #  report_id
-        import uuid
-        report_id = f"report_{uuid.uuid4().hex[:12]}"
-        
-        # 
+                "success": True,
+                "data": {
+                    "simulation_id": simulation_id,
+                    "report_id": ctx["report_id"],
+                    "status": "completed",
+                    "message": t('api.reportAlreadyExists'),
+                    "already_generated": True
+                }
+            })
+
+        graph_id = ctx["graph_id"]
+        simulation_requirement = ctx["simulation_requirement"]
+        profile = ctx["profile"]
+        report_id = f"report_{__import__('uuid').uuid4().hex[:12]}"
+
         task_manager = TaskManager()
         task_id = task_manager.create_task(
             task_type="report_generate",
@@ -128,69 +84,15 @@ def generate_report():
                 "provenance_version": "1.0" if profile.require_provenance else None
             }
         )
-        
-        # Capture locale before spawning background thread
-        current_locale = get_locale()
 
-        # 
-        def run_generate():
-            set_locale(current_locale)
-            try:
-                task_manager.update_task(
-                    task_id,
-                    status=TaskStatus.PROCESSING,
-                    progress=0,
-                    message=t('api.initReportAgent')
-                )
-                
-                # Report Agent
-                agent = ReportAgent(
-                    graph_id=graph_id,
-                    simulation_id=simulation_id,
-                    simulation_requirement=simulation_requirement
-                )
-                
-                # Apply profile configuration to report agent
-                profile.apply_to_report_agent(agent)
-                logger.info(f"Relatorio perfil aplicado: {profile.profile_type.value} para sim={simulation_id}")
-                
-                # 
-                def progress_callback(stage, progress, message):
-                    task_manager.update_task(
-                        task_id,
-                        progress=progress,
-                        message=f"[{stage}] {message}"
-                    )
-                
-                #  report_id
-                report = agent.generate_report(
-                    progress_callback=progress_callback,
-                    report_id=report_id
-                )
-                
-                # 
-                ReportManager.save_report(report)
-                
-                if report.status == ReportStatus.COMPLETED:
-                    task_manager.complete_task(
-                        task_id,
-                        result={
-                            "report_id": report.report_id,
-                            "simulation_id": simulation_id,
-                            "status": "completed"
-                        }
-                    )
-                else:
-                    task_manager.fail_task(task_id, report.error or t('api.reportGenerateFailed'))
-                
-            except Exception as e:
-                logger.error(f": {str(e)}")
-                task_manager.fail_task(task_id, str(e))
-        
-        # 
-        thread = threading.Thread(target=run_generate, daemon=True)
+        current_locale = get_locale()
+        thread = threading.Thread(
+            target=ReportOrchestratorService.start_report_generation,
+            args=(simulation_id, report_id, task_id, graph_id, simulation_requirement, profile, current_locale),
+            daemon=True
+        )
         thread.start()
-        
+
         return jsonify({
             "success": True,
             "data": {
@@ -202,14 +104,9 @@ def generate_report():
                 "already_generated": False
             }
         })
-        
     except Exception as e:
         logger.error(f": {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }), 500
+        return error_response(str(e), 500)
 
 
 @report_bp.route('/generate/status', methods=['POST'])
@@ -237,51 +134,123 @@ def get_generate_status():
     try:
         data = request.get_json() or {}
         
-        task_id = data.get('task_id')
-        simulation_id = data.get('simulation_id')
+        try:
+            req = ReportGenerateStatusRequest.model_validate(data)
+        except PydanticValidationError as exc:
+            return validation_error_response(
+                [{"field": e["loc"][-1], "message": e["msg"]} for e in exc.errors()]
+            )
+        
+        task_id = req.task_id
+        simulation_id = req.simulation_id
         
         # simulation_id
+        def _build_snapshot(report, sim_id):
+            snapshot = {"graph": {}, "simulation": {}, "report": {}}
+            if report:
+                snapshot["report"] = {
+                    "section_count": len(report.outline.sections) if report.outline else 0,
+                    "has_summary": bool(report.outline.summary) if report.outline else False,
+                    "has_conclusions": any(
+                        "conclus" in (s.title or "").lower()
+                        for s in (report.outline.sections if report.outline else [])
+                    ),
+                    "estimated_word_count": len(report.markdown_content.split()) if report.markdown_content else 0,
+                    "language_detected": "pt",
+                    "markdown_content": report.markdown_content or "",
+                }
+            try:
+                from ..services.simulation_runner import SimulationRunner
+                run_state = SimulationRunner.get_run_state(sim_id)
+                if run_state:
+                    snapshot["simulation"] = {
+                        "simulated_hours": run_state.simulated_hours,
+                        "total_actions": run_state.twitter_actions_count + run_state.reddit_actions_count,
+                        "rounds_completed": run_state.current_round,
+                        "agents_count": 0,
+                    }
+            except Exception:
+                pass
+            try:
+                sim_mgr = SimulationManager()
+                sim_state = sim_mgr.get_simulation(sim_id)
+                if sim_state:
+                    snapshot["graph"] = {
+                        "nodes_count": sim_state.entities_count,
+                        "edges_count": sim_state.resolved_entity_count,
+                        "unknown_count": sim_state.unknown_entity_count,
+                    }
+                    if not snapshot["simulation"]:
+                        snapshot["simulation"] = {
+                            "simulated_hours": 0,
+                            "total_actions": 0,
+                            "rounds_completed": sim_state.current_round,
+                            "agents_count": sim_state.profiles_count,
+                        }
+            except Exception:
+                pass
+            return snapshot
+
+        def _enrich_with_reliability(data_dict, report, sim_id):
+            try:
+                scorer = ReliabilityScorer()
+                snapshot = _build_snapshot(report, sim_id)
+                rel = scorer.score_reliability(snapshot)
+                data_dict["reliability_score"] = rel.total_score
+                if data_dict.get("status") == "completed":
+                    data_dict["reliability_report"] = {
+                        "total_score": rel.total_score,
+                        "pillar_scores": rel.pillar_scores,
+                        "gates_passed": rel.gates_passed,
+                        "gates_failed": rel.gates_failed,
+                    }
+                    data_dict["beta_ready"] = rel.passed_beta
+                    if rel.gates_failed:
+                        data_dict["warnings"] = rel.gates_failed
+                    else:
+                        data_dict["warnings"] = []
+            except Exception as exc:
+                logger.warning(f"Reliability scoring failed for {sim_id}: {exc}")
+                data_dict["reliability_score"] = None
+            return data_dict
+
         if simulation_id:
             existing_report = ReportManager.get_report_by_simulation(simulation_id)
             if existing_report and existing_report.status == ReportStatus.COMPLETED:
-                return jsonify({
-                    "success": True,
-                    "data": {
-                        "simulation_id": simulation_id,
-                        "report_id": existing_report.report_id,
-                        "status": "completed",
-                        "progress": 100,
-                        "message": t('api.reportGenerated'),
-                        "already_completed": True
-                    }
-                })
+                resp_data = {
+                    "simulation_id": simulation_id,
+                    "report_id": existing_report.report_id,
+                    "status": "completed",
+                    "progress": 100,
+                    "message": t('api.reportGenerated'),
+                    "already_completed": True
+                }
+                resp_data = _enrich_with_reliability(resp_data, existing_report, simulation_id)
+                return jsonify({"success": True, "data": resp_data})
         
         if not task_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireTaskOrSimId')
-            }), 400
+            return error_response(t('api.requireTaskOrSimId'), 400)
         
         task_manager = TaskManager()
         task = task_manager.get_task(task_id)
         
         if not task:
-            return jsonify({
-                "success": False,
-                "error": t('api.taskNotFound', id=task_id)
-            }), 404
+            return error_response(t('api.taskNotFound', id=task_id), 404)
         
+        data = task.to_dict()
+        if data.get("status") == "completed":
+            sim_id = task.metadata.get("simulation_id") if task.metadata else None
+            if sim_id:
+                report = ReportManager.get_report_by_simulation(sim_id)
+                data = _enrich_with_reliability(data, report, sim_id)
         return jsonify({
             "success": True,
-            "data": task.to_dict()
+            "data": data
         })
         
     except Exception as e:
         logger.error(f": {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        return error_response(str(e), 500)
 
 
 # ==============  ==============
@@ -321,11 +290,7 @@ def get_report(report_id: str):
         
     except Exception as e:
         logger.error(f": {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }), 500
+        return error_response(str(e), 500)
 
 
 @report_bp.route('/by-simulation/<simulation_id>', methods=['GET'])
@@ -360,11 +325,7 @@ def get_report_by_simulation(simulation_id: str):
         
     except Exception as e:
         logger.error(f": {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }), 500
+        return error_response(str(e), 500)
 
 
 @report_bp.route('/list', methods=['GET'])
@@ -403,7 +364,7 @@ def list_reports():
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -449,7 +410,7 @@ def download_report(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -475,7 +436,7 @@ def delete_report(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -511,45 +472,37 @@ def chat_with_report_agent():
     try:
         data = request.get_json() or {}
         
-        simulation_id = data.get('simulation_id')
-        message = data.get('message')
-        chat_history = data.get('chat_history', [])
+        try:
+            req = ReportChatRequest.model_validate(data)
+        except PydanticValidationError as exc:
+            return validation_error_response(
+                [{"field": e["loc"][-1], "message": e["msg"]} for e in exc.errors()]
+            )
+        
+        simulation_id = req.simulation_id
+        message = req.message
+        chat_history = [msg.model_dump() for msg in req.chat_history]
         
         if not simulation_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireSimulationId')
-            }), 400
+            return error_response(t('api.requireSimulationId'), 400)
 
         if not message:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireMessage')
-            }), 400
+            return error_response(t('api.requireMessage'), 400)
         
         # 
         manager = SimulationManager()
         state = manager.get_simulation(simulation_id)
         
         if not state:
-            return jsonify({
-                "success": False,
-                "error": t('api.simulationNotFound', id=simulation_id)
-            }), 404
+            return error_response(t('api.simulationNotFound', id=simulation_id), 404)
 
         project = ProjectManager.get_project(state.project_id)
         if not project:
-            return jsonify({
-                "success": False,
-                "error": t('api.projectNotFound', id=state.project_id)
-            }), 404
+            return error_response(t('api.projectNotFound', id=state.project_id), 404)
         
         graph_id = state.graph_id or project.graph_id
         if not graph_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.missingGraphId')
-            }), 400
+            return error_response(t('api.missingGraphId'), 400)
         
         simulation_requirement = project.simulation_requirement or ""
         
@@ -572,7 +525,7 @@ def chat_with_report_agent():
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -615,7 +568,7 @@ def get_report_progress(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -666,8 +619,167 @@ def get_report_sections(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
+
+
+@report_bp.route('/<report_id>/retry-section', methods=['POST'])
+def retry_section(report_id: str):
+    """
+    Retry a failed section.
+    
+    JSON
+        {
+            "section_index": 1
+        }
+    
+    Response
+        {
+            "success": true,
+            "data": {
+                "status": "retrying",
+                "section_index": 1
+            }
+        }
+    """
+    try:
+        data = request.get_json() or {}
+        section_index = data.get('section_index')
+        
+        if section_index is None:
+            return error_response(t('api.requireSectionIndex'), 400)
+        
+        try:
+            section_index = int(section_index)
+        except (TypeError, ValueError):
+            return error_response(t('api.invalidSectionIndex'), 400)
+        
+        # Check report exists
+        report = ReportManager.get_report(report_id)
+        if not report:
+            return error_response(t('api.reportNotFound', id=report_id), 404)
+        
+        # Check section is in failed_sections
+        progress = ReportManager.get_progress(report_id)
+        if not progress:
+            return error_response(t('api.reportProgressNotAvail', id=report_id), 404)
+        
+        failed_sections = progress.get("failed_sections", [])
+        failed_entry = next(
+            (fs for fs in failed_sections if fs["section_index"] == section_index),
+            None
+        )
+        if not failed_entry:
+            return error_response(t('api.sectionNotFailed', index=f"{section_index:02d}"), 400)
+        
+        # Get outline
+        if not report.outline:
+            return error_response(t('api.reportOutlineMissing'), 400)
+        
+        # Find section in outline
+        if section_index < 1 or section_index > len(report.outline.sections):
+            return error_response(t('api.sectionNotFound', index=f"{section_index:02d}"), 404)
+        
+        section = report.outline.sections[section_index - 1]
+        
+        # Get previously generated sections for context
+        generated = ReportManager.get_generated_sections(report_id)
+        previous_sections = []
+        for s in sorted(generated, key=lambda x: x["section_index"]):
+            if s["section_index"] < section_index:
+                previous_sections.append(s["content"])
+        
+        # Remove from failed_sections in progress before starting retry
+        updated_failed = [fs for fs in failed_sections if fs["section_index"] != section_index]
+        ReportManager.update_progress(
+            report_id,
+            progress.get("status", "generating"),
+            progress.get("progress", 0),
+            t('progress.retryingSection', title=section.title),
+            current_section=section.title,
+            completed_sections=progress.get("completed_sections", []),
+            failed_sections=updated_failed
+        )
+        
+        # Start retry in background thread
+        def _retry_section_thread():
+            try:
+                from ..services.section_generator import SectionGenerator
+                from ..utils.llm_client import LLMClient
+                from ..services.zep_tools import ZepToolsService
+                
+                section_gen = SectionGenerator(
+                    zep_tools=ZepToolsService(),
+                    llm_client=LLMClient(),
+                    simulation_requirement=report.simulation_requirement,
+                    graph_id=report.graph_id,
+                    simulation_id=report.simulation_id,
+                )
+                
+                section_content = section_gen.generate(
+                    section=section,
+                    outline=report.outline,
+                    previous_sections=previous_sections,
+                    section_index=section_index,
+                )
+                
+                section.status = ReportStatus.COMPLETED
+                section.content = section_content
+                section.error_message = None
+                section.retry_count += 1
+                
+                ReportManager.save_section(report_id, section_index, section)
+                
+                # Update progress
+                new_progress = ReportManager.get_progress(report_id)
+                completed = new_progress.get("completed_sections", []) if new_progress else []
+                if section.title not in completed:
+                    completed = completed + [section.title]
+                
+                ReportManager.update_progress(
+                    report_id,
+                    "generating",
+                    new_progress.get("progress", 0) if new_progress else 0,
+                    t('progress.sectionRetryDone', title=section.title),
+                    completed_sections=completed,
+                    failed_sections=new_progress.get("failed_sections", []) if new_progress else []
+                )
+                
+                logger.info(f"[ReportAPI] Secao {section_index} re-gerada com sucesso: {report_id}")
+                
+            except Exception as e:
+                logger.error(f"[ReportAPI] Falha ao re-gerar secao {section_index}: {e}")
+                # Re-add to failed_sections
+                new_progress = ReportManager.get_progress(report_id)
+                current_failed = new_progress.get("failed_sections", []) if new_progress else []
+                current_failed.append({
+                    "section_index": section_index,
+                    "section_title": section.title,
+                    "error_message": str(e),
+                    "failed_at": datetime.now().isoformat()
+                })
+                ReportManager.update_progress(
+                    report_id,
+                    new_progress.get("status", "generating") if new_progress else "generating",
+                    new_progress.get("progress", 0) if new_progress else 0,
+                    t('progress.sectionRetryFailed', title=section.title),
+                    failed_sections=current_failed
+                )
+        
+        thread = threading.Thread(target=_retry_section_thread, daemon=True)
+        thread.start()
+        
+        return jsonify({
+            "success": True,
+            "data": {
+                "status": "retrying",
+                "section_index": section_index
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"[ReportAPI] Erro no retry-section: {str(e)}")
+        return error_response(str(e), 500)
 
 
 @report_bp.route('/<report_id>/section/<int:section_index>', methods=['GET'])
@@ -710,7 +822,7 @@ def get_single_section(report_id: str, section_index: int):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -761,7 +873,7 @@ def check_report_status(simulation_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -822,7 +934,7 @@ def get_agent_log(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -856,7 +968,7 @@ def stream_agent_log(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -904,7 +1016,7 @@ def get_console_log(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -938,7 +1050,7 @@ def stream_console_log(report_id: str):
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -959,24 +1071,21 @@ def search_graph_tool():
     try:
         data = request.get_json() or {}
         
-        graph_id = data.get('graph_id')
-        query = data.get('query')
-        limit = data.get('limit', 10)
+        try:
+            req = ReportSearchToolRequest.model_validate(data)
+        except PydanticValidationError as exc:
+            return validation_error_response(
+                [{"field": e["loc"][-1], "message": e["msg"]} for e in exc.errors()]
+            )
+        
+        graph_id = req.graph_id
+        query = req.query
+        limit = req.limit
         
         if not graph_id or not query:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireGraphIdAndQuery')
-            }), 400
+            return error_response(t('api.requireGraphIdAndQuery'), 400)
         
-        from ..services.zep_tools import ZepToolsService
-        
-        tools = ZepToolsService()
-        result = tools.search_graph(
-            graph_id=graph_id,
-            query=query,
-            limit=limit
-        )
+        result = ReportOrchestratorService.search_graph(graph_id, query, limit)
         
         return jsonify({
             "success": True,
@@ -988,7 +1097,7 @@ def search_graph_tool():
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500
 
 
@@ -1005,18 +1114,19 @@ def get_graph_statistics_tool():
     try:
         data = request.get_json() or {}
         
-        graph_id = data.get('graph_id')
+        try:
+            req = ReportStatisticsToolRequest.model_validate(data)
+        except PydanticValidationError as exc:
+            return validation_error_response(
+                [{"field": e["loc"][-1], "message": e["msg"]} for e in exc.errors()]
+            )
+        
+        graph_id = req.graph_id
         
         if not graph_id:
-            return jsonify({
-                "success": False,
-                "error": t('api.requireGraphId')
-            }), 400
+            return error_response(t('api.requireGraphId'), 400)
         
-        from ..services.zep_tools import ZepToolsService
-        
-        tools = ZepToolsService()
-        result = tools.get_graph_statistics(graph_id)
+        result = ReportOrchestratorService.get_graph_statistics(graph_id)
         
         return jsonify({
             "success": True,
@@ -1028,5 +1138,5 @@ def get_graph_statistics_tool():
         return jsonify({
             "success": False,
             "error": str(e),
-            "traceback": traceback.format_exc()
+            
         }), 500

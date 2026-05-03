@@ -166,21 +166,33 @@ class QualityGateService:
         gates: List[QualityGateResult] = []
         modified_content = report_content
 
-        # Gate 1: Consistencia de idioma
+        # Structural Gate 1: Relatorio nao vazio
+        gates.append(self._check_not_empty(modified_content))
+
+        # Structural Gate 2: Titulo presente
+        gates.append(self._check_has_title(modified_content))
+
+        # Structural Gate 3: Corpo minimo
+        gates.append(self._check_has_body(modified_content))
+
+        # Structural Gate 4: Conclusoes presentes
+        gates.append(self._check_has_conclusions(modified_content))
+
+        # Gate 5: Consistencia de idioma
         lang_result = self._check_language_consistency(modified_content)
         gates.append(lang_result)
 
-        # Gate 2: Limitacoes Conhecidas (pode modificar conteudo)
+        # Gate 6: Limitacoes Conhecidas (pode modificar conteudo)
         modified_content, limitations_result = self._ensure_known_limitations(
             modified_content, validation_report, bias_report
         )
         gates.append(limitations_result)
 
-        # Gate 3: Consistencia numerica
+        # Gate 7: Consistencia numerica
         numeric_result = self._check_numeric_consistency(modified_content)
         gates.append(numeric_result)
 
-        # Gate 4: Auto-contradicao
+        # Gate 8: Auto-contradicao
         contradiction_result = self._check_self_contradictions(modified_content)
         gates.append(contradiction_result)
 
@@ -197,6 +209,82 @@ class QualityGateService:
             f"gates={len(report.gates)}, modified={report.modified_content is not None}"
         )
         return report
+
+    def _check_not_empty(self, text: str) -> QualityGateResult:
+        """
+        Verifica se o relatorio nao esta vazio ou com conteudo insignificante.
+        """
+        if len(text.strip()) < 50:
+            return QualityGateResult(
+                gate_name="not_empty",
+                passed=False,
+                findings=["Relatorio vazio ou com conteudo insignificante (menos de 50 caracteres)."],
+                severity=GateSeverity.BLOCKING,
+            )
+        return QualityGateResult(
+            gate_name="not_empty",
+            passed=True,
+            findings=["Relatorio contem conteudo suficiente."],
+            severity=GateSeverity.INFO,
+        )
+
+    def _check_has_title(self, text: str) -> QualityGateResult:
+        """
+        Verifica se o relatorio possui um titulo principal de nivel 1.
+        """
+        if not re.search(r"^#\s+.+", text, re.MULTILINE):
+            return QualityGateResult(
+                gate_name="has_title",
+                passed=False,
+                findings=["Titulo principal ausente. O relatorio deve comecar com um titulo de nivel 1."],
+                severity=GateSeverity.BLOCKING,
+            )
+        return QualityGateResult(
+            gate_name="has_title",
+            passed=True,
+            findings=["Titulo principal presente."],
+            severity=GateSeverity.INFO,
+        )
+
+    def _check_has_body(self, text: str) -> QualityGateResult:
+        """
+        Verifica se o corpo do relatorio possui tamanho minimo.
+        """
+        if len(text.strip()) < 500:
+            return QualityGateResult(
+                gate_name="has_body",
+                passed=False,
+                findings=["Corpo do relatorio muito curto (menos de 500 caracteres)."],
+                severity=GateSeverity.BLOCKING,
+            )
+        return QualityGateResult(
+            gate_name="has_body",
+            passed=True,
+            findings=["Corpo do relatorio com tamanho adequado."],
+            severity=GateSeverity.INFO,
+        )
+
+    def _check_has_conclusions(self, text: str) -> QualityGateResult:
+        """
+        Verifica se o relatorio possui uma secao de conclusoes ou sintese.
+        """
+        if not re.search(
+            r"#{1,3}\s*(conclus|conclusion|consideracoes finais|sintese)",
+            text,
+            re.IGNORECASE,
+        ):
+            return QualityGateResult(
+                gate_name="has_conclusions",
+                passed=False,
+                findings=["Secao de conclusoes ou sintese nao detectada."],
+                severity=GateSeverity.WARNING,
+            )
+        return QualityGateResult(
+            gate_name="has_conclusions",
+            passed=True,
+            findings=["Secao de conclusoes detectada."],
+            severity=GateSeverity.INFO,
+        )
 
     def _check_language_consistency(self, text: str) -> QualityGateResult:
         """
@@ -449,6 +537,93 @@ class QualityGateService:
             findings=findings or ["Nenhuma contradicao ou conclusao nao suportada detectada."],
             severity=GateSeverity.WARNING if not passed else GateSeverity.INFO,
         )
+
+    def _check_simulation_agent_coverage(
+        self,
+        validation_result: Dict[str, Any]
+    ) -> QualityGateResult:
+        """
+        Verifica cobertura de agentes na simulacao.
+
+        - Bloqueante se coverage_ratio < 0.80
+        - Warning se 0.80 <= coverage_ratio < 0.90
+        - Passa se coverage_ratio >= 0.90 e spurious_count == 0
+        """
+        coverage_ratio = validation_result.get("coverage_ratio", 0.0)
+        spurious_count = validation_result.get("spurious_count", 0)
+
+        if coverage_ratio < 0.80:
+            return QualityGateResult(
+                gate_name="simulation_agent_coverage",
+                passed=False,
+                findings=[
+                    f"Cobertura de agentes muito baixa: {coverage_ratio:.2%} "
+                    f"(minimo 80%). "
+                    f"Missing: {validation_result.get('missing_count', 0)}, "
+                    f"Spurious: {spurious_count}"
+                ],
+                severity=GateSeverity.BLOCKING,
+            )
+
+        if coverage_ratio < 0.90:
+            return QualityGateResult(
+                gate_name="simulation_agent_coverage",
+                passed=False,
+                findings=[
+                    f"Cobertura de agentes abaixo do ideal: {coverage_ratio:.2%} "
+                    f"(esperado >= 90%). "
+                    f"Missing: {validation_result.get('missing_count', 0)}, "
+                    f"Spurious: {spurious_count}"
+                ],
+                severity=GateSeverity.WARNING,
+            )
+
+        if spurious_count > 0:
+            return QualityGateResult(
+                gate_name="simulation_agent_coverage",
+                passed=False,
+                findings=[
+                    f"Cobertura adequada ({coverage_ratio:.2%}), mas "
+                    f"agentes espurios detectados: {spurious_count}"
+                ],
+                severity=GateSeverity.WARNING,
+            )
+
+        return QualityGateResult(
+            gate_name="simulation_agent_coverage",
+            passed=True,
+            findings=[
+                f"Cobertura de agentes satisfatoria: {coverage_ratio:.2%}"
+            ],
+            severity=GateSeverity.INFO,
+        )
+
+    def run_simulation_gates(self, validation_result: Dict[str, Any]) -> QualityReport:
+        """
+        Executa quality gates especificos de simulacao.
+
+        Args:
+            validation_result: Resultado da validacao IO de agentes.
+
+        Returns:
+            QualityReport com resultados dos gates.
+        """
+        gates: List[QualityGateResult] = []
+
+        gates.append(self._check_simulation_agent_coverage(validation_result))
+
+        overall_passed = all(g.passed for g in gates)
+
+        report = QualityReport(
+            overall_passed=overall_passed,
+            gates=gates,
+        )
+
+        logger.info(
+            f"[QualityGates] Simulation overall={report.overall_passed}, "
+            f"gates={len(report.gates)}"
+        )
+        return report
 
     @staticmethod
     def _parse_number(value_str: str) -> float:

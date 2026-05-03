@@ -89,8 +89,70 @@
 
       <!-- RIGHT PANEL: Interaction Interface -->
       <div class="right-panel" ref="rightPanel">
+        <!-- Dashboard Tabs -->
+        <div class="dashboard-tabs">
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'overview' }"
+            @click="selectDashboardTab('overview')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>{{ $t('step5.dashboard.overviewTab') }}</span>
+          </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'chat' }"
+            @click="selectDashboardTab('chat')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>{{ $t('step5.dashboard.chatTab') }}</span>
+          </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'survey' }"
+            @click="selectDashboardTab('survey')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>{{ $t('step5.dashboard.surveyTab') }}</span>
+          </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'explore' }"
+            @click="selectDashboardTab('explore')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="9" y1="21" x2="9" y2="9"></line>
+            </svg>
+            <span>{{ $t('step5.dashboard.exploreTab') }}</span>
+          </button>
+          <button
+            class="dashboard-tab"
+            :class="{ active: dashboardTab === 'compare' }"
+            @click="selectDashboardTab('compare')"
+          >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <line x1="12" y1="8" x2="12" y2="16"></line>
+              <line x1="8" y1="12" x2="16" y2="12"></line>
+            </svg>
+            <span>{{ $t('step5.dashboard.compareTab') }}</span>
+          </button>
+        </div>
+
         <!-- Unified Action Bar - Professional Design -->
-        <div class="action-bar">
+        <div v-if="dashboardTab !== 'overview'" class="action-bar">
         <div class="action-bar-header">
           <svg class="action-bar-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -157,8 +219,200 @@
           </div>
         </div>
 
+        <!-- Dashboard Overview -->
+        <div v-if="dashboardTab === 'overview'" class="dashboard-overview">
+          <!-- Empty state -->
+          <div v-if="!props.simulationId" class="dashboard-empty">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+              </svg>
+            </div>
+            <p class="empty-text">{{ $t('step5.dashboard.noSimulation') }}</p>
+          </div>
+
+          <template v-else>
+            <!-- Skeleton loading -->
+            <div v-if="dashboardLoading" class="macro-cards-grid">
+              <div v-for="n in 6" :key="n" class="skeleton-card"></div>
+            </div>
+
+            <!-- Macro Cards -->
+            <div v-else class="macro-cards-grid">
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.agents }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.agents') }}</div>
+              </div>
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.rounds }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.rounds') }}</div>
+              </div>
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.actions }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.actions') }}</div>
+              </div>
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.posts }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.posts') }}</div>
+              </div>
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.likes }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.likes') }}</div>
+              </div>
+              <div class="macro-card">
+                <div class="macro-card-value">{{ dashboardStats.quotes }}</div>
+                <div class="macro-card-label">{{ $t('step5.dashboard.quotes') }}</div>
+              </div>
+            </div>
+
+            <!-- Agent Fidelity Card -->
+            <div v-if="!dashboardLoading && ioValidation" class="fidelity-card">
+              <div class="fidelity-card-header">
+                <h3 class="fidelity-card-title">Fidelidade de Agentes</h3>
+                <span
+                  class="fidelity-badge"
+                  :class="ioValidation.passed ? 'badge-green' : 'badge-yellow'"
+                >
+                  {{ ioValidation.passed ? 'OK' : 'Atenção' }}
+                </span>
+              </div>
+              <div class="fidelity-coverage">
+                <span class="coverage-label">Cobertura:</span>
+                <span class="coverage-value">{{ Math.round((ioValidation.coverage_ratio || 0) * 100) }}%</span>
+              </div>
+              <div
+                v-if="ioValidation.missing_count > 0"
+                class="fidelity-tooltip"
+                title="Alguns agentes previstos nao produziram acoes. Isso pode indicar erro de configuracao ou falha de ativacao no OASIS."
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+                <span>Agentes ausentes detectados</span>
+              </div>
+              <div v-if="ioValidation.missing_count > 0" class="fidelity-section">
+                <button class="fidelity-toggle" @click="showMissing = !showMissing">
+                  <span>Agentes ausentes ({{ ioValidation.missing_count }})</span>
+                  <svg :class="{ 'is-expanded': showMissing }" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div v-show="showMissing" class="fidelity-list">
+                  <span v-for="aid in ioValidation.missing_agent_ids" :key="aid" class="fidelity-tag fidelity-missing">
+                    ID {{ aid }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="ioValidation.spurious_count > 0" class="fidelity-section">
+                <button class="fidelity-toggle" @click="showSpurious = !showSpurious">
+                  <span>Agentes espúrios ({{ ioValidation.spurious_count }})</span>
+                  <svg :class="{ 'is-expanded': showSpurious }" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <div v-show="showSpurious" class="fidelity-list">
+                  <span v-for="aid in ioValidation.spurious_agent_ids" :key="aid" class="fidelity-tag fidelity-spurious">
+                    ID {{ aid }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No actions badge -->
+            <div v-if="!dashboardLoading && dashboardStats.actions === 0" class="dashboard-badge">
+              <span>Nenhuma ação registrada nesta simulação</span>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-section">
+              <div class="timeline-header">
+                <h3 class="timeline-title">Timeline</h3>
+                <div class="timeline-toggle">
+                  <button
+                    class="toggle-btn"
+                    :class="{ active: timelineViewMode === 'round' }"
+                    @click="timelineViewMode = 'round'"
+                  >
+                    {{ $t('step5.dashboard.byRound') }}
+                  </button>
+                  <button
+                    class="toggle-btn"
+                    :class="{ active: timelineViewMode === 'hour' }"
+                    @click="timelineViewMode = 'hour'"
+                  >
+                    {{ $t('step5.dashboard.byHour') }}
+                  </button>
+                </div>
+              </div>
+              <div v-if="timelineLoading" class="timeline-skeleton">
+                <div v-for="n in 10" :key="n" class="skeleton-bar"></div>
+              </div>
+              <div v-else-if="displayedTimeline.length === 0" class="timeline-empty">
+                {{ $t('step5.dashboard.noTimelineData') }}
+              </div>
+              <div v-else class="timeline-bars">
+                <div
+                  v-for="item in displayedTimeline"
+                  :key="item.key"
+                  class="timeline-row"
+                >
+                  <span class="timeline-label">{{ item.label }}</span>
+                  <div class="timeline-bar" :title="`${item.twitter_actions} Twitter, ${item.reddit_actions} Reddit`">
+                    <div class="timeline-bar-twitter" :style="{ width: item.twitterPct + '%' }"></div>
+                    <div class="timeline-bar-reddit" :style="{ width: item.redditPct + '%' }"></div>
+                  </div>
+                </div>
+              </div>
+              <button
+                v-if="timelineData.length > timelineLimit"
+                class="load-more-btn"
+                @click="timelineLimit += 50"
+              >
+                {{ $t('step5.dashboard.loadMore') }}
+              </button>
+            </div>
+
+            <!-- Top Agents -->
+            <div class="top-agents-section">
+              <div class="top-agents-header">
+                <h3 class="top-agents-title">{{ $t('step5.dashboard.topAgents') }}</h3>
+                <button class="view-all-btn">{{ $t('step5.dashboard.viewAll') }}</button>
+              </div>
+              <table class="top-agents-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Total</th>
+                    <th>Twitter</th>
+                    <th>Reddit</th>
+                    <th>Tipo Mais Frequente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(agent, idx) in topAgents"
+                    :key="agent.agent_id || idx"
+                    class="top-agent-row"
+                  >
+                    <td>{{ idx + 1 }}</td>
+                    <td>{{ agent.agent_name }}</td>
+                    <td>{{ agent.total_actions }}</td>
+                    <td>{{ agent.twitter_actions }}</td>
+                    <td>{{ agent.reddit_actions }}</td>
+                    <td>{{ getMostFrequentType(agent.action_types) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+        </div>
+
         <!-- Chat Mode -->
-        <div v-if="activeTab === 'chat'" class="chat-container">
+        <div v-if="dashboardTab !== 'overview' && activeTab === 'chat'" class="chat-container">
 
           <!-- Report Agent Tools Card -->
           <div v-if="chatTarget === 'report_agent'" class="report-agent-tools-card">
@@ -322,8 +576,25 @@
           </div>
         </div>
 
+        <!-- Explore Mode -->
+        <div v-if="dashboardTab === 'explore'" class="explore-container">
+          <ActionExplorer :simulationId="props.simulationId" />
+        </div>
+
+        <!-- Compare Mode -->
+        <div v-if="dashboardTab === 'compare'" class="compare-container">
+          <SimulationCompare :baseSimulationId="props.simulationId" />
+        </div>
+
+        <!-- Beta Feedback -->
+        <BetaFeedbackForm
+          v-if="isBetaMode"
+          :simulationId="props.simulationId"
+          :reportId="props.reportId"
+        />
+
         <!-- Survey Mode -->
-        <div v-if="activeTab === 'survey'" class="survey-container">
+        <div v-if="dashboardTab !== 'overview' && activeTab === 'survey'" class="survey-container">
           <!-- Survey Setup -->
           <div class="survey-setup">
             <div class="setup-section">
@@ -418,14 +689,19 @@
         </div>
       </div>
     </div>
+    <FeedbackWidget stage="inspection" :simulation-id="simulationId" :report-id="reportId" />
   </div>
 </template>
 
 <script setup>
+import FeedbackWidget from './FeedbackWidget.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { chatWithReport, getReport, getAgentLog } from '../api/report'
-import { interviewAgents, getSimulationProfilesRealtime } from '../api/simulation'
+import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts } from '../api/simulation'
+import ActionExplorer from './ActionExplorer.vue'
+import SimulationCompare from './SimulationCompare.vue'
+import BetaFeedbackForm from './BetaFeedbackForm.vue'
 import { detectContamination, sanitizeContent, validateChatHistory } from '../utils/payloadValidator'
 
 const { t } = useI18n()
@@ -467,6 +743,28 @@ const generatedSections = ref({})
 const collapsedSections = ref(new Set())
 const currentSectionIndex = ref(null)
 const profiles = ref([])
+
+// Dashboard State
+const dashboardTab = ref('overview')
+const dashboardStats = ref({ agents: 0, rounds: 0, actions: 0, posts: 0, likes: 0, quotes: 0 })
+const dashboardLoading = ref(false)
+const topAgents = ref([])
+const timelineData = ref([])
+const timelineLoading = ref(false)
+const timelineViewMode = ref('round')
+const timelineLimit = ref(50)
+const ioValidation = ref(null)
+const showMissing = ref(false)
+const showSpurious = ref(false)
+
+// Beta mode detection
+const isBetaMode = computed(() => {
+  try {
+    return new URLSearchParams(window.location.search).get('beta') === 'true'
+  } catch {
+    return false
+  }
+})
 
 // Helper Methods
 const isSectionCompleted = (sectionIndex) => {
@@ -514,7 +812,8 @@ const saveChatHistory = () => {
 const selectReportAgentChat = () => {
   // Salvar Params.当前对话记录
   saveChatHistory()
-  
+
+  dashboardTab.value = 'chat'
   activeTab.value = 'chat'
   chatTarget.value = 'report_agent'
   selectedAgent.value = null
@@ -526,6 +825,7 @@ const selectReportAgentChat = () => {
 }
 
 const selectSurveyTab = () => {
+  dashboardTab.value = 'survey'
   activeTab.value = 'survey'
   selectedAgent.value = null
   selectedAgentIndex.value = null
@@ -535,6 +835,7 @@ const selectSurveyTab = () => {
 const toggleAgentDropdown = () => {
   showAgentDropdown.value = !showAgentDropdown.value
   if (showAgentDropdown.value) {
+    dashboardTab.value = 'chat'
     activeTab.value = 'chat'
     chatTarget.value = 'agent'
   }
@@ -543,7 +844,8 @@ const toggleAgentDropdown = () => {
 const selectAgent = (agent, idx) => {
   // Salvar Params.当前对话记录
   saveChatHistory()
-  
+
+  dashboardTab.value = 'chat'
   selectedAgent.value = agent
   selectedAgentIndex.value = idx
   chatTarget.value = 'agent'
@@ -1002,11 +1304,161 @@ const handleClickOutside = (e) => {
   }
 }
 
+// Dashboard Methods
+const getMostFrequentType = (actionTypes) => {
+  if (!actionTypes || typeof actionTypes !== 'object') return '-'
+  const entries = Object.entries(actionTypes)
+  if (entries.length === 0) return '-'
+  return entries.sort((a, b) => b[1] - a[1])[0][0]
+}
+
+const loadDashboardStats = async () => {
+  if (!props.simulationId) return
+  dashboardLoading.value = true
+  try {
+    const [simRes, agentRes, actionsRes, redditRes, twitterRes] = await Promise.all([
+      getSimulation(props.simulationId),
+      getAgentStats(props.simulationId),
+      getSimulationActions(props.simulationId, { limit: 1 }),
+      getSimulationPosts(props.simulationId, 'reddit', 1, 0),
+      getSimulationPosts(props.simulationId, 'twitter', 1, 0)
+    ])
+
+    let agents = 0
+    let rounds = 0
+    if (simRes.success && simRes.data) {
+      rounds = simRes.data.total_rounds || simRes.data.current_round || 0
+    }
+
+    let actions = 0
+    if (actionsRes.success && actionsRes.data) {
+      actions = actionsRes.data.count || actionsRes.data.total || 0
+    }
+
+    let posts = 0
+    if (redditRes.success && redditRes.data) {
+      posts += redditRes.data.count || redditRes.data.total || 0
+    }
+    if (twitterRes.success && twitterRes.data) {
+      posts += twitterRes.data.count || twitterRes.data.total || 0
+    }
+
+    // Parse io_validation from simulation response
+    if (simRes.success && simRes.data && simRes.data.io_validation) {
+      ioValidation.value = simRes.data.io_validation
+    } else {
+      ioValidation.value = null
+    }
+
+    if (agentRes.success && agentRes.data) {
+      const stats = agentRes.data.stats || agentRes.data
+      if (Array.isArray(stats)) {
+        agents = stats.length
+        topAgents.value = stats
+          .sort((a, b) => (b.total_actions || 0) - (a.total_actions || 0))
+          .slice(0, 5)
+      }
+    }
+
+    dashboardStats.value = { agents, rounds, actions, posts, likes: 0, quotes: 0 }
+
+    // Count likes and quotes from timeline
+    const timelineRes = await getSimulationTimeline(props.simulationId, 0, null)
+    if (timelineRes.success && timelineRes.data && timelineRes.data.timeline) {
+      let likes = 0
+      let quotes = 0
+      timelineRes.data.timeline.forEach(round => {
+        const types = round.action_types || {}
+        Object.entries(types).forEach(([type, count]) => {
+          const upper = String(type).toUpperCase()
+          if (upper.includes('LIKE')) likes += count
+          if (upper.includes('QUOTE') || upper.includes('REPOST')) quotes += count
+        })
+      })
+      dashboardStats.value.likes = likes
+      dashboardStats.value.quotes = quotes
+    }
+  } catch (err) {
+    addLog(t('log.loadProfilesFailed', { error: err.message }))
+  } finally {
+    dashboardLoading.value = false
+  }
+}
+
+const loadTimeline = async () => {
+  if (!props.simulationId) return
+  timelineLoading.value = true
+  try {
+    const res = await getSimulationTimeline(props.simulationId, 0, null)
+    if (res.success && res.data && res.data.timeline) {
+      timelineData.value = res.data.timeline
+    } else {
+      timelineData.value = []
+    }
+  } catch (err) {
+    addLog(t('log.loadProfilesFailed', { error: err.message }))
+    timelineData.value = []
+  } finally {
+    timelineLoading.value = false
+  }
+}
+
+const displayedTimeline = computed(() => {
+  let data = timelineData.value
+  if (timelineViewMode.value === 'hour') {
+    const hours = {}
+    data.forEach(round => {
+      const time = round.last_action_time || round.first_action_time
+      if (!time) return
+      const hour = new Date(time).toISOString().slice(0, 13)
+      if (!hours[hour]) {
+        hours[hour] = { key: hour, label: hour.replace('T', ' '), twitter_actions: 0, reddit_actions: 0 }
+      }
+      hours[hour].twitter_actions += round.twitter_actions || 0
+      hours[hour].reddit_actions += round.reddit_actions || 0
+    })
+    data = Object.values(hours)
+  }
+
+  const sliced = data.slice(-timelineLimit.value)
+  const maxTotal = Math.max(...sliced.map(d => (d.twitter_actions || 0) + (d.reddit_actions || 0)), 1)
+
+  return sliced.map(item => {
+    const twitter = item.twitter_actions || 0
+    const reddit = item.reddit_actions || 0
+    return {
+      ...item,
+      twitterPct: (twitter / maxTotal) * 100,
+      redditPct: (reddit / maxTotal) * 100
+    }
+  })
+})
+
+const selectDashboardTab = (tab) => {
+  dashboardTab.value = tab
+  if (tab === 'chat') {
+    activeTab.value = 'chat'
+    chatTarget.value = 'report_agent'
+    showAgentDropdown.value = false
+  } else if (tab === 'survey') {
+    activeTab.value = 'survey'
+    showAgentDropdown.value = false
+  } else if (tab === 'explore') {
+    showAgentDropdown.value = false
+  } else if (tab === 'compare') {
+    showAgentDropdown.value = false
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   addLog(t('log.step5Init'))
   loadReportData()
   loadProfiles()
+  if (props.simulationId) {
+    loadDashboardStats()
+    loadTimeline()
+  }
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -1023,6 +1475,8 @@ watch(() => props.reportId, (newId) => {
 watch(() => props.simulationId, (newId) => {
   if (newId) {
     loadProfiles()
+    loadDashboardStats()
+    loadTimeline()
   }
 }, { immediate: true })
 </script>
@@ -2243,6 +2697,20 @@ watch(() => props.simulationId, (newId) => {
 }
 
 /* Survey Container */
+.explore-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.compare-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .survey-container {
   flex: 1;
   display: flex;
@@ -2699,6 +3167,450 @@ watch(() => props.simulationId, (newId) => {
   border-radius: 10px;
   margin-left: 8px;
   font-weight: 500;
+}
+
+/* Dashboard Tabs */
+.dashboard-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--color-outline);
+  background: var(--color-surface);
+}
+
+.dashboard-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dashboard-tab:hover {
+  background: var(--color-surface-container-low);
+  color: var(--color-on-surface);
+}
+
+.dashboard-tab.active {
+  background: var(--color-on-background);
+  color: var(--color-surface);
+  border-color: var(--color-on-background);
+}
+
+/* Dashboard Overview */
+.dashboard-overview {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.dashboard-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--color-disabled);
+  min-height: 300px;
+}
+
+.dashboard-empty .empty-icon {
+  opacity: 0.3;
+}
+
+.dashboard-empty .empty-text {
+  font-size: 14px;
+  text-align: center;
+  max-width: 280px;
+}
+
+/* Skeleton Cards */
+.skeleton-card {
+  height: 100px;
+  background: var(--color-surface-container-low);
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Macro Cards */
+.macro-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .macro-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .macro-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.macro-card {
+  background: var(--color-surface-container-low);
+  padding: 20px;
+  border-radius: 4px;
+  border-bottom: 2px solid var(--color-outline-variant);
+  transition: all 0.2s ease;
+}
+
+.macro-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-on-background);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.macro-card-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Dashboard Badge */
+.dashboard-badge {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/* Timeline */
+.timeline-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: var(--color-surface-container-low);
+  border-radius: 4px;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.timeline-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-on-background);
+  margin: 0;
+}
+
+.timeline-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.toggle-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  color: var(--color-on-surface);
+}
+
+.toggle-btn.active {
+  background: var(--color-on-background);
+  color: var(--color-surface);
+  border-color: var(--color-on-background);
+}
+
+.timeline-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-bar {
+  height: 24px;
+  background: var(--color-outline);
+  border-radius: 2px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.timeline-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.timeline-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.timeline-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  min-width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.timeline-bar {
+  height: 24px;
+  display: flex;
+  border-radius: 2px;
+  overflow: hidden;
+  flex: 1;
+  transition: all 0.2s ease;
+}
+
+.timeline-bar-twitter {
+  background: var(--color-primary);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.timeline-bar-reddit {
+  background: #F97316;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.load-more-btn {
+  margin-top: 16px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-on-background);
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.load-more-btn:hover {
+  background: var(--color-surface-container-low);
+}
+
+/* Agent Fidelity Card */
+.fidelity-card {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--color-surface-container-low);
+  border-radius: 4px;
+  border: 1px solid var(--color-outline);
+}
+
+.fidelity-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fidelity-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-on-background);
+  margin: 0;
+}
+
+.fidelity-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge-green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-yellow {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.fidelity-coverage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.coverage-label {
+  color: var(--color-muted);
+}
+
+.coverage-value {
+  font-weight: 700;
+  color: var(--color-on-background);
+}
+
+.fidelity-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 12px;
+  cursor: help;
+}
+
+.fidelity-section {
+  margin-top: 8px;
+}
+
+.fidelity-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-on-surface);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.fidelity-toggle svg {
+  transition: transform 0.2s ease;
+}
+
+.fidelity-toggle svg.is-expanded {
+  transform: rotate(180deg);
+}
+
+.fidelity-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.fidelity-tag {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.fidelity-missing {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.fidelity-spurious {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Top Agents */
+.top-agents-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: var(--color-surface-container-low);
+  border-radius: 4px;
+}
+
+.top-agents-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.top-agents-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-on-background);
+  margin: 0;
+}
+
+.view-all-btn {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.view-all-btn:hover {
+  color: var(--color-on-background);
+  text-decoration: underline;
+}
+
+.top-agents-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.top-agents-table thead th {
+  padding: 12px 8px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-outline);
+}
+
+.top-agent-row td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--color-outline);
+  color: var(--color-on-surface);
+}
+
+.top-agent-row:hover td {
+  background: var(--color-surface);
 }
 </style>
 

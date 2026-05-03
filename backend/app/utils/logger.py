@@ -9,6 +9,8 @@ import logging
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
+from app.utils.log_sanitizer import sanitize_log_message
+
 
 def _ensure_utf8_stdout():
     """
@@ -25,6 +27,26 @@ def _ensure_utf8_stdout():
 
 # 日志目录
 LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+
+# 是否开启日志脱敏（默认关闭，保持向后兼容）
+LOG_SANITIZE = os.environ.get('LOG_SANITIZE', 'false').lower() == 'true'
+
+
+class SanitizeFilter(logging.Filter):
+    """
+    日志过滤器：对 INFO 及以上级别的消息进行脱敏处理。
+    当 LOG_SANITIZE=true 时生效。
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if LOG_SANITIZE and record.levelno >= logging.INFO:
+            record.msg = sanitize_log_message(record.msg)
+            if record.args:
+                # 对格式化参数也进行脱敏
+                record.args = tuple(
+                    sanitize_log_message(str(arg)) for arg in record.args
+                )
+        return True
 
 
 def setup_logger(name: str = 'futuria', level: int = logging.DEBUG) -> logging.Logger:
@@ -80,6 +102,11 @@ def setup_logger(name: str = 'futuria', level: int = logging.DEBUG) -> logging.L
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(simple_formatter)
+    
+    # 添加脱敏过滤器（当 LOG_SANITIZE=true 时）
+    if LOG_SANITIZE:
+        file_handler.addFilter(SanitizeFilter())
+        console_handler.addFilter(SanitizeFilter())
     
     # 添加处理器
     logger.addHandler(file_handler)

@@ -188,6 +188,14 @@ export const getSimulationHistory = (limit = 20) => {
 
 
 /**
+ * Dry-run estimation: preview cost, duration, and risks.
+ * @param {Object} data - { simulation_id, max_rounds? }
+ */
+export const dryRunSimulation = (data) => {
+  return service.post('/simulation/dry-run', data)
+}
+
+/**
  * Listar perfis disponíveis para simulação
  */
 export const listProfiles = () => {

@@ -15,7 +15,8 @@
     "check:language-artifacts": "python3 scripts/normalize_report_artifacts.py --scope reporting --dry-run --fail-on-contamination",
     "preflight": "npm run check:language-backend && npm run check:language-artifacts",
     "remediate:report-artifacts": "python3 scripts/normalize_report_artifacts.py --scope reporting --dry-run",
-    "remediate:report-artifacts:fix": "python3 scripts/normalize_report_artifacts.py --scope reporting --normalize --quarantine"
+    "remediate:report-artifacts:fix": "python3 scripts/normalize_report_artifacts.py --scope reporting --normalize --quarantine",
+    "scan:secrets": "python3 scripts/scan_secrets.py"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

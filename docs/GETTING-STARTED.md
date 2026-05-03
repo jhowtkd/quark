@@ -155,3 +155,33 @@ Avoid running `python run.py` with the system Python interpreter.
 - **Running tests** — See [`TESTING.md`](./TESTING.md) for backend pytest commands, frontend build verification, and manual smoke-check checklists.
 - **Architecture overview** — See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for system diagrams and component descriptions.
 - **Configuration reference** — See [`CONFIGURATION.md`](./CONFIGURATION.md) for the full list of environment variables and their defaults.
+
+## Para Testers de Beta
+
+Se você faz parte do programa de testes beta, siga os passos extras abaixo após concluir o setup:
+
+1. **Leia o guia de onboarding beta** — [`BETA-ONBOARDING.md`](./BETA-ONBOARDING.md) contém o roteiro completo de primeiros 15 minutos, tarefas por persona e o template de reporte.
+
+2. **Quick health check**
+   ```bash
+   curl http://localhost:5001/health
+   ```
+   A resposta deve ser um JSON indicando que o serviço está saudável.
+
+3. **Rode a fixture de onboarding**
+   ```bash
+   cd backend && uv run python ../scripts/run_onboarding_fixture.py
+   ```
+   Isso popula o banco com dados de exemplo para facilitar os primeiros testes.
+
+4. **Onde encontrar logs**
+   ```
+   backend/logs/YYYY-MM-DD.log
+   ```
+   Os logs são rotacionados diariamente. Anexe o log do dia ao reportar issues.
+
+5. **Execute o preflight**
+   ```bash
+   npm run preflight
+   ```
+   O preflight verifica a saúde do ambiente, dependências e conectividade com serviços externos antes de você começar os testes.

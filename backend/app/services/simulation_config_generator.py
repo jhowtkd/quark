@@ -18,9 +18,8 @@ from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 
-from openai import OpenAI
-
 from ..config import Config
+from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
 from ..utils.locale import get_language_instruction, t
 from .zep_entity_reader import EntityNode, ZepEntityReader
@@ -239,10 +238,12 @@ class SimulationConfigGenerator:
         if not self.api_key:
             raise ValueError("LLM_API_KEY não configurada")
 
-        self.client = OpenAI(
+        self.llm_client = LLMClient(
             api_key=self.api_key,
-            base_url=self.base_url
+            base_url=self.base_url,
+            model=self.model_name,
         )
+        self.client = self.llm_client.client
     
     def generate_config(
         self,
@@ -1041,6 +1042,11 @@ Retorne JSON (sem markdown):
             agent_id = start_idx + i
             cfg = llm_configs.get(agent_id, {})
             
+            # Validar tipo antes de instanciar agente
+            etype = entity.get_entity_type()
+            if not etype or etype in ("Unknown", "Entity"):
+                raise ValueError(f"Cannot instantiate agent for entity {entity.name}: unresolved type")
+            
             # Se o LLM não gerou, usar geração por regras
             if not cfg:
                 cfg = self._generate_agent_config_by_rule(entity)
@@ -1049,7 +1055,7 @@ Retorne JSON (sem markdown):
                 agent_id=agent_id,
                 entity_uuid=entity.uuid,
                 entity_name=entity.name,
-                entity_type=entity.get_entity_type() or "Unknown",
+                entity_type=etype,
                 activity_level=cfg.get("activity_level", 0.5),
                 posts_per_hour=cfg.get("posts_per_hour", 0.5),
                 comments_per_hour=cfg.get("comments_per_hour", 1.0),
@@ -1066,7 +1072,10 @@ Retorne JSON (sem markdown):
     
     def _generate_agent_config_by_rule(self, entity: EntityNode) -> Dict[str, Any]:
         """Gerar configuração de Agente único baseada em regras (hábitos do Brasil)"""
-        entity_type = (entity.get_entity_type() or "Unknown").lower()
+        raw_type = entity.get_entity_type()
+        if not raw_type or raw_type in ("Unknown", "Entity"):
+            raise ValueError(f"Cannot instantiate agent for entity {entity.name}: unresolved type")
+        entity_type = raw_type.lower()
         
         if entity_type in ["university", "governmentagency", "ngo"]:
             # Órgãos oficiais: ativos em horário comercial, baixa frequência, alta influência

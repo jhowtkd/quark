@@ -1,0 +1,72 @@
+[
+  {
+    "uuid": "h1",
+    "name": "Hospital São Paulo",
+    "labels": ["Entity"],
+    "summary": "Grande hospital universitário da cidade de São Paulo.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h2",
+    "name": "Dr. Carlos Mendes",
+    "labels": ["Entity"],
+    "summary": "Médico cardiologista com 20 anos de experiência.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h3",
+    "name": "Pfizer do Brasil",
+    "labels": ["Entity"],
+    "summary": "Laboratório farmacêutico multinacional.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h4",
+    "name": "Ministério da Saúde",
+    "labels": ["Entity"],
+    "summary": "Órgão governamental responsável pela saúde pública.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h5",
+    "name": "Ana Lúcia",
+    "labels": ["Entity"],
+    "summary": "Paciente internada na unidade de terapia intensiva.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h6",
+    "name": "Clínica Médica",
+    "labels": ["Entity"],
+    "summary": "Clínica de atendimento ambulatorial.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h7",
+    "name": "Laboratório Central",
+    "labels": ["Entity"],
+    "summary": "Laboratório clínico de análises.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h8",
+    "name": "Enfermeira Rosa",
+    "labels": ["Entity"],
+    "summary": "Enfermeira especialista em cuidados paliativos.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h9",
+    "name": "Planeta Saúde",
+    "labels": ["Entity"],
+    "summary": "Rede de hospital e clínica no Brasil.",
+    "attributes": {}
+  },
+  {
+    "uuid": "h10",
+    "name": "XYZ123",
+    "labels": ["Entity"],
+    "summary": "Entidade sem tipo definido.",
+    "attributes": {}
+  }
+]

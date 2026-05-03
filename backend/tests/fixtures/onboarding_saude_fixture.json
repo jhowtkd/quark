@@ -1,0 +1,22 @@
+{
+  "input_text": "A Secretaria Municipal de Saude de Sao Paulo lancou em janeiro de 2026 a Campanha Vacina para Todos, uma iniciativa ficticia de imunizacao contra a gripe estacional e o virus respiratorio X-42. O programa previa a instalacao de 120 postos volantes em pracas, shopping centers e terminais de onibus, com atendimento gratuito para todas as faixas etarias. Alem disso, a campanha incluia um chatbot de agendamento chamado DoutorVirtual, uma parceria com farmacias populares para ampliar o alcance e uma serie de videos educativos estrelados por influenciadores digitais da area da saude. O objetivo era vacinar 85% da populacao adulta ate o final de marco de 2026. A prefeitura tambem anunciou um concurso publico para contratar 300 enfermeiros temporarios e distribuir 500 mil doses importadas de um laboratorio ficticio chamado Biotech Futura. Apesar do planejamento ambicioso, a campanha enfrentou desafios logisticos, como a falta de refrigeracao adequada em alguns postos e a resistencia de grupos antivacina organizados nas redes sociais.",
+  "ontology_config": {
+    "chunkSize": 300,
+    "chunkOverlap": 30
+  },
+  "simulation_config": {
+    "maxRounds": 3,
+    "minutesPerRound": 10,
+    "platforms": ["twitter"],
+    "echo_chamber_strength": 0.3
+  },
+  "expected_outputs": {
+    "report": {
+      "must_have_title": true,
+      "must_have_summary": true,
+      "must_have_body": true,
+      "must_have_conclusions": true
+    },
+    "simulated_hours": 0.0
+  }
+}
