@@ -19,6 +19,7 @@ package-lock.json
 # Uploads and temp
 backend/uploads/
 backend/uploads.bak/
+backend/logs/
 *.log
 
 # IDE
