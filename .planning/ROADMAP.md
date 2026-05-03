@@ -28,7 +28,7 @@
 - [x] **Phase 35: Dashboard de Inspecao** — Analytics e Qualidade de Dados. (completed 2026-05-02)
 - [x] **Phase 36: Fidelidade do Grafo e Agentes** — Analytics e Qualidade de Dados. (completed 2026-05-02)
 - [x] **Phase 37: Regressao por Cenario** — Analytics e Qualidade de Dados.
-- [ ] **Phase 38: Preparacao de Beta** — Beta e Lancamento Controlado.
+- [x] **Phase 38: Preparacao de Beta** — Beta e Lancamento Controlado.
 - [ ] **Phase 39: Feedback Loop** — Beta e Lancamento Controlado.
 - [ ] **Phase 40: Pronto para Publico** — Beta e Lancamento Controlado.
 

@@ -2,54 +2,55 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: Milestone v2.0 — Phase 37 complete, ready for Phase 38
-stopped_at: Phase 37 complete — Phase 38 ready
+status: Milestone v2.0 — Phase 38 complete, ready for Phase 39
+stopped_at: Phase 38 complete — Phase 39 ready
 last_updated: "2026-05-01T14:36:00.000-03:00"
-last_activity: 2026-05-01 — Phase 37 completed (3/3 plans)
+last_activity: 2026-05-01 — Phase 38 completed (3/3 plans)
 progress:
   total_phases: 19
-  completed_phases: 15
-  total_plans: 56
-  completed_plans: 41
-  percent: 73
+  completed_phases: 16
+  total_plans: 59
+  completed_plans: 44
+  percent: 75
 ---
 
 ## Current Position
 
-Phase: 38
-Plan: 38-01
-Status: Milestone v2.0 — Phase 37 complete, executing Phase 38
-Last activity: 2026-05-01 — Phase 37 completed (3/3 plans)
+Phase: 39
+Plan: 39-01
+Status: Milestone v2.0 — Phase 38 complete, executing Phase 39
+Last activity: 2026-05-01 — Phase 38 completed (3/3 plans)
 
-## Phase 37 Summary — Regressao por Cenario
+## Phase 38 Summary — Preparacao de Beta
 
-### 37-01: Fixtures dos 5 Cenarios ✅ COMPLETE
-- Created `backend/tests/fixtures/scenarios/schema.py` with `ScenarioFixture`, `StageExpectation`, `PipelineSnapshot`
-- Created 5 scenario fixtures: saude, marketing, direito, economia, geopolitica
-- Created `loader.py` with `load_scenario()` and `list_scenarios()`
-- Created snapshot JSONs for graph, simulation, and report stages per scenario
-- Integrity tests: 5 passing
+### 38-01: Onboarding de Testers ✅ COMPLETE
+- `docs/BETA-ONBOARDING.md` (171 lines) — onboarding guide with setup, walkthrough, personas, limits, reporting template
+- `docs/GETTING-STARTED.md` — Added "Para Testers de Beta" section
+- `docs/BETA-TESTER-CHECKLIST.md` (56 lines) — 20-item checklist
+- `backend/tests/fixtures/onboarding_saude_fixture.json` + `scripts/run_onboarding_fixture.py` — executable onboarding scenario
+- `frontend/src/components/BetaFeedbackForm.vue` — feedback form with star ratings, category, description
+- Tests: BetaFeedbackForm 6 passed, Step5Interaction 5 passed, build clean
 
-### 37-02: Testes Automatizados ✅ COMPLETE
-- Created mock utilities: `MockLLMClient`, `MockZepBackend`, `MockDockerRunner`
-- Backend regression tests: 42 passing across graph builder, simulation runner, report agent, quality gates, language guardrails
-- Frontend component tests: 29 passing across Step3Simulation, Step4Report, Step5Interaction, BaseButton, BaseModal, BaseBadge
-- Created `MANUAL_E2E_REGRESSION.md` with checklist for all 5 scenarios
-- Created `scripts/run_regression.sh` with backend + frontend + beta gate checks
-- Configured `pyproject.toml` pytest options
+### 38-02: Ambientes e Dados ✅ COMPLETE
+- `backend/tests/fixtures/datasets/` — 5 anonymized markdown datasets (saude, marketing, direito, economia, geopolitica)
+- `docker-compose.beta.yml` — isolated beta environment with backend (5002) and frontend (4002)
+- `.env.beta.example` — beta-specific environment variables
+- `scripts/scan_secrets.py` + `npm run scan:secrets` — automated secrets scanning
+- `backend/app/utils/log_sanitizer.py` — email/CPF/phone removal + post truncation
+- `docs/BETA-DATA-POLICY.md` — data retention policy
 
-### 37-03: Score de Confiabilidade ✅ COMPLETE
-- Created `backend/app/services/reliability_scorer.py` with 4 pillars (Structural, Semantic, Content, Reliability)
-- Constants: `BETA_MIN_TOTAL = 0.75`, `BETA_MIN_PILLAR = 0.60`
-- Integrated scorer into `backend/app/api/report.py` status endpoint
-- Updated `frontend/src/components/Step4Report.vue` with quality badge (4 tiers), expandable pillar details, beta warning
-- Regression tests: 35 passing across all 5 scenarios and failure modes
-- Created `backend/docs/RELIABILITY_SCORE.md` with formula, thresholds, examples
-- Updated `scripts/run_regression.sh` with beta gate verification
-- All 5 scenarios score 0.94 on beta gate
+### 38-03: Checklist de Privacidade ✅ COMPLETE
+- `.gitignore` updated with 8+ new entries for sensitive artifacts
+- `scripts/verify_gitignore_coverage.py` — automated gitignore verification
+- Langfuse sample rate restricted to ≤0.2 in beta, default 0.1
+- `docs/BETA-PRIVACY-GAPS.md` — API privacy audit documenting ownership gaps
+- `backend/tests/test_export_privacy.py` — 4 tests verifying no sensitive fields in exports
+- `docs/BETA-PRIVACY-CHECKLIST.md` — 16-item pre-release privacy checklist
+- `docs/BETA-PRIVACY-REPORT.md` — verification report with all checks PASS
 
 ## Verification
-- Backend: regression passed (all new tests green)
-- Frontend: 33 test files, 209 tests passed, build clean
-- Full regression script: REGRESSION PASSED
-- Beta gate: all 5 scenarios PASS
+- Backend: all new tests passing (privacy suite: 20 passed)
+- Frontend: build clean
+- Secrets scan: 0 findings
+- Gitignore coverage: all directories covered
+- Regression script: REGRESSION PASSED
