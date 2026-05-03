@@ -586,6 +586,13 @@
           <SimulationCompare :baseSimulationId="props.simulationId" />
         </div>
 
+        <!-- Beta Feedback -->
+        <BetaFeedbackForm
+          v-if="isBetaMode"
+          :simulationId="props.simulationId"
+          :reportId="props.reportId"
+        />
+
         <!-- Survey Mode -->
         <div v-if="dashboardTab !== 'overview' && activeTab === 'survey'" class="survey-container">
           <!-- Survey Setup -->
@@ -692,6 +699,7 @@ import { chatWithReport, getReport, getAgentLog } from '../api/report'
 import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts } from '../api/simulation'
 import ActionExplorer from './ActionExplorer.vue'
 import SimulationCompare from './SimulationCompare.vue'
+import BetaFeedbackForm from './BetaFeedbackForm.vue'
 import { detectContamination, sanitizeContent, validateChatHistory } from '../utils/payloadValidator'
 
 const { t } = useI18n()
@@ -746,6 +754,15 @@ const timelineLimit = ref(50)
 const ioValidation = ref(null)
 const showMissing = ref(false)
 const showSpurious = ref(false)
+
+// Beta mode detection
+const isBetaMode = computed(() => {
+  try {
+    return new URLSearchParams(window.location.search).get('beta') === 'true'
+  } catch {
+    return false
+  }
+})
 
 // Helper Methods
 const isSectionCompleted = (sectionIndex) => {
