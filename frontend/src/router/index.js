@@ -10,6 +10,7 @@ const SimulationView = () => import('../views/SimulationView.vue')
 const SimulationRunView = () => import('../views/SimulationRunView.vue')
 const ReportView = () => import('../views/ReportView.vue')
 const InteractionView = () => import('../views/InteractionView.vue')
+const TriageView = () => import('../views/TriageView.vue')
 
 // Routes that require authentication
 const PROTECTED_ROUTES = ['Home', 'Process', 'Simulation', 'SimulationRun', 'Report', 'Interaction']
@@ -113,6 +114,12 @@ const routes = [
     name: 'Interaction',
     component: InteractionView,
     props: true,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/triage',
+    name: 'Triage',
+    component: TriageView,
     meta: { requiresAuth: true }
   }
 ]

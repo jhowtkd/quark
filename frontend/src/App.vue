@@ -9,18 +9,26 @@
     <InstallPrompt />
     <NetworkIndicator />
     <UpdateNotification />
+    <BetaChangelogNotification
+      v-if="latestChangelog"
+      :changelog-url="latestChangelog.url"
+      :changelog-date="latestChangelog.date"
+    />
   </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import AgentationWrapper from './components/AgentationWrapper.vue'
 import InstallPrompt from './components/InstallPrompt.vue'
 import NetworkIndicator from './components/NetworkIndicator.vue'
 import UpdateNotification from './components/UpdateNotification.vue'
+import BetaChangelogNotification from './components/BetaChangelogNotification.vue'
 import { useTheme } from './composables/useTheme.js'
+import { getLatestChangelog } from './api/feedback.js'
 
 const { initTheme } = useTheme()
+const latestChangelog = ref(null)
 
 // Initialize profile on body
 const initProfile = () => {
@@ -28,9 +36,24 @@ const initProfile = () => {
   document.body.setAttribute('data-profile', savedProfile)
 }
 
+const loadLatestChangelog = async () => {
+  try {
+    const res = await getLatestChangelog()
+    if (res.data) {
+      latestChangelog.value = {
+        url: `/docs/changelogs/${res.data.filename}`,
+        date: res.data.date,
+      }
+    }
+  } catch {
+    // ignore — changelog is optional
+  }
+}
+
 onMounted(() => {
   initTheme()
   initProfile()
+  loadLatestChangelog()
 })
 </script>
 

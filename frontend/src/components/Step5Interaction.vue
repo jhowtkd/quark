@@ -689,10 +689,12 @@
         </div>
       </div>
     </div>
+    <FeedbackWidget stage="inspection" :simulation-id="simulationId" :report-id="reportId" />
   </div>
 </template>
 
 <script setup>
+import FeedbackWidget from './FeedbackWidget.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { chatWithReport, getReport, getAgentLog } from '../api/report'

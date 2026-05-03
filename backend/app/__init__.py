@@ -97,13 +97,18 @@ def create_app(config_class=Config):
         return response
 
     # Register blueprints
-    from .api import graph_bp, simulation_bp, report_bp, research_bp
+    from .api import graph_bp, simulation_bp, report_bp, research_bp, feedback_bp
+    from .api.health import health_bp
+    from .api.observability import observability_bp
     app.register_blueprint(graph_bp, url_prefix='/api/graph')
     app.register_blueprint(simulation_bp, url_prefix='/api/simulation')
     app.register_blueprint(report_bp, url_prefix='/api/report')
     app.register_blueprint(research_bp, url_prefix='/api/research')
+    app.register_blueprint(feedback_bp, url_prefix='/api/feedback')
+    app.register_blueprint(health_bp, url_prefix='/api/health')
+    app.register_blueprint(observability_bp, url_prefix='/api/observability')
 
-    # Health check
+    # Health check (backward compat)
     @app.route('/health')
     def health():
         return {'status': 'ok', 'service': 'FUTUR.IA Backend'}

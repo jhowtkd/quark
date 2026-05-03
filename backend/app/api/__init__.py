@@ -8,9 +8,11 @@ graph_bp = Blueprint('graph', __name__)
 simulation_bp = Blueprint('simulation', __name__)
 report_bp = Blueprint('report', __name__)
 research_bp = Blueprint('research', __name__, url_prefix='/research')
+feedback_bp = Blueprint('feedback', __name__, url_prefix='/feedback')
 
 from . import graph  # noqa: E402, F401
 from . import simulation  # noqa: E402, F401
 from . import report  # noqa: E402, F401
 from . import research  # noqa: E402, F401
+from . import feedback  # noqa: E402, F401
 

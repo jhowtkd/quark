@@ -2,24 +2,49 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: milestone
-status: Milestone v2.0 — Phase 38 complete, ready for Phase 39
-stopped_at: Phase 38 complete — Phase 39 ready
-last_updated: "2026-05-01T14:36:00.000-03:00"
-last_activity: 2026-05-01 — Phase 38 completed (3/3 plans)
+status: Milestone v2.0 — Phase 39 complete, ready for Phase 40
+stopped_at: Phase 39 complete — Phase 40 ready
+last_updated: "2026-05-03T11:10:00.000-03:00"
+last_activity: 2026-05-03 — Phase 39 completed (2/2 plans, 7/7 tasks)
 progress:
   total_phases: 19
-  completed_phases: 16
-  total_plans: 59
-  completed_plans: 44
-  percent: 75
+  completed_phases: 17
+  total_plans: 61
+  completed_plans: 46
+  percent: 79
 ---
 
 ## Current Position
 
-Phase: 39
-Plan: 39-01
-Status: Milestone v2.0 — Phase 38 complete, executing Phase 39
-Last activity: 2026-05-01 — Phase 38 completed (3/3 plans)
+Phase: 40
+Plan: 40-01
+Status: Milestone v2.0 — Phase 39 complete, executing Phase 40
+Last activity: 2026-05-03 — Phase 39 completed (2/2 plans)
+
+## Phase 39 Summary — Feedback Loop
+
+### 39-01: Captura de feedback in-app ✅ COMPLETE
+- `backend/app/models/feedback.py` — FeedbackItem, FeedbackManager, enums (Category, Severity, PipelineStage)
+- `backend/app/api/feedback.py` — 5 CRUD endpoints + stats/summary
+- `frontend/src/api/feedback.js` — createFeedback, listFeedback, getFeedback, updateFeedback, getFeedbackStats
+- `frontend/src/components/FeedbackWidget.vue` — FAB brutalista + modal com rating por estrelas, categoria, comentário
+- Widget integrado nos 5 steps (Step1GraphBuild → Step5Interaction) com stage correto
+- Tests: backend 8 passed, frontend 5 passed, build clean
+
+### 39-02: Triagem semanal ✅ COMPLETE
+- `backend/app/services/triage_service.py` — TriageService com classify, auto_classify (heurísticas), weekly_summary, generate_backlog
+- `backend/app/services/changelog_service.py` — ChangelogService com generate_changelog em markdown
+- `backend/app/api/feedback.py` — 6 endpoints de triagem (/triage, /auto, /weekly-summary, /generate-backlog, /generate-changelog, /latest-changelog)
+- `backend/scripts/weekly_triage.py` — CLI com --auto-classify, --generate-backlog, --generate-changelog, --dry-run
+- `frontend/src/views/TriageView.vue` — Dashboard /admin/triage com cards de resumo, filtros, tabela, ações em massa
+- `frontend/src/components/BetaChangelogNotification.vue` — Banner com dismiss persistido em localStorage
+- `backend/scripts/README_TRIAGE.md` — Documentação operacional do pipeline
+- Tests: backend 14 passed (triage service + triage API)
+
+## Verification
+- Backend: all new tests passing (feedback + triage: 22 passed)
+- Frontend: build clean
+- End-to-end: auto-classify → generate-backlog → generate-changelog → latest-changelog verified
 
 ## Phase 38 Summary — Preparacao de Beta
 
