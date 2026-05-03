@@ -94,6 +94,9 @@ cat uploads/reports/{report_id}/meta.json | python -m json.tool
 - [ ] Acoes totais coerentes com rounds (minimo esperado: 20 acoes)
 - [ ] Taxa de Unknown abaixo do limite (≤ 0.25)
 - [ ] Falhas retornam erro claro (se houver)
+- [ ] `reliability_score` >= 0.75 (limiar total beta)
+- [ ] Todos os pilares >= 0.60 (limiar por pilar beta)
+- [ ] `beta_ready: true` no status do relatorio
 
 ---
 
@@ -166,6 +169,9 @@ cat uploads/reports/{report_id}/meta.json | python -m json.tool
 - [ ] Acoes totais coerentes com rounds (minimo esperado: 20 acoes)
 - [ ] Taxa de Unknown abaixo do limite (≤ 0.25)
 - [ ] Falhas retornam erro claro (se houver)
+- [ ] `reliability_score` >= 0.75 (limiar total beta)
+- [ ] Todos os pilares >= 0.60 (limiar por pilar beta)
+- [ ] `beta_ready: true` no status do relatorio
 
 ---
 
@@ -238,6 +244,9 @@ cat uploads/reports/{report_id}/meta.json | python -m json.tool
 - [ ] Acoes totais coerentes com rounds (minimo esperado: 20 acoes)
 - [ ] Taxa de Unknown abaixo do limite (≤ 0.25)
 - [ ] Falhas retornam erro claro (se houver)
+- [ ] `reliability_score` >= 0.75 (limiar total beta)
+- [ ] Todos os pilares >= 0.60 (limiar por pilar beta)
+- [ ] `beta_ready: true` no status do relatorio
 
 ---
 
@@ -315,6 +324,9 @@ grep "provenance_tag" uploads/reports/{report_id}/agent_log.jsonl | head -5
 - [ ] **Data provenance:** Report ends with "## Fontes de Dados" section
 - [ ] **Data provenance:** `meta.json` contains `"provenance_enabled": true`
 - [ ] **Data provenance:** Simulated/projected data tagged with 🔮 (not 📊)
+- [ ] `reliability_score` >= 0.75 (limiar total beta)
+- [ ] Todos os pilares >= 0.60 (limiar por pilar beta)
+- [ ] `beta_ready: true` no status do relatorio
 
 ---
 
@@ -387,6 +399,9 @@ cat uploads/reports/{report_id}/meta.json | python -m json.tool
 - [ ] Acoes totais coerentes com rounds (minimo esperado: 25 acoes)
 - [ ] Taxa de Unknown abaixo do limite (≤ 0.25)
 - [ ] Falhas retornam erro claro (se houver)
+- [ ] `reliability_score` >= 0.75 (limiar total beta)
+- [ ] Todos os pilares >= 0.60 (limiar por pilar beta)
+- [ ] `beta_ready: true` no status do relatorio
 
 ---
 

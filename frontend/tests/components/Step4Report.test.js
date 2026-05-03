@@ -176,4 +176,34 @@ describe('Step4Report', () => {
     expect(indicator.exists()).toBe(true)
     expect(indicator.find('.quality-value').text()).toBe('50%')
   })
+
+  it('renders reliability badge with correct color', async () => {
+    mockGetReport.mockResolvedValue({
+      success: true,
+      data: {
+        report_id: 'report_test',
+        reliability_score: 0.85,
+        beta_ready: true,
+        reliability_report: { consistency: 0.9, coverage: 0.8, accuracy: 0.85, sourcing: 0.82 }
+      }
+    })
+    mockGetReportProgress.mockResolvedValue({ success: true, data: { failed_sections: [] } })
+
+    const wrapper = await mountWithOutline()
+    wrapper.vm.reportOutline = {
+      title: 'Test Report',
+      summary: 'Test Summary',
+      sections: [
+        { title: 'Section 1' },
+        { title: 'Section 2' }
+      ]
+    }
+    wrapper.vm.generatedSections = { 1: 'content1', 2: 'content2' }
+    await nextTick()
+
+    const badge = wrapper.find('.reliability-badge')
+    expect(badge.exists()).toBe(true)
+    expect(badge.text()).toBe('Beta OK')
+    expect(badge.classes()).toContain('reliability-badge--beta-ok')
+  })
 })

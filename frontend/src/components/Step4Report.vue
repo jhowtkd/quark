@@ -37,6 +37,71 @@
                 <span class="badge badge--success">
                   {{ $t('step4.qualityIndicator.filtered') }}
                 </span>
+                <span
+                  v-if="reliabilityScore !== null"
+                  class="badge reliability-badge"
+                  :class="reliabilityBadgeClass"
+                  :title="`Score: ${(reliabilityScore * 100).toFixed(0)}%`"
+                >
+                  {{ reliabilityBadgeText }}
+                </span>
+              </div>
+              <!-- Pillar Details Toggle -->
+              <div v-if="reliabilityReport" class="reliability-pillars">
+                <button
+                  class="pillars-toggle-btn"
+                  :aria-expanded="showPillarDetails"
+                  @click="showPillarDetails = !showPillarDetails"
+                >
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  <span>Detalhes dos Pilares</span>
+                  <svg
+                    class="toggle-chevron"
+                    :class="{ 'is-open': showPillarDetails }"
+                    viewBox="0 0 24 24"
+                    width="14"
+                    height="14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </button>
+                <Transition name="section-expand">
+                  <div v-show="showPillarDetails" class="pillars-panel">
+                    <div
+                      v-for="(value, key) in reliabilityReport"
+                      :key="key"
+                      class="pillar-row"
+                    >
+                      <span class="pillar-name">{{ key }}</span>
+                      <span class="pillar-bar-wrap">
+                        <span class="pillar-bar" :style="{ width: `${(value * 100).toFixed(0)}%` }"></span>
+                      </span>
+                      <span class="pillar-value">{{ (value * 100).toFixed(0) }}%</span>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
+              <!-- Beta Not Ready Warning -->
+              <div v-if="betaReady === false && reportWarnings.length > 0" class="beta-warning" role="alert">
+                <div class="beta-warning-header">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                  </svg>
+                  <span>Relatório não está pronto para Beta</span>
+                </div>
+                <ul class="beta-warning-list">
+                  <li v-for="(warning, idx) in reportWarnings" :key="idx">{{ warning }}</li>
+                </ul>
+                <p class="beta-warning-help">Revise os avisos acima e considere ajustar os parâmetros da simulação antes de prosseguir.</p>
               </div>
             </div>
             <div class="report-meta">
@@ -565,6 +630,13 @@ const logContent = ref(null)
 const showRawResult = reactive({})
 const reportError = ref(null)
 const reportErrorRetryable = ref(false)
+
+// Reliability state
+const reliabilityScore = ref(null)
+const betaReady = ref(true)
+const reliabilityReport = ref(null)
+const reportWarnings = ref([])
+const showPillarDetails = ref(false)
 
 // Focus mode state
 const focusMode = ref(false)
@@ -1899,6 +1971,24 @@ const qualityScore = computed(() => {
   return Math.round((completedSections.value / totalSections.value) * 100)
 })
 
+const reliabilityBadgeText = computed(() => {
+  const score = reliabilityScore.value
+  if (score === null || score === undefined) return ''
+  if (score >= 0.90) return 'Excelente'
+  if (score >= 0.75) return 'Beta OK'
+  if (score >= 0.60) return 'Atenção'
+  return 'Revisar'
+})
+
+const reliabilityBadgeClass = computed(() => {
+  const score = reliabilityScore.value
+  if (score === null || score === undefined) return ''
+  if (score >= 0.90) return 'reliability-badge--excellent'
+  if (score >= 0.75) return 'reliability-badge--beta-ok'
+  if (score >= 0.60) return 'reliability-badge--attention'
+  return 'reliability-badge--review'
+})
+
 const totalToolCalls = computed(() => {
   return agentLogs.value.filter(l => l.action === 'tool_call').length
 })
@@ -2505,6 +2595,22 @@ const loadReportData = async () => {
     if (!reportRes.success && reportRes.status === 404) {
       reportNotFound.value = true
       return
+    }
+    
+    // Capture reliability fields from report response
+    if (reportRes.success && reportRes.data) {
+      if (typeof reportRes.data.reliability_score === 'number') {
+        reliabilityScore.value = reportRes.data.reliability_score
+      }
+      if (typeof reportRes.data.beta_ready === 'boolean') {
+        betaReady.value = reportRes.data.beta_ready
+      }
+      if (reportRes.data.reliability_report) {
+        reliabilityReport.value = reportRes.data.reliability_report
+      }
+      if (Array.isArray(reportRes.data.warnings)) {
+        reportWarnings.value = reportRes.data.warnings
+      }
     }
     
     // Fetch progress for failed sections
@@ -6154,6 +6260,153 @@ watch(() => props.reportId, (newId) => {
   background: rgba(34, 197, 94, 0.12);
   color: #15803d;
   border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.reliability-badge {
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.reliability-badge--excellent {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.reliability-badge--beta-ok {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.reliability-badge--attention {
+  background: rgba(234, 179, 8, 0.12);
+  color: #a16207;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.reliability-badge--review {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Reliability Pillars */
+.reliability-pillars {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.pillars-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.pillars-toggle-btn:hover {
+  color: var(--color-on-surface);
+}
+
+.toggle-chevron {
+  transition: transform 0.25s ease;
+  margin-left: 4px;
+}
+
+.toggle-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.pillars-panel {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--color-surface-container-low);
+  border: 1px solid var(--color-outline);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pillar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pillar-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  text-transform: capitalize;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.pillar-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--color-surface-container);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pillar-bar {
+  display: block;
+  height: 100%;
+  background: var(--color-info);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.pillar-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Beta Warning */
+.beta-warning {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.beta-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.beta-warning-list {
+  margin: 8px 0 0 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: var(--color-on-surface);
+  line-height: 1.6;
+}
+
+.beta-warning-help {
+  margin: 8px 0 0 0;
+  font-size: 11px;
+  color: var(--color-muted);
+  font-style: italic;
 }
 
 /* Section Error State */

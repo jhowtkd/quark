@@ -23,6 +23,7 @@ from ..config import Config
 from ..services.report_agent import ReportAgent, ReportManager, ReportStatus
 from ..services.simulation_manager import SimulationManager
 from ..services.report_orchestrator import ReportOrchestratorService
+from ..services.reliability_scorer import ReliabilityScorer, ReliabilityReport
 from ..models.project import ProjectManager
 from ..models.task import TaskManager, TaskStatus
 from ..utils.logger import get_logger
@@ -144,20 +145,88 @@ def get_generate_status():
         simulation_id = req.simulation_id
         
         # simulation_id
+        def _build_snapshot(report, sim_id):
+            snapshot = {"graph": {}, "simulation": {}, "report": {}}
+            if report:
+                snapshot["report"] = {
+                    "section_count": len(report.outline.sections) if report.outline else 0,
+                    "has_summary": bool(report.outline.summary) if report.outline else False,
+                    "has_conclusions": any(
+                        "conclus" in (s.title or "").lower()
+                        for s in (report.outline.sections if report.outline else [])
+                    ),
+                    "estimated_word_count": len(report.markdown_content.split()) if report.markdown_content else 0,
+                    "language_detected": "pt",
+                    "markdown_content": report.markdown_content or "",
+                }
+            try:
+                from ..services.simulation_runner import SimulationRunner
+                run_state = SimulationRunner.get_run_state(sim_id)
+                if run_state:
+                    snapshot["simulation"] = {
+                        "simulated_hours": run_state.simulated_hours,
+                        "total_actions": run_state.twitter_actions_count + run_state.reddit_actions_count,
+                        "rounds_completed": run_state.current_round,
+                        "agents_count": 0,
+                    }
+            except Exception:
+                pass
+            try:
+                sim_mgr = SimulationManager()
+                sim_state = sim_mgr.get_simulation(sim_id)
+                if sim_state:
+                    snapshot["graph"] = {
+                        "nodes_count": sim_state.entities_count,
+                        "edges_count": sim_state.resolved_entity_count,
+                        "unknown_count": sim_state.unknown_entity_count,
+                    }
+                    if not snapshot["simulation"]:
+                        snapshot["simulation"] = {
+                            "simulated_hours": 0,
+                            "total_actions": 0,
+                            "rounds_completed": sim_state.current_round,
+                            "agents_count": sim_state.profiles_count,
+                        }
+            except Exception:
+                pass
+            return snapshot
+
+        def _enrich_with_reliability(data_dict, report, sim_id):
+            try:
+                scorer = ReliabilityScorer()
+                snapshot = _build_snapshot(report, sim_id)
+                rel = scorer.score_reliability(snapshot)
+                data_dict["reliability_score"] = rel.total_score
+                if data_dict.get("status") == "completed":
+                    data_dict["reliability_report"] = {
+                        "total_score": rel.total_score,
+                        "pillar_scores": rel.pillar_scores,
+                        "gates_passed": rel.gates_passed,
+                        "gates_failed": rel.gates_failed,
+                    }
+                    data_dict["beta_ready"] = rel.passed_beta
+                    if rel.gates_failed:
+                        data_dict["warnings"] = rel.gates_failed
+                    else:
+                        data_dict["warnings"] = []
+            except Exception as exc:
+                logger.warning(f"Reliability scoring failed for {sim_id}: {exc}")
+                data_dict["reliability_score"] = None
+            return data_dict
+
         if simulation_id:
             existing_report = ReportManager.get_report_by_simulation(simulation_id)
             if existing_report and existing_report.status == ReportStatus.COMPLETED:
-                return jsonify({
-                    "success": True,
-                    "data": {
-                        "simulation_id": simulation_id,
-                        "report_id": existing_report.report_id,
-                        "status": "completed",
-                        "progress": 100,
-                        "message": t('api.reportGenerated'),
-                        "already_completed": True
-                    }
-                })
+                resp_data = {
+                    "simulation_id": simulation_id,
+                    "report_id": existing_report.report_id,
+                    "status": "completed",
+                    "progress": 100,
+                    "message": t('api.reportGenerated'),
+                    "already_completed": True
+                }
+                resp_data = _enrich_with_reliability(resp_data, existing_report, simulation_id)
+                return jsonify({"success": True, "data": resp_data})
         
         if not task_id:
             return error_response(t('api.requireTaskOrSimId'), 400)
@@ -168,9 +237,15 @@ def get_generate_status():
         if not task:
             return error_response(t('api.taskNotFound', id=task_id), 404)
         
+        data = task.to_dict()
+        if data.get("status") == "completed":
+            sim_id = task.metadata.get("simulation_id") if task.metadata else None
+            if sim_id:
+                report = ReportManager.get_report_by_simulation(sim_id)
+                data = _enrich_with_reliability(data, report, sim_id)
         return jsonify({
             "success": True,
-            "data": task.to_dict()
+            "data": data
         })
         
     except Exception as e:
