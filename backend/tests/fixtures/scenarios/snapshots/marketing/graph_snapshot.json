@@ -1,0 +1,6 @@
+{
+  "nodes_count": 8,
+  "edges_count": 6,
+  "entity_types": ["Person", "Organization", "Product", "Person", "Person", "Organization", "Person", "Unknown"],
+  "unknown_count": 1
+}
