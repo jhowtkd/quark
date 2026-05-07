@@ -61,11 +61,10 @@ def test_evolution_summary_includes_averages_and_top_changed_agents():
     assert len(summary["top_changed_agents"]) <= 2
 
 
-def test_simulation_runner_update_agent_evolution_calculates_snapshots():
-    """Test that _update_agent_evolution writes per-agent snapshots and aggregate data."""
+def test_simulation_runner_update_agent_evolution_calculates_full_result():
+    """Test that _update_agent_evolution writes snapshots, events, and summary."""
     from unittest.mock import patch, MagicMock
     from app.services.simulation_runner import SimulationRunner
-    from app.services.agent_evolution import AgentEvolutionSnapshot
 
     state = SimulationRunState(
         simulation_id="test-sim-3",
@@ -92,9 +91,11 @@ def test_simulation_runner_update_agent_evolution_calculates_snapshots():
         SimulationRunner._update_agent_evolution(state)
 
     assert state.agent_evolution
-    assert "averages" in state.agent_evolution
-    assert "top_changed_agents" in state.agent_evolution
-    assert len(state.agent_evolution["top_changed_agents"]) <= 1
+    assert "snapshots" in state.agent_evolution
+    assert "events" in state.agent_evolution
+    assert "summary" in state.agent_evolution
+    assert "averages" in state.agent_evolution["summary"]
+    assert "top_changed_agents" in state.agent_evolution["summary"]
 
 
 def test_simulation_runner_update_agent_evolution_disabled_does_nothing():

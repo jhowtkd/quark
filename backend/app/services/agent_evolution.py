@@ -19,7 +19,7 @@ class EvolutionPolicy:
     fatigue_multiplier: float = 1.0
     evidence_openness_multiplier: float = 1.0
     narrative_alignment_multiplier: float = 1.0
-    credibility_multiplier: float = 1.0
+    trust_level_multiplier: float = 1.0
 
     @classmethod
     def stable(cls) -> "EvolutionPolicy":
@@ -30,7 +30,7 @@ class EvolutionPolicy:
             fatigue_multiplier=1.0,
             evidence_openness_multiplier=1.0,
             narrative_alignment_multiplier=1.0,
-            credibility_multiplier=1.0,
+            trust_level_multiplier=1.0,
         )
 
     @classmethod
@@ -42,7 +42,7 @@ class EvolutionPolicy:
             fatigue_multiplier=1.5,
             evidence_openness_multiplier=1.5,
             narrative_alignment_multiplier=1.5,
-            credibility_multiplier=1.5,
+            trust_level_multiplier=1.5,
         )
 
     @classmethod
@@ -54,7 +54,7 @@ class EvolutionPolicy:
             fatigue_multiplier=1.0,
             evidence_openness_multiplier=1.0,
             narrative_alignment_multiplier=1.0,
-            credibility_multiplier=1.0,
+            trust_level_multiplier=1.0,
         )
 
     @classmethod
@@ -76,7 +76,7 @@ class AgentEvolutionState:
     fatigue: float = 0.0
     evidence_openness: float = 0.0
     narrative_alignment: float = 0.0
-    credibility: float = 0.0
+    trust_level: float = 0.0
 
     def clamp(self):
         """Clamp all metrics to [0.0, 1.0]."""
@@ -85,7 +85,7 @@ class AgentEvolutionState:
         self.fatigue = max(0.0, min(1.0, self.fatigue))
         self.evidence_openness = max(0.0, min(1.0, self.evidence_openness))
         self.narrative_alignment = max(0.0, min(1.0, self.narrative_alignment))
-        self.credibility = max(0.0, min(1.0, self.credibility))
+        self.trust_level = max(0.0, min(1.0, self.trust_level))
 
 
 @dataclass
@@ -109,7 +109,7 @@ class AgentEvolutionSnapshot:
     fatigue: float
     evidence_openness: float
     narrative_alignment: float
-    credibility: float
+    trust_level: float
 
     @classmethod
     def from_state(cls, agent_id: int, agent_name: str, round_num: int, state: AgentEvolutionState) -> "AgentEvolutionSnapshot":
@@ -122,7 +122,7 @@ class AgentEvolutionSnapshot:
             fatigue=state.fatigue,
             evidence_openness=state.evidence_openness,
             narrative_alignment=state.narrative_alignment,
-            credibility=state.credibility,
+            trust_level=state.trust_level,
         )
 
 
@@ -144,7 +144,7 @@ class EvolutionRoundResult:
                     "fatigue": v.fatigue,
                     "evidence_openness": v.evidence_openness,
                     "narrative_alignment": v.narrative_alignment,
-                    "credibility": v.credibility,
+                    "trust_level": v.trust_level,
                 }
                 for k, v in self.snapshots.items()
             },
@@ -166,7 +166,7 @@ class EvolutionService:
 
     # Base deltas for each action type
     ACTION_DELTAS = {
-        "CREATE_POST": {"social_influence": 0.02, "credibility": 0.01},
+        "CREATE_POST": {"social_influence": 0.02, "trust_level": 0.01},
         "REPOST": {"social_influence": 0.01, "polarization_risk": 0.01},
         "QUOTE_POST": {"social_influence": 0.015, "polarization_risk": 0.015, "narrative_alignment": 0.01},
         "COMMENT": {"social_influence": 0.01, "narrative_alignment": 0.005},
@@ -200,7 +200,7 @@ class EvolutionService:
                 fatigue=snap.fatigue,
                 evidence_openness=snap.evidence_openness,
                 narrative_alignment=snap.narrative_alignment,
-                credibility=snap.credibility,
+                trust_level=snap.trust_level,
             )
             agent_names[snap.agent_id] = snap.agent_name
 
@@ -314,7 +314,7 @@ def summarize_evolution(result: EvolutionRoundResult) -> Dict[str, Any]:
         }
 
     # Calculate averages
-    metrics = ["social_influence", "polarization_risk", "fatigue", "evidence_openness", "narrative_alignment", "credibility"]
+    metrics = ["social_influence", "polarization_risk", "fatigue", "evidence_openness", "narrative_alignment", "trust_level"]
     averages = {}
     for metric in metrics:
         values = [getattr(s, metric) for s in result.snapshots.values()]

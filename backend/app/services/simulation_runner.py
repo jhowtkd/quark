@@ -1084,7 +1084,11 @@ class SimulationRunner:
         actions = [a.to_dict() for a in cls.get_all_actions(state.simulation_id)]
         policy = EvolutionPolicy.from_name(state.agent_evolution_preset or "stable")
         result = EvolutionService(policy=policy).advance_all_rounds(actions)
-        state.agent_evolution = summarize_evolution(result)
+
+        # Persist full result with snapshots + events + summary
+        evolution_data = result.to_dict()
+        evolution_data["summary"] = summarize_evolution(result)
+        state.agent_evolution = evolution_data
 
     @classmethod
     def get_all_actions(

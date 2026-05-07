@@ -18,7 +18,7 @@ def test_default_initial_state_has_all_six_metrics_between_zero_and_one():
     assert 0.0 <= state.fatigue <= 1.0
     assert 0.0 <= state.evidence_openness <= 1.0
     assert 0.0 <= state.narrative_alignment <= 1.0
-    assert 0.0 <= state.credibility <= 1.0
+    assert 0.0 <= state.trust_level <= 1.0
 
 
 def test_stable_sensitive_and_polarizable_policies_produce_different_delta_sizes():
@@ -176,7 +176,7 @@ def test_metrics_are_clamped_between_zero_and_one():
     assert 0.0 <= snapshot.fatigue <= 1.0
     assert 0.0 <= snapshot.evidence_openness <= 1.0
     assert 0.0 <= snapshot.narrative_alignment <= 1.0
-    assert 0.0 <= snapshot.credibility <= 1.0
+    assert 0.0 <= snapshot.trust_level <= 1.0
 
 
 def test_summarize_evolution_returns_averages_and_top_changed():
