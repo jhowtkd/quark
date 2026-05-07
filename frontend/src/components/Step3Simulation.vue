@@ -65,7 +65,7 @@
       :project-name="projectData?.simulation_requirement?.substring(0, 60) || ''"
       :max-rounds="maxRounds"
       :minutes-per-round="minutesPerRound"
-      @confirm="() => { showConfirmModal = false; doStartSimulation() }"
+      @confirm="onConfirmStart"
       @cancel="$emit('go-back')"
     />
 
@@ -118,6 +118,16 @@ const router = useRouter()
 const isGeneratingReport = ref(false)
 const phase = ref(0)
 const showConfirmModal = ref(true)
+const evolutionConfig = ref({
+  enableAgentEvolution: true,
+  agentEvolutionPreset: 'stable',
+})
+
+const onConfirmStart = (config) => {
+  evolutionConfig.value = config
+  showConfirmModal.value = false
+  doStartSimulation()
+}
 
 // Composable
 const simulationIdRef = toRef(props, 'simulationId')
@@ -167,7 +177,9 @@ const doStartSimulation = async () => {
       simulation_id: props.simulationId,
       platform: 'parallel',
       force: true,
-      enable_graph_memory_update: true
+      enable_graph_memory_update: true,
+      enable_agent_evolution: evolutionConfig.value.enableAgentEvolution,
+      agent_evolution_preset: evolutionConfig.value.agentEvolutionPreset,
     }
     
     if (props.maxRounds) {
