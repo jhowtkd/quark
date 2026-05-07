@@ -59,3 +59,53 @@ def test_evolution_summary_includes_averages_and_top_changed_agents():
     assert "averages" in summary
     assert "top_changed_agents" in summary
     assert len(summary["top_changed_agents"]) <= 2
+
+
+def test_simulation_runner_update_agent_evolution_calculates_snapshots():
+    """Test that _update_agent_evolution writes per-agent snapshots and aggregate data."""
+    from unittest.mock import patch, MagicMock
+    from app.services.simulation_runner import SimulationRunner
+    from app.services.agent_evolution import AgentEvolutionSnapshot
+
+    state = SimulationRunState(
+        simulation_id="test-sim-3",
+        runner_status=RunnerStatus.RUNNING,
+        agent_evolution_enabled=True,
+        agent_evolution_preset="stable",
+    )
+
+    mock_actions = [
+        MagicMock(
+            to_dict=lambda: {
+                "round_num": 1,
+                "agent_id": 1,
+                "agent_name": "Alice",
+                "platform": "twitter",
+                "action_type": "REPOST",
+                "success": True,
+                "timestamp": "2026-05-07T10:00:00",
+            }
+        ),
+    ]
+
+    with patch.object(SimulationRunner, "get_all_actions", return_value=mock_actions):
+        SimulationRunner._update_agent_evolution(state)
+
+    assert state.agent_evolution
+    assert "averages" in state.agent_evolution
+    assert "top_changed_agents" in state.agent_evolution
+    assert len(state.agent_evolution["top_changed_agents"]) <= 1
+
+
+def test_simulation_runner_update_agent_evolution_disabled_does_nothing():
+    """Test that _update_agent_evolution returns early when disabled."""
+    from app.services.simulation_runner import SimulationRunner
+
+    state = SimulationRunState(
+        simulation_id="test-sim-4",
+        runner_status=RunnerStatus.RUNNING,
+        agent_evolution_enabled=False,
+    )
+
+    SimulationRunner._update_agent_evolution(state)
+    assert state.agent_evolution == {}

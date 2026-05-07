@@ -601,6 +601,9 @@ class SimulationRunner:
                         reddit_actions_log, reddit_position, state, "reddit"
                     )
                 
+                # 更新 agent evolution
+                cls._update_agent_evolution(state)
+                
                 # 更新状态
                 cls._save_run_state(state)
                 time.sleep(2)
@@ -1070,6 +1073,19 @@ class SimulationRunner:
         
         return actions
     
+    @classmethod
+    def _update_agent_evolution(cls, state: SimulationRunState) -> None:
+        """Update agent evolution state based on recorded actions."""
+        from .agent_evolution import EvolutionService, EvolutionPolicy, summarize_evolution
+
+        if not state.agent_evolution_enabled:
+            return
+
+        actions = [a.to_dict() for a in cls.get_all_actions(state.simulation_id)]
+        policy = EvolutionPolicy.from_name(state.agent_evolution_preset or "stable")
+        result = EvolutionService(policy=policy).advance_all_rounds(actions)
+        state.agent_evolution = summarize_evolution(result)
+
     @classmethod
     def get_all_actions(
         cls,
