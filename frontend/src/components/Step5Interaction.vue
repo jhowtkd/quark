@@ -713,7 +713,7 @@ import FeedbackWidget from './FeedbackWidget.vue'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { chatWithReport, getReport, getAgentLog } from '../api/report'
-import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts } from '../api/simulation'
+import { interviewAgents, getSimulationProfilesRealtime, getSimulation, getAgentStats, getSimulationTimeline, getSimulationActions, getSimulationPosts, getRunStatusDetail } from '../api/simulation'
 import ActionExplorer from './ActionExplorer.vue'
 import SimulationCompare from './SimulationCompare.vue'
 import AgentEvolutionInspector from './simulation/AgentEvolutionInspector.vue'
@@ -1335,12 +1335,13 @@ const loadDashboardStats = async () => {
   if (!props.simulationId) return
   dashboardLoading.value = true
   try {
-    const [simRes, agentRes, actionsRes, redditRes, twitterRes] = await Promise.all([
+    const [simRes, agentRes, actionsRes, redditRes, twitterRes, runStatusRes] = await Promise.all([
       getSimulation(props.simulationId),
       getAgentStats(props.simulationId),
       getSimulationActions(props.simulationId, { limit: 1 }),
       getSimulationPosts(props.simulationId, 'reddit', 1, 0),
-      getSimulationPosts(props.simulationId, 'twitter', 1, 0)
+      getSimulationPosts(props.simulationId, 'twitter', 1, 0),
+      getRunStatusDetail(props.simulationId)
     ])
 
     let agents = 0
@@ -1369,9 +1370,9 @@ const loadDashboardStats = async () => {
       ioValidation.value = null
     }
 
-    // Parse agent_evolution from simulation response
-    if (simRes.success && simRes.data && simRes.data.agent_evolution) {
-      evolutionData.value = simRes.data.agent_evolution
+    // Parse agent_evolution from run status detail (SimulationRunState)
+    if (runStatusRes.success && runStatusRes.data && runStatusRes.data.agent_evolution) {
+      evolutionData.value = runStatusRes.data.agent_evolution
     } else {
       evolutionData.value = {}
     }

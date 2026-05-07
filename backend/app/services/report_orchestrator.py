@@ -108,6 +108,9 @@ class ReportOrchestratorService:
             profile.apply_to_report_agent(agent)
             logger.info(f"Relatorio perfil aplicado: {profile.profile_type.value} para sim={simulation_id}")
 
+            # Rebuild system prompt to preserve evolution evidence rules after profile override
+            agent.system_prompt = agent._build_system_prompt()
+
             # Progress callback
             def progress_callback(stage, progress, message):
                 task_manager.update_task(

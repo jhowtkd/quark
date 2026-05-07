@@ -61,3 +61,40 @@ def test_orchestrator_passes_evolution_to_agent():
 
         context = ReportOrchestratorService.resolve_generation_context("sim1", {})
         assert "agent_evolution" in context
+
+
+def test_profile_application_preserves_evidence_rules():
+    """Test that applying a profile after init does not remove evolution evidence rules."""
+    from app.profiles import ProfileManager
+
+    agent = ReportAgent(
+        graph_id="g1",
+        simulation_id="sim1",
+        simulation_requirement="test",
+        agent_evolution={
+            "summary": {
+                "averages": {"fatigue": 0.22},
+                "top_changed_agents": [],
+            },
+            "events": [],
+            "snapshots": {},
+        },
+    )
+
+    # Before profile application, prompt has evolution rules
+    prompt_before = agent.system_prompt
+    assert "Agent Evolution Evidence Rules" in prompt_before
+    assert "cite event causes" in prompt_before.lower()
+
+    # Apply profile (this overwrites system_prompt)
+    profile = ProfileManager().get_profile_or_default("generico")
+    profile.apply_to_report_agent(agent)
+
+    # After profile application, prompt should still have evolution rules
+    # This is what the orchestrator does:
+    agent.system_prompt = agent._build_system_prompt()
+
+    prompt_after = agent.system_prompt
+    assert "Agent Evolution Evidence Rules" in prompt_after
+    assert "cite event causes" in prompt_after.lower()
+    assert "insufficient" in prompt_after.lower()
